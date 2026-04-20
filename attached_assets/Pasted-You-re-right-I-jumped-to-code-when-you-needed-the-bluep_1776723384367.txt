@@ -1,0 +1,91 @@
+You're right. I jumped to code when you needed the blueprint. Let me look at these images properly and build the specification from what's actually in them.
+
+---
+
+## ORIGIN APP — DESIGN SPECIFICATION
+
+### THE GROUND: ONE SHEET OF LIVING PAPER
+
+The entire app is one continuous surface. There are no cards, no containers, no floating panels, no boxes with borders. Everything exists on the paper the way ink exists on paper, the way gold leaf exists on vellum. The paper is the only background, and it never breaks.
+
+The paper itself is warm cream, somewhere around `#F0E8D8` to `#EDE5D3`, with a realistic fibrous texture. In production this would be a high-resolution seamless paper texture image, subtle enough to feel tactile without competing with the elements on top. The deckled edges from the reference images won't apply to a full-screen app, but the interior texture quality does — that sense of soft grain, of a surface that has absorbed light for a long time.
+
+The paper is not flat. It has a very subtle depth variation, a faint warm shadow at the edges of the viewport as though the page has the slightest curl, as though you are looking at something physical sitting on a desk under warm directional light. This can be achieved with a very soft vignette using radial gradients, warm and barely perceptible, darkening toward `#D8CFC0` at the outermost edges.
+
+### THE WATERCOLOR LAYER
+
+Color arrives on this paper the way pigment moves through wet fibers. Each section of the app carries a watercolor wash that bleeds into the paper with soft, irregular edges. The washes use the existing palette — gold amber for warmth, teal green for depth, and the full range between them depending on the emotional register of the section.
+
+These washes are not CSS gradients with smooth falloff. They need to feel like actual watercolor, which means irregular edges, areas where the pigment pools darker, areas where it thins to almost nothing, occasional blooms where water pushed pigment sideways. In implementation this is likely a set of pre-rendered watercolor wash PNG overlays with transparency, composited behind the structural elements but on top of the paper texture. Each screen or section gets its own wash composition.
+
+The Origin section might carry a warm amber wash bleeding in from the upper left, thinning as it moves down. The Calling might have a deeper, more turbulent wash with teal undertones. The Vision might open into lighter, more golden territory. The wash sets the emotional temperature before the user reads a single word.
+
+Transitions between sections should feel like the color is breathing — the wash for the current section fades in slowly (600-800ms), pooling into place as though water is moving through the paper fibers in real time. When transitioning out, the color doesn't snap away, it recedes, dries, leaving the paper slightly stained as the new wash begins to bloom.
+
+### THE GOLD STRUCTURAL LAYER
+
+Gold is the skeleton. It does everything that borders and dividers and navigation chrome would do in a conventional app, but it does it as hand-drawn linework applied directly to the paper surface. Looking at Image 2's top navigation bar, this is the model:
+
+**Navigation structure:** The top menu is a geometric frame drawn in thin gold lines, with small geometric nodes at connection points. The lines are slightly irregular — they have the quality of being drawn with a ruling pen rather than rendered by software. The intersections are intentional, with small diamond or triangular junction marks where lines meet. Icons sit within or along these lines as part of the frame, connected to the structure by the linework itself rather than floating independently.
+
+The gold color is warm and rich, around `#C4A35A` to `#B8924A`, and it should have a subtle luminous quality as though catching ambient light. In the reference images, the gold has slight variation in density — thicker where the pen pressed harder, thinner where it lifted. This irregularity is essential. Perfectly uniform strokes read as digital. Slightly varied strokes read as made.
+
+**Section dividers** are not horizontal rules. They are vine-like organic lines with small leaf or seed-pod flourishes growing from them, drawn in gold. Look at Image 1 — the vine that runs from the compass rose across the top carries small botanical elements that emerge naturally from the line. These dividers feel grown, as though the structural framework is alive and sprouting.
+
+**Icons** are gold line drawings with the quality of engraving or nib-pen illustration. The compass rose, the scroll, the leaf motifs — all drawn with thin lines and minimal fill, using the paper itself as the "white" of the icon. These should feel like they belong in a naturalist's field journal or a cartographer's legend. They are never filled solid. They are always linework.
+
+**Borders do not exist.** There are no rectangular containers. When a section needs to be delineated, it is done through the gold structural linework — a partial frame, an L-shaped corner bracket with a small flourish, a ruling line with a glyph at its center. The content breathes on the open paper rather than being contained in boxes.
+
+### THE TEAL LIVING LAYER
+
+Teal is the energy. It is the thing that responds, that glows, that tells you something is alive and listening. Looking at both reference images, the teal does several specific things:
+
+**Bioluminescent glow on active elements.** When something is interactive or currently active, it emanates teal light. This is not a flat color change — it is a glow that casts soft light onto the paper around the element, the way a firefly illuminates the leaves near it. In CSS terms this is layered box-shadows with generous spread and low opacity, plus a subtle radial gradient behind the element. The glow extends 15-25px beyond the element's boundary at full intensity.
+
+**Brushstroke text highlights.** In Image 1, the menu items (Inner Atlas, Reflections, Seeds of Thought, Intentions) sit on top of teal brushstroke shapes. These are not rectangles with rounded corners. They are irregular, textured, with the ragged edges of an actual brush loaded with pigment dragged across paper. Each one is slightly different. In implementation, these would be individual SVG paths or small PNG brushstroke textures, each unique, with the teal color and a soft glow emanating from behind the text.
+
+**The orb.** Image 1 has a circular element that serves as a primary action point — teal-filled with a subtle spiral pattern inside, ringed by a warm gold circle that catches the teal light and glows amber where they meet. This is the model for primary interactive elements: a teal center with luminous energy, contained by gold structure, the two colors interacting at the boundary to create a warm halo.
+
+**The tree.** Image 2 has an extraordinary element — a branching tree or root system drawn in teal with bioluminescent nodes at the branch tips and intersections. The nodes glow, casting light onto the paper and onto the branches near them. The branches themselves are drawn with the quality of ink on paper, with variation in line weight and organic irregularity. This is the model for any data visualization, progress tracking, or relational mapping in the app — information displayed as organic, living, luminous growth rather than as charts or progress bars.
+
+**Transition behavior:** When an element becomes active, the teal glow should bloom in from the center outward over 400-500ms, as though the light is kindling. When it deactivates, the glow should fade slowly (600ms), lingering slightly the way phosphorescence lingers after the light source dims. The gold structural elements near an active teal element should pick up a subtle warm reflection, as though the teal light is catching the gold leaf.
+
+### TYPOGRAPHY
+
+Looking at both reference images, the typography has a very specific character: all caps, generous letter-spacing, serif forms that feel hand-lettered rather than typeset. The letters have slight variation in baseline and weight that gives them the quality of inscription.
+
+**Display/headings:** Pherome, the existing brand typeface, used for section titles and major headings. All caps. Letter-spacing around 3-5px depending on size. Size range from 28pt for major arc titles down to 18pt for section headers.
+
+**Body/secondary text:** The reference images show a hand-lettered quality that won't come from a standard font at body sizes. For body text, use the existing system (Century Gothic/Futura) at small sizes where legibility matters, but for labels, menu items, and UI text, lean toward a font with that inscribed quality — something like Cinzel, Cormorant SC, or EB Garamond SC in small caps with generous tracking.
+
+**Menu item labels** (like "Inner Atlas," "Reflections" in Image 1) appear hand-written in a slightly irregular serif. These are rendered at roughly 16-20px equivalent, all caps, with character spacing that breathes. They sit on the brushstroke highlights, so the teal ground gives them contrast against the paper.
+
+**Color behavior of type:** Labels and titles are gold when dormant and teal-glow when active. Body text is a warm dark brown, never black — around `#3A3530` to `#4A4035`, the color of aged ink rather than fresh print.
+
+### INTERACTIVE ELEMENTS
+
+**Buttons** do not look like buttons. They are areas of the page where the gold structure thickens slightly, where a small icon or glyph indicates interactivity, and where the teal glow blooms on hover or touch. The "button" in Image 1 is the orb — a circular focal point. Other interactive affordances might be a section of gold linework that brightens on hover, a small seed icon that opens into a bloom of teal light when tapped.
+
+**Sliders and controls** (visible at the bottom of Image 1) are integrated into the gold structural layer. The slider track is a thin gold line. The handle is a small gold element, perhaps flame-shaped as in the reference. Active state adds teal glow to the handle and a subtle teal tint to the filled portion of the track.
+
+**Navigation tabs** (Image 2 top) are not separate rectangular tabs. They are positions along a gold structural frame, marked by small icons connected by the linework. The active position glows teal. The inactive positions remain gold. Moving between them should feel like energy traveling along the gold lines to the new position — a brief teal pulse traveling the path of the connecting linework.
+
+### TRANSITIONS AND ANIMATION
+
+Everything should feel organic and slow enough to register as intentional. No snapping, no instant state changes.
+
+**Page transitions:** The watercolor wash fades and re-blooms (800ms). Content fades at 400ms, offset by 100ms from the wash change so the paper is briefly visible between states. Gold structural elements for the new section draw themselves in — the lines extend from their starting points as though being drawn by an invisible hand (600ms, eased). Teal elements kindle last (200ms after structure completes).
+
+**Scroll behavior:** As the user scrolls, the watercolor wash should shift subtly, the color temperature changing with depth the way light changes as you descend into water. Gold structural elements at the edges of the viewport should have a very subtle parallax relative to the content, as though the structural framework is printed on a slightly different plane than the content it holds.
+
+**Element entry:** New elements appearing on scroll should not slide or bounce in. They should fade in with a very subtle scale from 98% to 100%, giving the impression of something coming into focus rather than moving into position. Teal elements get an additional glow-kindle effect on entry.
+
+**Hover/touch response:** Gold elements warm slightly on hover (shift toward `#D4B56A`, 200ms). Active tap/click adds the teal glow bloom (400ms in, 600ms out). Long-press on a section could trigger the teal glow to pulse gently, as though the element is breathing.
+
+### WHAT BREAKS THIS AESTHETIC
+
+Anything with a rectangular border. Any flat background color block. Any element that looks like it was placed on top of the page rather than drawn into it. Any glow that reads as neon rather than bioluminescent (the teal should always feel like it comes from within, never like a colored light shining on the surface). Any typeface that reads as digital or sans-serif in headlines. Any icon that looks like a standard UI icon library. Any transition faster than 300ms. Any symmetry that feels mechanical rather than balanced. Solid fills on anything other than the teal active elements and even those should have internal texture or variation. Drop shadows that suggest elevation, as if elements are floating above the paper — everything is ON the paper, part of it.
+
+---
+
+That's the system. Tell me where to push deeper or where I've misread what you're seeing in these references.
