@@ -5,6 +5,7 @@ export interface Palette {
   veil: string;
   glow: string;
   shadow?: string;
+  dark?: boolean;
 }
 
 export interface BreathConfig {
@@ -71,7 +72,8 @@ const CHAPTERS: Chapter[] = [
       accent: "#c89838",
       veil: "#e3d6b2",
       glow: "#4ff0d6",
-      shadow: "#8a5a24"
+      shadow: "#8a5a24",
+      dark: false
     },
     invocation: "Your whole life — the entire arc, even your wildest success — is the prologue to what comes next. We are going to reconnect with who you were before the world started shaping you, and watch the whole arc unfold as one story going somewhere all along.",
     code: {
@@ -124,12 +126,13 @@ const CHAPTERS: Chapter[] = [
     title: "The Wound",
     subtitle: "Discover that what broke you is exactly what built you.",
     palette: {
-      bg: "#e3c9b6",
-      ink: "#4a1e1a",
-      shadow: "#8a2530",
-      accent: "#c89838",
-      veil: "#dfb5a0",
-      glow: "#4ff0d6"
+      bg: "#1c080e",
+      ink: "#f0d4c4",
+      accent: "#d47060",
+      veil: "#3a1018",
+      glow: "#c05040",
+      shadow: "#8a1020",
+      dark: true
     },
     invocation: "Every character carries a wound. The wound drives the quest, qualifies the hero, connects them to everyone carrying the same mark. You are about to look directly at the wound the character you just described has been carrying. The wound does not appreciate being examined. The closer you look, the louder the alarms. Those alarms are the treasure.",
     code: {
@@ -191,12 +194,13 @@ const CHAPTERS: Chapter[] = [
     title: "The Gift",
     subtitle: "Hold your life as a gift and watch what it becomes.",
     palette: {
-      bg: "#cfd8c0",
-      ink: "#1f3a28",
-      accent: "#c89838",
-      veil: "#c0cca8",
-      glow: "#4ff0d6",
-      shadow: "#8a2838"
+      bg: "#061808",
+      ink: "#c4dbc0",
+      accent: "#68b870",
+      veil: "#0e3016",
+      glow: "#30d070",
+      shadow: "#0a5020",
+      dark: true
     },
     invocation: "Life is a gift. You are the gift. If that sounds like a greeting card, let it land before you dismiss it: if your life is a gift, then everything in it was given — the beauty and the breaking, the losses and the lucky accidents. Gratitude is the master alchemist. It does not change what happened. It changes what it means.",
     code: {
@@ -215,8 +219,8 @@ const CHAPTERS: Chapter[] = [
         kind: "gratitude",
         title: "Place One Hand On Your Heart",
         body: "Feel gratitude as a physical sensation. For yourself, for surviving all of it. If someone shaped you through pain, thank them silently — for what it made you. Hold these in silence:",
-        items: [`What have I received?", "What have I given?", "What trouble have I caused?`],
-        keys: [`p3_received", "p3_given", "p3_caused`]
+        items: ["What have I received?", "What have I given?", "What trouble have I caused?"],
+        keys: ["p3_received", "p3_given", "p3_caused"]
       },
       {
         kind: "prompt",
@@ -233,7 +237,7 @@ const CHAPTERS: Chapter[] = [
         kind: "declaration",
         title: "I Am",
         body: `The wound said "I am not enough." Let new declarations rise from the gift. The purpose of life is to find your gift. The meaning of life is to give it away.`,
-        keys: [`p3_iam1", "p3_iam2", "p3_iam3`]
+        keys: ["p3_iam1", "p3_iam2", "p3_iam3"]
       },
       {
         kind: "threshold",
@@ -248,12 +252,13 @@ const CHAPTERS: Chapter[] = [
     title: "The Source",
     subtitle: "Discover that the force that shaped your story shaped everything.",
     palette: {
-      bg: "#b9cfcf",
-      ink: "#123038",
-      accent: "#c89838",
-      veil: "#a8c4c4",
-      glow: "#4ff0d6",
-      shadow: "#7a202e"
+      bg: "#04121c",
+      ink: "#b4d4e8",
+      accent: "#3898c8",
+      veil: "#0a2438",
+      glow: "#30c0e0",
+      shadow: "#0a3060",
+      dark: true
     },
     invocation: "The forces that shaped you did not begin with your birth. Their parents were shaped by theirs, all the way back, until you reach something that precedes all the wounds. Something underneath everything.",
     code: {
@@ -296,12 +301,13 @@ const CHAPTERS: Chapter[] = [
     title: "The Narrator",
     subtitle: "Meet the voice that constructed your entire reality.",
     palette: {
-      bg: "#c8c1d5",
-      ink: "#2a1e3a",
-      accent: "#c89838",
-      veil: "#b8afca",
+      bg: "#061a16",
+      ink: "#b4dcd4",
+      accent: "#30b8a0",
+      veil: "#0c3028",
       glow: "#4ff0d6",
-      shadow: "#8c1e2c"
+      shadow: "#084030",
+      dark: true
     },
     invocation: "Everything you excavated — the seed, the wound, the gift, the source — you built as separate threads. You are about to discover they were one fabric, woven by one loom. There is a voice in your head that has never stopped talking. You mistook it for thinking. You mistook it for you.",
     code: {
@@ -348,12 +354,13 @@ const CHAPTERS: Chapter[] = [
     title: "The Dream",
     subtitle: "Remember when you could build worlds.",
     palette: {
-      bg: "#a8c9bd",
-      ink: "#0e3830",
-      accent: "#c89838",
-      veil: "#94beaf",
-      glow: "#4ff0d6",
-      shadow: "#8a2334"
+      bg: "#e0f5ee",
+      ink: "#0c3028",
+      accent: "#18a880",
+      veil: "#c0e8dc",
+      glow: "#30c8a8",
+      shadow: "#0a5038",
+      dark: false
     },
     invocation: "Do you remember when you could imagine? Before anyone taught you to be practical, there was a time when you could walk into a field and build a civilization in the grass. That was the dreaming power. The most natural thing about you.",
     code: {
@@ -401,12 +408,13 @@ const CHAPTERS: Chapter[] = [
     title: "The Ending",
     subtitle: "Close the book and become the author.",
     palette: {
-      bg: "#f2e9ce",
-      ink: "#4a3820",
-      accent: "#c89838",
-      veil: "#e5d8b4",
-      glow: "#4ff0d6",
-      shadow: "#8a5a24"
+      bg: "#f8f8f4",
+      ink: "#282828",
+      accent: "#9ab4ac",
+      veil: "#e8f0ee",
+      glow: "#b8d8d0",
+      shadow: "#4a7a70",
+      dark: false
     },
     invocation: "The story that brought you here succeeded. It is finished. The stuckness you feel is the ache of something complete that has not been given permission to end. A story that never properly ends becomes a loop.",
     code: {

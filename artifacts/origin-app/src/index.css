@@ -13,6 +13,15 @@
   font-display: swap;
 }
 
+/* ─── Animated CSS Custom Properties ─────────────────────── */
+/* @property enables smooth color transitions on custom properties */
+@property --bg    { syntax: '<color>'; inherits: true; initial-value: #ece1c3; }
+@property --ink   { syntax: '<color>'; inherits: true; initial-value: #4a3a24; }
+@property --accent{ syntax: '<color>'; inherits: true; initial-value: #c89838; }
+@property --veil  { syntax: '<color>'; inherits: true; initial-value: #e3d6b2; }
+@property --glow  { syntax: '<color>'; inherits: true; initial-value: #4ff0d6; }
+@property --shadow{ syntax: '<color>'; inherits: true; initial-value: #8a5a24; }
+
 /* ─── Root tokens ─────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -54,7 +63,7 @@
 
 html, body {
   height: 100%;
-  background: #d4c9a8;
+  background: #1a1410;
   overflow: hidden;
 }
 
@@ -62,7 +71,7 @@ body {
   font-family: var(--font-body);
   font-size: 18px;
   font-weight: 400;
-  color: var(--paper-ink);
+  color: var(--ink);
   line-height: 1.6;
   letter-spacing: .005em;
   -webkit-font-smoothing: antialiased;
@@ -72,16 +81,24 @@ button { font-family: inherit; background: none; border: none; cursor: pointer; 
 input, textarea, select { font-family: inherit; color: inherit; }
 #root { height: 100vh; }
 
-/* ─── App shell — paper surface ──────────────────────────── */
+/* ─── App shell — paper surface with watercolor chapter transitions ─ */
 .app {
   position: relative;
   height: 100vh;
-  color: var(--paper-ink);
+  color: var(--ink);
   overflow: hidden;
-  background:
-    radial-gradient(ellipse 120% 90% at 50% 20%, rgba(255, 240, 200, 0.35), transparent 60%),
-    radial-gradient(ellipse 100% 80% at 50% 110%, rgba(140, 100, 50, 0.12), transparent 55%),
-    #ece1c3;
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(ellipse 120% 90% at 50% 20%, rgba(255, 255, 255, 0.07), transparent 60%),
+    radial-gradient(ellipse 100% 80% at 50% 110%, rgba(0, 0, 0, 0.06), transparent 55%);
+  /* Watercolor bleed: smoothly crossfade all chapter palette vars */
+  transition:
+    --bg     2.6s cubic-bezier(.4, 0, .2, 1),
+    --ink    2.2s cubic-bezier(.4, 0, .2, 1),
+    --accent 2.2s cubic-bezier(.4, 0, .2, 1),
+    --veil   2.4s cubic-bezier(.4, 0, .2, 1),
+    --glow   2.4s cubic-bezier(.4, 0, .2, 1),
+    --shadow 2.0s cubic-bezier(.4, 0, .2, 1);
 }
 
 /* Vignette overlay */
@@ -92,9 +109,8 @@ input, textarea, select { font-family: inherit; color: inherit; }
   pointer-events: none;
   z-index: 2;
   background:
-    radial-gradient(ellipse 110% 95% at 50% 50%, transparent 55%, rgba(90, 60, 20, 0.18) 100%),
-    linear-gradient(180deg, rgba(255, 240, 200, 0.12), transparent 20%, transparent 80%, rgba(90, 60, 20, 0.08));
-  mix-blend-mode: multiply;
+    radial-gradient(ellipse 110% 95% at 50% 50%, transparent 50%, rgba(0, 0, 0, 0.28) 100%),
+    linear-gradient(180deg, rgba(0,0,0,0.04), transparent 18%, transparent 82%, rgba(0,0,0,0.1));
 }
 
 /* ─── Backdrop — breathing veils ─────────────────────────── */
@@ -103,22 +119,22 @@ input, textarea, select { font-family: inherit; color: inherit; }
 
 .veil {
   position: absolute; border-radius: 50%;
-  filter: blur(140px); mix-blend-mode: multiply; opacity: .5;
-  transition: background 1.8s ease;
+  filter: blur(130px); opacity: .7;
+  /* veils use chapter palette vars — they animate with the chapter crossfade */
 }
 .veil-1 {
-  width: 60vw; height: 60vw; top: -20vw; left: -10vw;
-  background: radial-gradient(circle, rgba(200, 160, 80, 0.25) 0%, transparent 65%);
+  width: 65vw; height: 65vw; top: -22vw; left: -12vw;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 28%, transparent) 0%, transparent 65%);
   animation: breathe 16s ease-in-out infinite;
 }
 .veil-2 {
-  width: 55vw; height: 55vw; bottom: -18vw; right: -8vw;
-  background: radial-gradient(circle, rgba(180, 140, 70, 0.18) 0%, transparent 65%);
+  width: 60vw; height: 60vw; bottom: -20vw; right: -10vw;
+  background: radial-gradient(circle, color-mix(in srgb, var(--glow) 18%, transparent) 0%, transparent 65%);
   animation: breathe 20s ease-in-out infinite reverse;
 }
 .veil-3 {
-  width: 45vw; height: 45vw; top: 25vh; left: 42vw;
-  background: radial-gradient(circle, rgba(160, 120, 60, 0.14) 0%, transparent 70%);
+  width: 50vw; height: 50vw; top: 20vh; left: 40vw;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 12%, transparent) 0%, transparent 70%);
   animation: drift 24s ease-in-out infinite;
 }
 @keyframes breathe { 0%,100% { transform: scale(1) translate(0,0); } 50% { transform: scale(1.08) translate(2vw,-2vh); } }
@@ -157,7 +173,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   font-variant: small-caps;
   font-size: 12px;
   letter-spacing: .32em;
-  color: var(--paper-ink);
+  color: var(--ink);
   opacity: .7;
   background: none;
 }
@@ -170,7 +186,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   letter-spacing: .3em;
   opacity: .65;
   display: flex; align-items: center; gap: 10px;
-  color: var(--paper-ink);
+  color: var(--ink);
 }
 .chapter-count::before {
   content: ""; display: block;
@@ -196,14 +212,14 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .spine-node {
   display: flex; align-items: center; gap: 12px;
   text-align: left; position: relative;
-  color: var(--paper-ink);
+  color: var(--ink);
   transition: transform .4s;
   background: none;
 }
 .spine-dot {
   display: block; width: 9px; height: 9px; border-radius: 50%;
-  background: rgba(120, 90, 40, 0.18);
-  box-shadow: 0 0 0 1px rgba(120, 90, 40, 0.28);
+  background: color-mix(in srgb, var(--ink) 18%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 28%, transparent);
   transition: all .6s cubic-bezier(.3,0,.3,1);
   position: relative;
 }
@@ -237,7 +253,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   font-family: var(--font-title);
   font-size: 13px; letter-spacing: .18em;
   min-width: 22px; opacity: .5;
-  color: var(--paper-ink);
+  color: var(--ink);
 }
 .spine-active .spine-roman {
   color: var(--teal-deep);
@@ -251,7 +267,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   text-transform: none;
   opacity: 0; transition: opacity .3s;
   white-space: nowrap;
-  color: var(--paper-ink);
+  color: var(--ink);
 }
 .spine:hover .spine-name { opacity: .65; }
 .spine-active .spine-name { opacity: 1; }
@@ -389,7 +405,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   max-width: 520px; margin: 0 auto 18px;
   font-family: var(--font-body);
   font-size: 20px; line-height: 1.7;
-  color: var(--paper-ink); opacity: .92;
+  color: var(--ink); opacity: .92;
   text-wrap: pretty;
 }
 .prelude-body.dim { opacity: .65; font-style: italic; }
@@ -410,9 +426,9 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .before-row {
   display: grid; grid-template-columns: 36px 1fr;
   gap: 16px; padding: 14px 20px;
-  background: rgba(140, 100, 50, 0.06);
+  background: color-mix(in srgb, var(--veil) 30%, transparent);
   border-radius: 2px;
-  box-shadow: inset 0 0 0 1px rgba(140, 100, 50, 0.18);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--shadow) 25%, transparent);
   align-items: center;
   position: relative;
 }
@@ -490,7 +506,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   font-family: var(--font-title);
   font-size: 22px; line-height: 1.75; font-style: italic;
   max-width: 620px; text-wrap: pretty;
-  color: var(--paper-ink); opacity: .92;
+  color: var(--ink); opacity: .92;
   padding: 22px 0 22px 28px;
   position: relative;
   border: none;
@@ -511,7 +527,10 @@ input, textarea, select { font-family: inherit; color: inherit; }
   position: relative; isolation: isolate;
   padding: 72px 60px 60px; border-radius: 3px;
   background:
-    linear-gradient(165deg, rgba(255, 245, 220, 0.55), rgba(200, 170, 110, 0.15) 60%, rgba(150, 110, 50, 0.08));
+    linear-gradient(165deg,
+      color-mix(in srgb, var(--veil) 55%, transparent),
+      color-mix(in srgb, var(--accent) 8%, transparent) 60%,
+      transparent);
   box-shadow:
     0 0 0 1px rgba(200, 150, 60, 0.55),
     0 8px 24px -8px rgba(100, 70, 20, 0.35),
@@ -563,13 +582,13 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .code-num {
   font-family: "Cormorant SC", serif; font-variant: small-caps;
   font-size: 11px; letter-spacing: .3em;
-  color: var(--paper-ink); opacity: .55; margin-left: auto;
+  color: var(--ink); opacity: .55; margin-left: auto;
 }
 .code-body {
   font-family: var(--font-title); font-style: italic;
   font-size: 26px; line-height: 1.55;
   text-wrap: pretty; position: relative; z-index: 2;
-  color: var(--paper-ink);
+  color: var(--ink);
 }
 
 /* ─── Scene tiles ─────────────────────────────────────────── */
@@ -606,7 +625,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .scene-body {
   font-family: var(--font-body);
   font-size: 20px; line-height: 1.75;
-  color: var(--paper-ink); opacity: .92;
+  color: var(--ink); opacity: .92;
   margin-bottom: 26px; max-width: 640px;
   text-wrap: pretty; white-space: pre-wrap;
 }
@@ -650,7 +669,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
 }
 .outside-note {
   font-family: var(--font-title); font-style: italic;
-  font-size: 16px; opacity: .85; color: var(--paper-ink);
+  font-size: 16px; opacity: .85; color: var(--ink);
 }
 
 /* threshold scene */
@@ -710,9 +729,9 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .journal {
   margin-top: 14px; position: relative;
   padding: 22px 24px 14px;
-  background: rgba(255, 250, 235, 0.55);
+  background: color-mix(in srgb, var(--veil) 55%, transparent);
   border-radius: 2px;
-  box-shadow: inset 0 0 0 1px rgba(200, 150, 60, 0.25);
+  box-shadow: inset 0 0 0 1px rgba(200, 150, 60, 0.18);
   transition: all .35s;
   overflow: hidden;
 }
@@ -725,7 +744,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   box-shadow: 0 0 6px rgba(200, 150, 60, 0.45);
 }
 .journal:focus-within {
-  background: rgba(255, 250, 235, 0.75);
+  background: color-mix(in srgb, var(--veil) 70%, transparent);
   box-shadow: inset 0 0 0 1px rgba(77, 240, 214, 0.35), 0 0 24px -4px rgba(45, 212, 194, 0.3);
 }
 .journal:focus-within::before {
@@ -738,7 +757,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   resize: vertical; outline: none;
   font-family: var(--font-body);
   font-size: 18px; line-height: 1.75;
-  color: var(--paper-ink); min-height: 60px;
+  color: var(--ink); min-height: 60px;
 }
 .journal textarea::placeholder {
   font-family: var(--font-title); font-style: italic;
@@ -752,7 +771,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   margin-top: 10px;
   font-family: "Cormorant SC", serif; font-variant: small-caps;
   font-size: 11px; letter-spacing: .32em;
-  color: var(--paper-ink); opacity: .55;
+  color: var(--ink); opacity: .55;
   display: flex; justify-content: space-between; align-items: center;
 }
 
@@ -799,7 +818,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .breath-label {
   font-family: var(--font-title); font-style: italic;
   font-size: 16px; max-width: 460px; text-align: center;
-  color: var(--paper-ink); opacity: .85;
+  color: var(--ink); opacity: .85;
 }
 .breath-controls {
   display: flex; align-items: center; gap: 18px;
@@ -880,7 +899,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .deck-nav {
   display: flex; align-items: center; justify-content: space-between;
   padding: 18px 40px 22px 240px; gap: 24px;
-  background: linear-gradient(180deg, transparent, rgba(236, 225, 195, 0.9));
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--bg) 95%, transparent));
   position: relative; z-index: 10;
 }
 
@@ -890,7 +909,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   display: flex; align-items: center; gap: 16px;
   font-family: "Cormorant SC", serif; font-variant: small-caps;
   font-size: 11px; letter-spacing: .22em;
-  color: var(--paper-ink); opacity: .85;
+  color: var(--ink); opacity: .85;
 }
 .nav-track {
   flex: 1; height: 1px; position: relative; overflow: visible;
@@ -944,9 +963,9 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .still-label, .move-sub {
   font-family: "Cormorant SC", serif; font-variant: small-caps;
   font-size: 11px; letter-spacing: .34em;
-  color: var(--paper-ink); opacity: .6;
+  color: var(--ink); opacity: .6;
 }
-.hint { font-family: var(--font-title); font-style: italic; font-size: 15px; color: var(--paper-ink); opacity: .7; }
+.hint { font-family: var(--font-title); font-style: italic; font-size: 15px; color: var(--ink); opacity: .7; }
 .move-dial {
   width: 140px; height: 140px; border-radius: 50%;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
@@ -1022,7 +1041,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   font-family: var(--font-title); font-style: italic;
   font-size: 15.5px; line-height: 1.6;
   opacity: .72; text-align: center; margin: 0;
-  color: var(--paper-ink);
+  color: var(--ink);
 }
 .after-line.after-shame {
   font-family: var(--font-mono); font-style: normal;
@@ -1037,17 +1056,17 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .voice-chip {
   display: flex; align-items: flex-start; gap: 14px;
   padding: 14px 18px;
-  background: rgba(255, 250, 235, 0.55);
+  background: color-mix(in srgb, var(--veil) 55%, transparent);
   border-radius: 2px;
   box-shadow: inset 3px 0 0 var(--gold-2), inset 0 0 0 1px rgba(200, 150, 60, 0.2);
 }
 .voice-quote { font-family: var(--font-title); font-style: italic; font-size: 17px; flex: 1; line-height: 1.5; }
-.voice-x { font-size: 20px; opacity: .4; transition: opacity .3s; color: var(--paper-ink); }
+.voice-x { font-size: 20px; opacity: .4; transition: opacity .3s; color: var(--ink); }
 .voice-x:hover { opacity: 1; }
 .voices-input {
   display: flex; gap: 10px; align-items: center;
   padding: 4px;
-  background: rgba(255, 250, 235, 0.4);
+  background: color-mix(in srgb, var(--veil) 40%, transparent);
   border-radius: 2px;
   box-shadow: inset 3px 0 0 var(--teal-core);
 }
@@ -1073,7 +1092,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
 }
 .decl-row input {
   flex: 1; background: transparent; border: none; outline: none;
-  font-family: var(--font-title); font-size: 28px; padding: 4px 0; color: var(--paper-ink);
+  font-family: var(--font-title); font-size: 28px; padding: 4px 0; color: var(--ink);
 }
 .decl-row input::placeholder { opacity: .3; }
 
@@ -1083,7 +1102,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .grat-q {
   font-family: var(--font-title); font-size: 21px; font-style: italic;
   opacity: .88; margin-bottom: 8px;
-  display: flex; align-items: baseline; gap: 14px; color: var(--paper-ink);
+  display: flex; align-items: baseline; gap: 14px; color: var(--ink);
 }
 .grat-q::before {
   content: counter(grat); counter-increment: grat;
@@ -1112,12 +1131,12 @@ input, textarea, select { font-family: inherit; color: inherit; }
   border-radius: 2px;
   box-shadow: inset 3px 0 0 var(--teal-halo);
 }
-.gather-line.fixed .gather-label { color: var(--paper-ink); -webkit-text-fill-color: var(--paper-ink); opacity: .92; margin-bottom: 0; }
+.gather-line.fixed .gather-label { color: var(--ink); -webkit-text-fill-color: var(--ink); opacity: .92; margin-bottom: 0; }
 
 /* ─── Broadcast ────────────────────────────────────────────── */
 .broadcast {
   margin-top: 18px; padding: 22px 24px 18px;
-  background: rgba(255, 250, 235, 0.5);
+  background: color-mix(in srgb, var(--veil) 50%, transparent);
   border-radius: 2px;
   box-shadow: inset 3px 0 0 var(--gold-2), inset 0 0 0 1px rgba(200, 150, 60, 0.2);
 }
@@ -1148,7 +1167,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .broadcast-ta {
   width: 100%; padding: 12px 0; background: transparent; border: none;
   font-family: var(--font-body); font-size: 18px; line-height: 1.75;
-  resize: vertical; outline: none; color: var(--paper-ink);
+  resize: vertical; outline: none; color: var(--ink);
 }
 
 /* ─── Finale ───────────────────────────────────────────────── */
@@ -1163,11 +1182,48 @@ input, textarea, select { font-family: inherit; color: inherit; }
 }
 .finale-words {
   font-family: var(--font-title); font-size: 72px; font-style: italic;
-  letter-spacing: .04em; margin-bottom: 18px; color: var(--paper-ink);
+  letter-spacing: .04em; margin-bottom: 18px; color: var(--ink);
 }
 .finale-sub {
   font-family: "Cormorant SC", serif; font-variant: small-caps;
   font-size: 12px; letter-spacing: .42em; opacity: .6;
+}
+
+/* ─── Dark chapter overrides ──────────────────────────────── */
+/* When --dark="true", override elements that were hardcoded for light chapters */
+.app[data-dark="true"] .tile::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--ink) 22%, transparent);
+}
+.app[data-dark="true"] .tile::-webkit-scrollbar-track {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+.app[data-dark="true"] .progress-bar {
+  background: color-mix(in srgb, var(--ink) 15%, transparent);
+}
+.app[data-dark="true"] .progress-done {
+  background: linear-gradient(90deg, var(--glow), var(--accent));
+}
+.app[data-dark="true"] .broadcast-track {
+  background: color-mix(in srgb, var(--ink) 20%, transparent);
+}
+.app[data-dark="true"] .broadcast-bar::after {
+  background: color-mix(in srgb, var(--ink) 20%, transparent);
+}
+/* Gold foil text already pops on dark — push glow a bit more */
+.app[data-dark="true"] .opener-roman,
+.app[data-dark="true"] .prelude-roman {
+  filter: drop-shadow(0 0 18px color-mix(in srgb, var(--accent) 50%, transparent));
+}
+/* Grain texture — slightly more subtle on dark to avoid noise overload */
+.app[data-dark="true"] .grain { opacity: .025; }
+/* Code card inner border needs softer gold on dark */
+.app[data-dark="true"] .code-card::before {
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+/* Separator lines adapt */
+.app[data-dark="true"] hr,
+.app[data-dark="true"] .sep {
+  border-color: color-mix(in srgb, var(--ink) 18%, transparent);
 }
 
 /* ─── Responsive ───────────────────────────────────────────── */

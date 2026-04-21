@@ -389,7 +389,7 @@ export default function App() {
     : currentTile?.kind || 'prelude';
 
   return (
-    <div className="app" style={rootStyle} data-stage={currentTile?.kind} data-chapter={currentCh}>
+    <div className="app" style={rootStyle} data-stage={currentTile?.kind} data-chapter={currentCh} data-dark={palette.dark ? "true" : "false"}>
       <Backdrop territoryKey={territory} />
 
       {!isOutside && (
