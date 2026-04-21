@@ -91,14 +91,14 @@ input, textarea, select { font-family: inherit; color: inherit; }
   background-image:
     radial-gradient(ellipse 120% 90% at 50% 20%, rgba(255, 255, 255, 0.07), transparent 60%),
     radial-gradient(ellipse 100% 80% at 50% 110%, rgba(0, 0, 0, 0.06), transparent 55%);
-  /* Watercolor bleed: smoothly crossfade all chapter palette vars */
+  /* Watercolor bleed: long slow crossfade, like pigment soaking through paper */
   transition:
-    --bg     2.6s cubic-bezier(.4, 0, .2, 1),
-    --ink    2.2s cubic-bezier(.4, 0, .2, 1),
-    --accent 2.2s cubic-bezier(.4, 0, .2, 1),
-    --veil   2.4s cubic-bezier(.4, 0, .2, 1),
-    --glow   2.4s cubic-bezier(.4, 0, .2, 1),
-    --shadow 2.0s cubic-bezier(.4, 0, .2, 1);
+    --bg     4.5s cubic-bezier(.6, 0, .4, 1),
+    --ink    4.0s cubic-bezier(.6, 0, .4, 1),
+    --accent 3.8s cubic-bezier(.6, 0, .4, 1),
+    --veil   4.2s cubic-bezier(.6, 0, .4, 1),
+    --glow   4.0s cubic-bezier(.6, 0, .4, 1),
+    --shadow 3.5s cubic-bezier(.6, 0, .4, 1);
 }
 
 /* Vignette overlay */
@@ -525,38 +525,56 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .tile-code .tile-inner { padding: 20px 0; }
 .code-card {
   position: relative; isolation: isolate;
-  padding: 72px 60px 60px; border-radius: 3px;
+  padding: 72px 60px 60px; border-radius: 1px;
+  /* Warm candlelit parchment fill — layered like vellum */
   background:
-    linear-gradient(165deg,
-      color-mix(in srgb, var(--veil) 55%, transparent),
-      color-mix(in srgb, var(--accent) 8%, transparent) 60%,
-      transparent);
+    radial-gradient(ellipse 75% 50% at 50% 10%, color-mix(in srgb, var(--gold-4) 22%, transparent), transparent 65%),
+    radial-gradient(ellipse 90% 60% at 80% 80%, color-mix(in srgb, var(--shadow) 8%, transparent), transparent 55%),
+    linear-gradient(170deg,
+      color-mix(in srgb, var(--veil) 65%, transparent) 0%,
+      color-mix(in srgb, var(--bg) 85%, transparent) 100%);
+  /* Multi-ring gold halo — like an illuminated seal pressed into wax */
   box-shadow:
-    0 0 0 1px rgba(200, 150, 60, 0.55),
-    0 8px 24px -8px rgba(100, 70, 20, 0.35),
-    0 30px 80px -30px rgba(77, 240, 214, 0.18);
+    0 0 0 1px  color-mix(in srgb, var(--gold-2) 60%, transparent),
+    0 0 0 3px  color-mix(in srgb, var(--gold-4) 28%, transparent),
+    0 0 0 6px  color-mix(in srgb, var(--gold-3) 12%, transparent),
+    0 0 28px -4px  color-mix(in srgb, var(--gold-2) 38%, transparent),
+    0 0 60px -8px  color-mix(in srgb, var(--glow)  18%, transparent),
+    0 16px 48px -16px rgba(0, 0, 0, 0.22);
 }
+/* Inner candlelight shimmer */
 .code-card::before {
   content: "";
-  position: absolute; inset: 10px;
-  border: 1px solid rgba(200, 150, 60, 0.6);
-  border-radius: 2px; pointer-events: none;
-  box-shadow: inset 0 0 12px rgba(255, 235, 170, 0.25), 0 0 8px rgba(200, 150, 60, 0.25);
+  position: absolute; inset: 0; pointer-events: none; border-radius: 1px;
+  background:
+    radial-gradient(ellipse 65% 35% at 50% -8%,
+      color-mix(in srgb, var(--gold-4) 35%, transparent), transparent 60%),
+    radial-gradient(ellipse 45% 25% at 15% 100%,
+      color-mix(in srgb, var(--shadow) 10%, transparent), transparent 55%);
 }
+/* Manuscript ornament corners — diamond pivot + extending arms + dot terminals */
 .code-card::after {
   content: "";
-  position: absolute; inset: 18px;
-  pointer-events: none;
+  position: absolute; inset: 18px; pointer-events: none;
   background:
-    linear-gradient(to right,  var(--gold-2) 0 28px, transparent 28px) top left /28px 1.5px no-repeat,
-    linear-gradient(to bottom, var(--gold-2) 0 28px, transparent 28px) top left /1.5px 28px no-repeat,
-    linear-gradient(to left,   var(--gold-2) 0 28px, transparent 28px) top right /28px 1.5px no-repeat,
-    linear-gradient(to bottom, var(--gold-2) 0 28px, transparent 28px) top right /1.5px 28px no-repeat,
-    linear-gradient(to right,  var(--gold-2) 0 28px, transparent 28px) bottom left /28px 1.5px no-repeat,
-    linear-gradient(to top,    var(--gold-2) 0 28px, transparent 28px) bottom left /1.5px 28px no-repeat,
-    linear-gradient(to left,   var(--gold-2) 0 28px, transparent 28px) bottom right /28px 1.5px no-repeat,
-    linear-gradient(to top,    var(--gold-2) 0 28px, transparent 28px) bottom right /1.5px 28px no-repeat;
-  filter: drop-shadow(0 1px 1px rgba(120, 80, 20, 0.35)) drop-shadow(0 0 4px rgba(230, 190, 100, 0.5));
+    /* Top-left: diamond + right arm + down arm */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'><polygon points='4,0 8,4 4,8 0,4' fill='%23c89838' opacity='0.88'/><line x1='8' y1='4' x2='52' y2='4' stroke='%23c89838' stroke-width='0.9' opacity='0.55'/><line x1='4' y1='8' x2='4' y2='52' stroke='%23c89838' stroke-width='0.9' opacity='0.55'/><circle cx='52' cy='4' r='2' fill='%23c89838' opacity='0.5'/><circle cx='4' cy='52' r='2' fill='%23c89838' opacity='0.5'/><circle cx='20' cy='4' r='1' fill='%23c89838' opacity='0.35'/><circle cx='4' cy='20' r='1' fill='%23c89838' opacity='0.35'/></svg>")
+      top left / 72px 72px no-repeat,
+    /* Top-right */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'><polygon points='68,0 72,4 68,8 64,4' fill='%23c89838' opacity='0.88'/><line x1='64' y1='4' x2='20' y2='4' stroke='%23c89838' stroke-width='0.9' opacity='0.55'/><line x1='68' y1='8' x2='68' y2='52' stroke='%23c89838' stroke-width='0.9' opacity='0.55'/><circle cx='20' cy='4' r='2' fill='%23c89838' opacity='0.5'/><circle cx='68' cy='52' r='2' fill='%23c89838' opacity='0.5'/><circle cx='52' cy='4' r='1' fill='%23c89838' opacity='0.35'/><circle cx='68' cy='20' r='1' fill='%23c89838' opacity='0.35'/></svg>")
+      top right / 72px 72px no-repeat,
+    /* Bottom-left */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'><polygon points='4,64 8,68 4,72 0,68' fill='%23c89838' opacity='0.88'/><line x1='8' y1='68' x2='52' y2='68' stroke='%23c89838' stroke-width='0.9' opacity='0.55'/><line x1='4' y1='64' x2='4' y2='20' stroke='%23c89838' stroke-width='0.9' opacity='0.55'/><circle cx='52' cy='68' r='2' fill='%23c89838' opacity='0.5'/><circle cx='4' cy='20' r='2' fill='%23c89838' opacity='0.5'/><circle cx='20' cy='68' r='1' fill='%23c89838' opacity='0.35'/><circle cx='4' cy='52' r='1' fill='%23c89838' opacity='0.35'/></svg>")
+      bottom left / 72px 72px no-repeat,
+    /* Bottom-right */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'><polygon points='68,64 72,68 68,72 64,68' fill='%23c89838' opacity='0.88'/><line x1='64' y1='68' x2='20' y2='68' stroke='%23c89838' stroke-width='0.9' opacity='0.55'/><line x1='68' y1='64' x2='68' y2='20' stroke='%23c89838' stroke-width='0.9' opacity='0.55'/><circle cx='20' cy='68' r='2' fill='%23c89838' opacity='0.5'/><circle cx='68' cy='20' r='2' fill='%23c89838' opacity='0.5'/><circle cx='52' cy='68' r='1' fill='%23c89838' opacity='0.35'/><circle cx='68' cy='52' r='1' fill='%23c89838' opacity='0.35'/></svg>")
+      bottom right / 72px 72px no-repeat;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--gold-2) 55%, transparent))
+          drop-shadow(0 1px 2px rgba(120, 80, 20, 0.28));
+}
+/* Dark chapter tweak for code card corners */
+.app[data-dark="true"] .code-card::before {
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
 }
 .code-head {
   display: flex; align-items: center; gap: 18px;
@@ -761,7 +779,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
 }
 .journal textarea::placeholder {
   font-family: var(--font-title); font-style: italic;
-  color: rgba(74, 58, 36, 0.4);
+  color: color-mix(in srgb, var(--ink) 35%, transparent);
 }
 .journal-big textarea {
   font-family: var(--font-title);
@@ -914,8 +932,8 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .nav-track {
   flex: 1; height: 1px; position: relative; overflow: visible;
   background: linear-gradient(90deg,
-    transparent 0%, rgba(140, 100, 50, 0.3) 10%,
-    rgba(140, 100, 50, 0.3) 90%, transparent 100%);
+    transparent 0%, color-mix(in srgb, var(--ink) 22%, transparent) 10%,
+    color-mix(in srgb, var(--ink) 22%, transparent) 90%, transparent 100%);
 }
 .nav-track::before, .nav-track::after {
   content: "";
