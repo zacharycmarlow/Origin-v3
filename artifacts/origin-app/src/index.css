@@ -12,6 +12,12 @@
   font-weight: 400;
   font-display: swap;
 }
+@font-face {
+  font-family: "FantasyMagist";
+  src: url("/fonts/FantasyMagist.otf") format("opentype");
+  font-weight: 400;
+  font-display: swap;
+}
 
 /* ─── Animated CSS Custom Properties ─────────────────────── */
 /* @property enables smooth color transitions on custom properties */
@@ -47,8 +53,9 @@
   --teal-halo: #2dd4c2;
 
   /* Typography */
-  --font-title: "Pherome", "Cormorant Garamond", Georgia, serif;
-  --font-display: "Pherome", "Cormorant Garamond", Georgia, serif;
+  --font-title: "Pherome", "FantasyMagist", "Cormorant Garamond", Georgia, serif;
+  --font-display: "Pherome", "FantasyMagist", "Cormorant Garamond", Georgia, serif;
+  --font-script: "FantasyMagist", "Cormorant Garamond", Georgia, serif;
   --font-body: "Futura", "Century Gothic", "Jost", "AppleGothic", Tahoma, sans-serif;
   --font-mono: "JetBrains Mono", "Menlo", monospace;
 
@@ -621,7 +628,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   color: var(--ink); opacity: .55; margin-left: auto;
 }
 .code-body {
-  font-family: "Cormorant Garamond", Georgia, serif;
+  font-family: var(--font-script);
   font-style: italic;
   font-size: 26px; line-height: 1.55;
   text-wrap: pretty; position: relative; z-index: 2;
@@ -705,7 +712,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
     drop-shadow(0 0 24px var(--teal-halo));
 }
 .outside-note {
-  font-family: var(--font-title); font-style: italic;
+  font-family: var(--font-script); font-style: italic;
   font-size: 16px; opacity: .85; color: var(--ink);
 }
 
@@ -797,7 +804,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   color: var(--ink); min-height: 60px;
 }
 .journal textarea::placeholder {
-  font-family: var(--font-title); font-style: italic;
+  font-family: var(--font-script); font-style: italic;
   color: color-mix(in srgb, var(--ink) 35%, transparent);
 }
 .journal-big textarea {
@@ -853,7 +860,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   text-shadow: 0 0 8px rgba(10, 107, 94, 0.8);
 }
 .breath-label {
-  font-family: var(--font-title); font-style: italic;
+  font-family: var(--font-script); font-style: italic;
   font-size: 16px; max-width: 460px; text-align: center;
   color: var(--ink); opacity: .85;
 }
@@ -982,7 +989,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   font-size: 11px; letter-spacing: .34em;
   color: var(--ink); opacity: .6;
 }
-.hint { font-family: var(--font-title); font-style: italic; font-size: 15px; color: var(--ink); opacity: .7; }
+.hint { font-family: var(--font-script); font-style: italic; font-size: 15px; color: var(--ink); opacity: .7; }
 .move-dial {
   width: 140px; height: 140px; border-radius: 50%;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
@@ -1029,7 +1036,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   color: var(--gold-2); margin-bottom: 6px;
 }
 .shame-body {
-  font-family: var(--font-title); font-style: italic;
+  font-family: var(--font-script); font-style: italic;
   font-size: 18px; line-height: 1.55; color: #f3e8d0;
 }
 .shame-btn {
@@ -1055,7 +1062,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   display: flex; flex-direction: column; gap: 10px;
 }
 .after-line {
-  font-family: var(--font-title); font-style: italic;
+  font-family: var(--font-script); font-style: italic;
   font-size: 15.5px; line-height: 1.6;
   opacity: .72; text-align: center; margin: 0;
   color: var(--ink);
@@ -1077,7 +1084,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   border-radius: 2px;
   box-shadow: inset 3px 0 0 var(--gold-2), inset 0 0 0 1px rgba(200, 150, 60, 0.2);
 }
-.voice-quote { font-family: var(--font-title); font-style: italic; font-size: 17px; flex: 1; line-height: 1.5; }
+.voice-quote { font-family: var(--font-script); font-style: italic; font-size: 17px; flex: 1; line-height: 1.5; }
 .voice-x { font-size: 20px; opacity: .4; transition: opacity .3s; color: var(--ink); }
 .voice-x:hover { opacity: 1; }
 .voices-input {
@@ -1089,7 +1096,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
 }
 .voices-input input {
   flex: 1; padding: 10px 14px; background: transparent; border: none;
-  font-size: 15px; font-family: var(--font-title); font-style: italic; outline: none;
+  font-size: 15px; font-family: var(--font-script); font-style: italic; outline: none;
 }
 
 /* ─── Declarations ─────────────────────────────────────────── */
