@@ -202,11 +202,64 @@ function OpenerTileView({ chapter, idx, total }: { chapter: Chapter; idx: number
   );
 }
 
+/* ─── Code card manuscript frame ────────────────────────── */
+function CodeCornerSvg() {
+  return (
+    <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      {/* Outer circle ring at pivot */}
+      <circle cx="11" cy="11" r="9.5" fill="none" stroke="currentColor" strokeWidth="0.8" strokeOpacity="0.55" />
+      {/* Inner circle */}
+      <circle cx="11" cy="11" r="5.5" fill="none" stroke="currentColor" strokeWidth="0.5" strokeOpacity="0.35" />
+      {/* Diamond inset */}
+      <polygon points="11,6.5 14.2,11 11,15.5 7.8,11" fill="currentColor" fillOpacity="0.8" />
+      {/* Compass ticks: north + east */}
+      <line x1="11" y1="0.5" x2="11" y2="-3.5" stroke="currentColor" strokeWidth="0.8" strokeOpacity="0.45" />
+      <line x1="20.5" y1="11" x2="24.5" y2="11" stroke="currentColor" strokeWidth="0.8" strokeOpacity="0.45" />
+      {/* Small diagonal accents at 45° */}
+      <line x1="3.5" y1="3.5" x2="1" y2="1" stroke="currentColor" strokeWidth="0.6" strokeOpacity="0.3" />
+      {/* Right arm */}
+      <line x1="21" y1="11" x2="69" y2="11" stroke="currentColor" strokeWidth="0.85" strokeOpacity="0.45" />
+      {/* Arm decoration 1 — ring·dot at 1/3 */}
+      <circle cx="37" cy="11" r="3" fill="none" stroke="currentColor" strokeWidth="0.65" strokeOpacity="0.4" />
+      <circle cx="37" cy="11" r="1.1" fill="currentColor" fillOpacity="0.6" />
+      {/* Arm decoration 2 — tick at 2/3 */}
+      <line x1="52" y1="8" x2="52" y2="14" stroke="currentColor" strokeWidth="0.75" strokeOpacity="0.35" />
+      <line x1="50" y1="11" x2="54" y2="11" stroke="currentColor" strokeWidth="0.5" strokeOpacity="0.25" />
+      {/* Arm terminal */}
+      <circle cx="69" cy="11" r="3.5" fill="none" stroke="currentColor" strokeWidth="0.7" strokeOpacity="0.42" />
+      <circle cx="69" cy="11" r="1.4" fill="currentColor" fillOpacity="0.55" />
+      {/* Down arm */}
+      <line x1="11" y1="21" x2="11" y2="69" stroke="currentColor" strokeWidth="0.85" strokeOpacity="0.45" />
+      {/* Arm decoration 1 — ring·dot */}
+      <circle cx="11" cy="37" r="3" fill="none" stroke="currentColor" strokeWidth="0.65" strokeOpacity="0.4" />
+      <circle cx="11" cy="37" r="1.1" fill="currentColor" fillOpacity="0.6" />
+      {/* Arm decoration 2 — tick */}
+      <line x1="8" y1="52" x2="14" y2="52" stroke="currentColor" strokeWidth="0.75" strokeOpacity="0.35" />
+      <line x1="11" y1="50" x2="11" y2="54" stroke="currentColor" strokeWidth="0.5" strokeOpacity="0.25" />
+      {/* Arm terminal */}
+      <circle cx="11" cy="69" r="3.5" fill="none" stroke="currentColor" strokeWidth="0.7" strokeOpacity="0.42" />
+      <circle cx="11" cy="69" r="1.4" fill="currentColor" fillOpacity="0.55" />
+    </svg>
+  );
+}
+
+function CodeFrame() {
+  return (
+    <div className="code-frame" aria-hidden="true">
+      <span className="code-corner code-corner--tl"><CodeCornerSvg /></span>
+      <span className="code-corner code-corner--tr"><CodeCornerSvg /></span>
+      <span className="code-corner code-corner--bl"><CodeCornerSvg /></span>
+      <span className="code-corner code-corner--br"><CodeCornerSvg /></span>
+    </div>
+  );
+}
+
 function CodeTileView({ chapter }: { chapter: Chapter }) {
   return (
     <div className="tile tile-code">
       <div className="tile-inner">
         <div className="code-card">
+          <CodeFrame />
           <div className="code-head">
             <div className="code-mark"><CodeGlyph /></div>
             <div className="code-label">{chapter.code.title}</div>
