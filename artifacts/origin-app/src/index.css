@@ -47,9 +47,9 @@
   --teal-halo: #2dd4c2;
 
   /* Typography */
-  --font-title: "Pherome", "Cormorant Garamond", "Cormorant SC", Georgia, serif;
-  --font-display: "Cormorant SC", "Cormorant Garamond", serif;
-  --font-body: "EB Garamond", "Cormorant Garamond", Georgia, serif;
+  --font-title: "Pherome", "Cormorant Garamond", Georgia, serif;
+  --font-display: "Pherome", "Cormorant Garamond", Georgia, serif;
+  --font-body: "Futura", "Century Gothic", "Jost", "AppleGothic", Tahoma, sans-serif;
   --font-mono: "JetBrains Mono", "Menlo", monospace;
 
   /* Chapter CSS vars (overridden per-chapter via inline style on .app) */
@@ -91,14 +91,14 @@ input, textarea, select { font-family: inherit; color: inherit; }
   background-image:
     radial-gradient(ellipse 120% 90% at 50% 20%, rgba(255, 255, 255, 0.07), transparent 60%),
     radial-gradient(ellipse 100% 80% at 50% 110%, rgba(0, 0, 0, 0.06), transparent 55%);
-  /* Watercolor bleed: long slow crossfade, like pigment soaking through paper */
+  /* Watercolor bleed: smooth crossfade, like pigment soaking through paper */
   transition:
-    --bg     4.5s cubic-bezier(.6, 0, .4, 1),
-    --ink    4.0s cubic-bezier(.6, 0, .4, 1),
-    --accent 3.8s cubic-bezier(.6, 0, .4, 1),
-    --veil   4.2s cubic-bezier(.6, 0, .4, 1),
-    --glow   4.0s cubic-bezier(.6, 0, .4, 1),
-    --shadow 3.5s cubic-bezier(.6, 0, .4, 1);
+    --bg     2.2s cubic-bezier(.6, 0, .4, 1),
+    --ink    2.0s cubic-bezier(.6, 0, .4, 1),
+    --accent 1.8s cubic-bezier(.6, 0, .4, 1),
+    --veil   2.0s cubic-bezier(.6, 0, .4, 1),
+    --glow   2.0s cubic-bezier(.6, 0, .4, 1),
+    --shadow 1.8s cubic-bezier(.6, 0, .4, 1);
 }
 
 /* Vignette overlay — soft, no hard edges during transitions */
@@ -174,8 +174,8 @@ input, textarea, select { font-family: inherit; color: inherit; }
 
 .mark {
   display: inline-flex; align-items: center; gap: 10px;
-  font-family: "Cormorant SC", serif;
-  font-variant: small-caps;
+  font-family: var(--font-title);
+  text-transform: uppercase;
   font-size: 12px;
   letter-spacing: .32em;
   color: var(--ink);
@@ -185,11 +185,12 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .mark:hover { opacity: 1; }
 
 .chapter-count {
-  font-family: "Cormorant SC", serif;
-  font-variant: small-caps;
-  font-size: 12px;
-  letter-spacing: .3em;
-  opacity: .65;
+  font-family: var(--font-title);
+  font-size: 13px;
+  letter-spacing: .22em;
+  font-weight: 500;
+  opacity: .9;
+  text-transform: uppercase;
   display: flex; align-items: center; gap: 10px;
   color: var(--ink);
 }
@@ -266,8 +267,8 @@ input, textarea, select { font-family: inherit; color: inherit; }
   text-shadow: 0 0 8px rgba(77, 240, 214, 0.45);
 }
 .spine-name {
-  font-family: "Cormorant SC", serif;
-  font-variant: small-caps;
+  font-family: var(--font-title);
+  text-transform: uppercase;
   font-size: 11px; letter-spacing: .28em;
   text-transform: none;
   opacity: 0; transition: opacity .3s;
@@ -322,8 +323,8 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .tile-header {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 36px;
-  font-family: "Cormorant SC", serif;
-  font-variant: small-caps;
+  font-family: var(--font-title);
+  text-transform: uppercase;
   font-size: 12px; letter-spacing: .35em;
   opacity: .55;
 }
@@ -374,8 +375,8 @@ input, textarea, select { font-family: inherit; color: inherit; }
 @keyframes rotate-slow { to { transform: rotate(360deg); } }
 
 .prelude-eyebrow {
-  font-family: "Cormorant SC", serif;
-  font-variant: small-caps;
+  font-family: var(--font-title);
+  text-transform: uppercase;
   font-size: 12px; letter-spacing: .4em;
   color: var(--teal-ink);
   opacity: .85; margin-bottom: 22px;
@@ -397,11 +398,11 @@ input, textarea, select { font-family: inherit; color: inherit; }
     drop-shadow(0 1px 0 rgba(255, 235, 180, 0.45))
     drop-shadow(0 2px 2px rgba(120, 80, 20, 0.38))
     drop-shadow(0 0 16px rgba(230, 190, 100, 0.22));
-  font-variant: small-caps;
+  text-transform: uppercase;
 }
 .prelude-sub {
-  font-family: "Cormorant SC", serif;
-  font-variant: small-caps;
+  font-family: var(--font-title);
+  text-transform: uppercase;
   font-size: 12px; letter-spacing: .36em;
   color: var(--teal-ink); opacity: .85;
   margin-bottom: 36px;
@@ -422,8 +423,8 @@ input, textarea, select { font-family: inherit; color: inherit; }
   text-align: left;
 }
 .before-head {
-  font-family: "Cormorant SC", serif;
-  font-variant: small-caps;
+  font-family: var(--font-title);
+  text-transform: uppercase;
   font-size: 11px; letter-spacing: .4em;
   color: var(--teal-ink);
   margin-bottom: 6px; text-align: center;
@@ -459,8 +460,8 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .tile-opener .tile-inner { padding: 30px 0; }
 .opener-meta {
   display: flex; align-items: center; gap: 16px;
-  font-family: "Cormorant SC", serif;
-  font-variant: small-caps;
+  font-family: var(--font-title);
+  text-transform: uppercase;
   font-size: 12px; letter-spacing: .32em;
   opacity: .55; margin-bottom: 28px;
 }
@@ -481,7 +482,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
     drop-shadow(0 1px 0 rgba(255, 235, 180, 0.45))
     drop-shadow(0 2px 2px rgba(120, 80, 20, 0.38))
     drop-shadow(0 0 16px rgba(230, 190, 100, 0.22));
-  font-variant: small-caps;
+  text-transform: uppercase;
 }
 .opener-title {
   font-family: var(--font-title);
@@ -499,7 +500,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
     drop-shadow(0 1px 0 rgba(255, 235, 180, 0.45))
     drop-shadow(0 2px 2px rgba(120, 80, 20, 0.38))
     drop-shadow(0 0 16px rgba(230, 190, 100, 0.22));
-  font-variant: small-caps;
+  text-transform: uppercase;
 }
 .opener-sub {
   font-family: var(--font-title);
@@ -607,7 +608,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
     drop-shadow(0 0 10px rgba(77, 240, 214, 0.4));
 }
 .code-label {
-  font-family: "Cormorant SC", serif; font-variant: small-caps;
+  font-family: var(--font-title);
   font-size: 12px; letter-spacing: .42em;
   background: linear-gradient(155deg, var(--gold-4), var(--gold-1) 40%, var(--gold-2) 60%, var(--gold-4));
   -webkit-background-clip: text; background-clip: text;
@@ -615,7 +616,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   filter: drop-shadow(0 1px 1px rgba(120, 80, 20, 0.4));
 }
 .code-num {
-  font-family: "Cormorant SC", serif; font-variant: small-caps;
+  font-family: var(--font-title);
   font-size: 11px; letter-spacing: .3em;
   color: var(--ink); opacity: .55; margin-left: auto;
 }
@@ -647,7 +648,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
     drop-shadow(0 0 16px rgba(230, 190, 100, 0.22));
 }
 .scene-label {
-  font-family: "Cormorant SC", serif; font-variant: small-caps;
+  font-family: var(--font-title);
   font-size: 11px; letter-spacing: .42em;
   margin-bottom: 18px;
   display: inline-flex; align-items: center; gap: 10px;
@@ -752,7 +753,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
 }
 .threshold-rule::after {
   content: "the threshold";
-  font-family: "Cormorant SC", serif; font-variant: small-caps;
+  font-family: var(--font-title);
   font-size: 11px; letter-spacing: .46em;
   background: linear-gradient(155deg, var(--gold-4), var(--gold-1) 40%, var(--gold-2) 60%, var(--gold-4));
   -webkit-background-clip: text; background-clip: text;
@@ -804,7 +805,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
 }
 .journal-meta {
   margin-top: 10px;
-  font-family: "Cormorant SC", serif; font-variant: small-caps;
+  font-family: var(--font-title);
   font-size: 11px; letter-spacing: .32em;
   color: var(--ink); opacity: .55;
   display: flex; justify-content: space-between; align-items: center;
@@ -845,7 +846,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
 }
 .breath-phase {
   position: absolute;
-  font-family: "Cormorant SC", serif; font-variant: small-caps;
+  font-family: var(--font-title);
   font-size: 11px; letter-spacing: .38em;
   color: rgba(255, 250, 235, 0.95);
   text-shadow: 0 0 8px rgba(10, 107, 94, 0.8);
@@ -859,7 +860,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   display: flex; align-items: center; gap: 18px;
 }
 .breath-cycle {
-  font-family: "Cormorant SC", serif; font-variant: small-caps;
+  font-family: var(--font-title);
   font-size: 11px; letter-spacing: .3em; padding: 6px 14px;
   background: linear-gradient(155deg, var(--gold-4), var(--gold-1) 45%, var(--gold-2) 60%, var(--gold-4));
   -webkit-background-clip: text; background-clip: text;
@@ -873,7 +874,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   cursor: pointer;
   display: inline-flex; align-items: center; gap: 18px;
   padding: 14px 6px; margin-top: 16px;
-  font-family: "Cormorant SC", serif; font-variant: small-caps;
+  font-family: var(--font-title);
   font-size: 13px; letter-spacing: 0.32em;
   background:
     linear-gradient(155deg, var(--gold-4), var(--gold-1) 35%, var(--gold-2) 55%, var(--gold-3) 70%, var(--gold-1) 90%, var(--gold-4));
@@ -886,7 +887,6 @@ input, textarea, select { font-family: inherit; color: inherit; }
 
 /* Filigree ornament on each side */
 .primary-btn::before, .primary-btn::after,
-.nav-btn::before, .nav-btn::after,
 .shame-btn::before, .shame-btn::after,
 .btn-ghost::before, .btn-ghost::after {
   content: "";
@@ -901,7 +901,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   transition: all .9s cubic-bezier(.3,0,.3,1);
   flex-shrink: 0;
 }
-.primary-btn::after, .nav-btn::after, .shame-btn::after, .btn-ghost::after { transform: scaleX(-1); }
+.primary-btn::after, .shame-btn::after, .btn-ghost::after { transform: scaleX(-1); }
 
 .primary-btn:hover, .shame-btn:hover, .btn-ghost:hover,
 .nav-btn:hover:not(:disabled) {
@@ -920,11 +920,9 @@ input, textarea, select { font-family: inherit; color: inherit; }
     drop-shadow(0 1px 1px rgba(120, 80, 20, 0.4))
     drop-shadow(0 0 6px rgba(77, 240, 214, 0.55));
 }
-.nav-btn:hover:not(:disabled)::after,
 .primary-btn:hover::after, .shame-btn:hover::after, .btn-ghost:hover::after { transform: scaleX(-1); }
 
 .nav-btn { margin-top: 0; font-size: 12px; }
-.nav-btn::before, .nav-btn::after { opacity: .5; width: 40px; }
 .nav-btn:disabled { opacity: .22; cursor: default; pointer-events: none; }
 .btn-ghost { margin-top: 0; font-size: 12px; padding: 10px 4px; }
 .btn-ghost.small { font-size: 11px; padding: 6px 2px; gap: 12px; }
@@ -942,36 +940,19 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .nav-progress {
   flex: 1; max-width: 360px;
   display: flex; align-items: center; gap: 16px;
-  font-family: "Cormorant SC", serif; font-variant: small-caps;
+  font-family: var(--font-title);
   font-size: 11px; letter-spacing: .22em;
   color: var(--ink); opacity: .85;
 }
 .nav-track {
   flex: 1; height: 1px; position: relative; overflow: visible;
-  background: linear-gradient(90deg,
-    transparent 0%, color-mix(in srgb, var(--ink) 22%, transparent) 10%,
-    color-mix(in srgb, var(--ink) 22%, transparent) 90%, transparent 100%);
+  background: color-mix(in srgb, var(--teal-core) 25%, transparent);
 }
-.nav-track::before, .nav-track::after {
-  content: "";
-  position: absolute; top: 50%;
-  width: 22px; height: 12px; transform: translateY(-50%);
-  background-color: var(--gold-2);
-  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 24' fill='none' stroke='black' stroke-width='1.4' stroke-linecap='round'><path d='M2 12 C 10 12, 12 4, 20 12 C 28 20, 32 12, 42 12'/><circle cx='22' cy='12' r='1.6' fill='black' stroke='none'/></svg>");
-          mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 24' fill='none' stroke='black' stroke-width='1.4' stroke-linecap='round'><path d='M2 12 C 10 12, 12 4, 20 12 C 28 20, 32 12, 42 12'/><circle cx='22' cy='12' r='1.6' fill='black' stroke='none'/></svg>");
-  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
-  -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
-  opacity: .85;
-  filter: drop-shadow(0 1px 1px rgba(120, 80, 20, 0.35));
-}
-.nav-track::before { left: -26px; transform: translateY(-50%) scaleX(-1); }
-.nav-track::after { right: -26px; }
 .nav-track-fill {
   position: absolute; left: 0; top: -1px; bottom: -1px;
-  background: linear-gradient(90deg,
-    transparent 0%, var(--gold-3) 8%, var(--gold-1) 50%, var(--teal-core) 100%);
+  background: var(--teal-core);
   transition: width .9s cubic-bezier(.3,0,.3,1);
-  box-shadow: 0 0 10px rgba(77, 240, 214, 0.5), 0 0 4px rgba(200, 150, 60, 0.5);
+  box-shadow: 0 0 8px rgba(79, 240, 214, 0.65), 0 0 20px rgba(79, 240, 214, 0.25);
 }
 
 /* ─── Still / Move timers ─────────────────────────────────── */
@@ -996,7 +977,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
 }
 .move-num { position: relative; top: 0; font-size: 48px; }
 .still-label, .move-sub {
-  font-family: "Cormorant SC", serif; font-variant: small-caps;
+  font-family: var(--font-title);
   font-size: 11px; letter-spacing: .34em;
   color: var(--ink); opacity: .6;
 }
@@ -1054,7 +1035,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   position: relative; z-index: 2;
   padding: 11px 20px;
   background: var(--gold-2); color: #1a0a0e;
-  font-family: "Cormorant SC", serif; font-variant: small-caps;
+  font-family: var(--font-title);
   font-size: 11px; letter-spacing: .34em;
   white-space: nowrap; border-radius: 1px;
   box-shadow: 0 0 0 1px rgba(77, 240, 214, 0.4);
@@ -1141,7 +1122,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
 }
 .grat-q::before {
   content: counter(grat); counter-increment: grat;
-  font-family: "Cormorant SC", serif; font-variant: small-caps;
+  font-family: var(--font-title);
   font-size: 11px; letter-spacing: .2em;
   background: linear-gradient(155deg, var(--gold-4), var(--gold-1) 40%, var(--gold-2) 60%, var(--gold-4));
   -webkit-background-clip: text; background-clip: text;
@@ -1220,7 +1201,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   letter-spacing: .04em; margin-bottom: 18px; color: var(--ink);
 }
 .finale-sub {
-  font-family: "Cormorant SC", serif; font-variant: small-caps;
+  font-family: var(--font-title);
   font-size: 12px; letter-spacing: .42em; opacity: .6;
 }
 

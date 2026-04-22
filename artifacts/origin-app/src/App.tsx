@@ -342,11 +342,9 @@ function DeckNav({ tileIdx, total, go, tiles }: {
         <span className="label">back</span>
       </button>
       <div className="nav-progress">
-        <span>{String(tileIdx + 1).padStart(2, '0')}</span>
         <div className="nav-track">
           <div className="nav-track-fill" style={{ width: ((tileIdx + 1) / total) * 100 + '%' }} />
         </div>
-        <span>{String(total).padStart(2, '0')}</span>
       </div>
       <button className="nav-btn nav-fwd primary" onClick={() => go(tileIdx + 1)} disabled={tileIdx === total - 1}>
         <span className="label">{label}</span>
