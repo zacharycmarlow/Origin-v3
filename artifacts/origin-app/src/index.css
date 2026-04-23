@@ -18,6 +18,12 @@
   font-weight: 400;
   font-display: swap;
 }
+@font-face {
+  font-family: "Valmeria";
+  src: url("/fonts/Valmeria.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
 
 /* ─── Animated CSS Custom Properties ─────────────────────── */
 /* @property enables smooth color transitions on custom properties */
@@ -628,8 +634,8 @@ input, textarea, select { font-family: inherit; color: inherit; }
   color: var(--ink); opacity: .55; margin-left: auto;
 }
 .code-body {
-  font-family: var(--font-script);
-  font-style: italic;
+  font-family: "Valmeria", var(--font-script);
+  font-style: normal;
   font-size: 26px; line-height: 1.55;
   text-wrap: pretty; position: relative; z-index: 2;
   color: var(--ink);
