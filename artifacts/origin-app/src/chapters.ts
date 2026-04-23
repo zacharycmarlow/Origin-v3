@@ -354,12 +354,12 @@ const CHAPTERS: Chapter[] = [
     title: "The Dream",
     subtitle: "Remember when you could build worlds.",
     palette: {
-      bg: "#d6eef8",
-      ink: "#0c2838",
-      accent: "#2898c0",
-      veil: "#b0d8f0",
-      glow: "#50c8f0",
-      shadow: "#0a4060",
+      bg: "#c8ede0",
+      ink: "#0d2e24",
+      accent: "#2aaa8a",
+      veil: "#a4dcc8",
+      glow: "#3ecaaa",
+      shadow: "#0a4832",
       dark: false
     },
     invocation: "Do you remember when you could imagine? Before anyone taught you to be practical, there was a time when you could walk into a field and build a civilization in the grass. That was the dreaming power. The most natural thing about you.",
