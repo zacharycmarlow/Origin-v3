@@ -634,7 +634,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   color: var(--ink); opacity: .55; margin-left: auto;
 }
 .code-body {
-  font-family: "Valmeria", var(--font-script);
+  font-family: var(--font-script);
   font-style: normal;
   font-size: 26px; line-height: 1.55;
   text-wrap: pretty; position: relative; z-index: 2;
