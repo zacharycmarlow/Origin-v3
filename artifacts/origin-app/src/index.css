@@ -884,13 +884,20 @@ input, textarea, select { font-family: inherit; color: inherit; }
   padding: 14px 6px; margin-top: 16px;
   font-family: var(--font-title);
   font-size: 13px; letter-spacing: 0.32em;
+  /* Gradient uses mid-to-dark gold range so it reads on both light and dark backgrounds */
   background:
-    linear-gradient(155deg, var(--gold-4), var(--gold-1) 35%, var(--gold-2) 55%, var(--gold-3) 70%, var(--gold-1) 90%, var(--gold-4));
+    linear-gradient(155deg, var(--gold-2), var(--gold-1) 30%, var(--gold-2) 50%, var(--gold-3) 68%, var(--gold-2) 85%, var(--gold-1));
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
-  filter: drop-shadow(0 1px 1px rgba(120, 80, 20, 0.4));
+  filter: drop-shadow(0 1px 2px rgba(100, 60, 10, 0.55));
   position: relative; isolation: isolate;
   transition: letter-spacing .8s cubic-bezier(.3,0,.3,1), gap .8s cubic-bezier(.3,0,.3,1), filter .3s;
+}
+/* SVG arrows inside buttons: explicitly gold so they're never transparent */
+.primary-btn svg, .nav-btn svg, .shame-btn svg, .btn-ghost svg {
+  stroke: var(--gold-2);
+  overflow: visible;
+  filter: drop-shadow(0 1px 2px rgba(100, 60, 10, 0.55));
 }
 
 /* Filigree ornament on each side */
