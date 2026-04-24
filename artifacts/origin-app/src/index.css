@@ -964,8 +964,6 @@ input, textarea, select { font-family: inherit; color: inherit; }
   box-shadow: inset 0 0 0 1px rgba(200, 150, 60, 0.18);
 }
 .journal:focus-within::before {
-  background: linear-gradient(180deg,
-    transparent 0%, var(--teal-halo) 15%, var(--teal-core) 50%, var(--teal-halo) 85%, transparent 100%);
   box-shadow: 0 0 6px rgba(200, 150, 60, 0.45);
 }
 .journal-textarea-wrap {

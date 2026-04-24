@@ -1,0 +1,49 @@
+# Instruction 3: The Journal
+
+## What to add
+
+A third icon joins the toolbar: a small open book shape, gold (`#C4A265`), 28px. Sits below the Body icon. Tapping it opens a full-screen overlay.
+
+## The Overlay
+
+Full-screen, close X top-right. Neutral warm background (cream/off-white) regardless of which chapter the user is currently in. This makes the Journal feel like its own space, a personal artifact separate from the journey.
+
+## Layout
+
+**Top: Chapter Selector.** A horizontal row: "All" followed by I through VII. Tappable. Current chapter highlighted. Chapters the user hasn't reached are hidden (not grayed out, just absent). Defaults to the current chapter.
+
+**Below: Three Tabs.** Indicated by tab names with a thin gold underline on the active tab. Swipeable horizontally on mobile.
+
+### Tab 1: Spine
+
+Shows each writing prompt from the selected chapter followed by the user's response.
+
+- Prompt text: display font, smaller, muted color
+- User's response: body font, normal size, subtle left border in the chapter's color
+- If no response yet: prompt text with "[not yet written]" in muted italic
+- Divider between each prompt/response pair
+
+When "All" is selected: content from every completed chapter, organized under chapter headings with colored dividers.
+
+### Tab 2: Body
+
+- A small non-interactive body diagram at the top, with energy points highlighted in the selected chapter's color where notes exist
+- Below: a list of all body notes from that chapter, ordered chronologically
+- Each note shows: energy center name, the note text, chapter color tag, timestamp
+
+When "All" is selected: all body notes across all chapters, grouped by chapter.
+
+### Tab 3: Stream
+
+- Chronological list of all stream captures from the selected chapter
+- Each entry: the text, the timestamp
+- Long entries truncate with a "more" toggle to expand
+- Each entry has a small trash icon (tap to delete, with a brief confirm: "Delete this?")
+
+When "All" is selected: all stream entries across all chapters, grouped by chapter.
+
+## Behavior
+
+- Opening the Journal does not change the user's position in the journey. Closing it returns them exactly where they were.
+- The Journal reads from the existing `responses`, `bodyEntries`, and `streamEntries` in UserStore.
+- Updates in real time — if the user closes the Journal, writes something, reopens it, the new content is there.
