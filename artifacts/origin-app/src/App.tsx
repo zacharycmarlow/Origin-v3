@@ -208,41 +208,31 @@ function OpenerTileView({ chapter, idx, total }: { chapter: Chapter; idx: number
 
 /* ─── Code card manuscript frame ────────────────────────── */
 function CodeCornerSvg() {
+  /* Precision alchemical/astronomical ornament — centered at (26,26).
+     Geometric language only: circles, a 4-point diamond, crosshair ticks.
+     No arms — the CSS border on .code-frame provides the connecting lines. */
   return (
-    <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      {/* Outer circle ring at pivot */}
-      <circle cx="11" cy="11" r="9.5" fill="none" stroke="currentColor" strokeWidth="0.8" strokeOpacity="0.55" />
-      {/* Inner circle */}
-      <circle cx="11" cy="11" r="5.5" fill="none" stroke="currentColor" strokeWidth="0.5" strokeOpacity="0.35" />
-      {/* Diamond inset */}
-      <polygon points="11,6.5 14.2,11 11,15.5 7.8,11" fill="currentColor" fillOpacity="0.8" />
-      {/* Compass ticks: north + east */}
-      <line x1="11" y1="0.5" x2="11" y2="-3.5" stroke="currentColor" strokeWidth="0.8" strokeOpacity="0.45" />
-      <line x1="20.5" y1="11" x2="24.5" y2="11" stroke="currentColor" strokeWidth="0.8" strokeOpacity="0.45" />
-      {/* Small diagonal accents at 45° */}
-      <line x1="3.5" y1="3.5" x2="1" y2="1" stroke="currentColor" strokeWidth="0.6" strokeOpacity="0.3" />
-      {/* Right arm */}
-      <line x1="21" y1="11" x2="69" y2="11" stroke="currentColor" strokeWidth="0.85" strokeOpacity="0.45" />
-      {/* Arm decoration 1 — ring·dot at 1/3 */}
-      <circle cx="37" cy="11" r="3" fill="none" stroke="currentColor" strokeWidth="0.65" strokeOpacity="0.4" />
-      <circle cx="37" cy="11" r="1.1" fill="currentColor" fillOpacity="0.6" />
-      {/* Arm decoration 2 — tick at 2/3 */}
-      <line x1="52" y1="8" x2="52" y2="14" stroke="currentColor" strokeWidth="0.75" strokeOpacity="0.35" />
-      <line x1="50" y1="11" x2="54" y2="11" stroke="currentColor" strokeWidth="0.5" strokeOpacity="0.25" />
-      {/* Arm terminal */}
-      <circle cx="69" cy="11" r="3.5" fill="none" stroke="currentColor" strokeWidth="0.7" strokeOpacity="0.42" />
-      <circle cx="69" cy="11" r="1.4" fill="currentColor" fillOpacity="0.55" />
-      {/* Down arm */}
-      <line x1="11" y1="21" x2="11" y2="69" stroke="currentColor" strokeWidth="0.85" strokeOpacity="0.45" />
-      {/* Arm decoration 1 — ring·dot */}
-      <circle cx="11" cy="37" r="3" fill="none" stroke="currentColor" strokeWidth="0.65" strokeOpacity="0.4" />
-      <circle cx="11" cy="37" r="1.1" fill="currentColor" fillOpacity="0.6" />
-      {/* Arm decoration 2 — tick */}
-      <line x1="8" y1="52" x2="14" y2="52" stroke="currentColor" strokeWidth="0.75" strokeOpacity="0.35" />
-      <line x1="11" y1="50" x2="11" y2="54" stroke="currentColor" strokeWidth="0.5" strokeOpacity="0.25" />
-      {/* Arm terminal */}
-      <circle cx="11" cy="69" r="3.5" fill="none" stroke="currentColor" strokeWidth="0.7" strokeOpacity="0.42" />
-      <circle cx="11" cy="69" r="1.4" fill="currentColor" fillOpacity="0.55" />
+    <svg viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" overflow="visible">
+      {/* Outer ring */}
+      <circle cx="26" cy="26" r="15" fill="none" stroke="currentColor" strokeWidth="0.75" strokeOpacity="0.52" />
+      {/* Middle ring */}
+      <circle cx="26" cy="26" r="10" fill="none" stroke="currentColor" strokeWidth="0.45" strokeOpacity="0.32" />
+      {/* Inner ring */}
+      <circle cx="26" cy="26" r="6" fill="none" stroke="currentColor" strokeWidth="0.4" strokeOpacity="0.25" />
+      {/* 4-point diamond — solid, central emblem */}
+      <polygon points="26,19 32,26 26,33 20,26" fill="currentColor" fillOpacity="0.78" />
+      {/* Center void */}
+      <circle cx="26" cy="26" r="2.2" fill="none" stroke="currentColor" strokeWidth="0.5" strokeOpacity="0.35" />
+      {/* Cardinal crosshair ticks — short, sharp, extend beyond the outer ring */}
+      <line x1="26" y1="9" x2="26" y2="5"  stroke="currentColor" strokeWidth="0.85" strokeOpacity="0.5" strokeLinecap="round" />
+      <line x1="26" y1="43" x2="26" y2="47" stroke="currentColor" strokeWidth="0.85" strokeOpacity="0.5" strokeLinecap="round" />
+      <line x1="9"  y1="26" x2="5"  y2="26" stroke="currentColor" strokeWidth="0.85" strokeOpacity="0.5" strokeLinecap="round" />
+      <line x1="43" y1="26" x2="47" y2="26" stroke="currentColor" strokeWidth="0.85" strokeOpacity="0.5" strokeLinecap="round" />
+      {/* Diagonal register dots at 45° on the outer ring */}
+      <circle cx="36.6" cy="15.4" r="1"  fill="currentColor" fillOpacity="0.42" />
+      <circle cx="15.4" cy="15.4" r="1"  fill="currentColor" fillOpacity="0.42" />
+      <circle cx="36.6" cy="36.6" r="1"  fill="currentColor" fillOpacity="0.42" />
+      <circle cx="15.4" cy="36.6" r="1"  fill="currentColor" fillOpacity="0.42" />
     </svg>
   );
 }
@@ -298,32 +288,31 @@ function CodeTileView({ chapter }: { chapter: Chapter }) {
 
 /* ─── Lore card organic frame ───────────────────────────── */
 function LoreCornerSvg() {
+  /* Botanical eye-of-antiquity ornament — centered at (26,26).
+     Organic language only: almond-eye outline (bezier), iris, leaf tips, curved lash strokes.
+     No straight lines anywhere. The CSS border on .lore-frame provides the connecting lines. */
   return (
-    <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      {/* Eye socket at pivot */}
-      <ellipse cx="10" cy="10" rx="8" ry="5.5" fill="none" stroke="currentColor" strokeWidth=".85" strokeOpacity=".55" />
-      <circle cx="10" cy="10" r="2.2" fill="currentColor" fillOpacity=".65" />
-      <circle cx="10" cy="10" r=".9" fill="currentColor" fillOpacity=".9" />
-      {/* Horizontal vine stem */}
-      <path d="M 18 10 Q 44 8 70 10" fill="none" stroke="currentColor" strokeWidth=".9" strokeOpacity=".5" strokeLinecap="round" />
-      {/* Leaf sprigs on horizontal stem */}
-      <path d="M 34 10 C 32 4, 38 3, 36 10" fill="currentColor" fillOpacity=".3" />
-      <path d="M 34 10 C 32 16, 38 17, 36 10" fill="currentColor" fillOpacity=".2" />
-      <path d="M 54 10 C 52 5, 57 4, 56 10" fill="currentColor" fillOpacity=".25" />
-      <path d="M 54 10 C 52 15, 57 16, 56 10" fill="currentColor" fillOpacity=".18" />
-      {/* Terminal bud on horizontal */}
-      <circle cx="70" cy="10" r="2.8" fill="none" stroke="currentColor" strokeWidth=".7" strokeOpacity=".45" />
-      <circle cx="70" cy="10" r="1.1" fill="currentColor" fillOpacity=".5" />
-      {/* Vertical vine stem */}
-      <path d="M 10 18 Q 8 44 10 70" fill="none" stroke="currentColor" strokeWidth=".9" strokeOpacity=".5" strokeLinecap="round" />
-      {/* Leaf sprigs on vertical stem */}
-      <path d="M 10 36 C 4 34, 3 40, 10 38" fill="currentColor" fillOpacity=".3" />
-      <path d="M 10 36 C 16 34, 17 40, 10 38" fill="currentColor" fillOpacity=".2" />
-      <path d="M 10 55 C 4 53, 3 58, 10 57" fill="currentColor" fillOpacity=".25" />
-      <path d="M 10 55 C 16 53, 17 58, 10 57" fill="currentColor" fillOpacity=".18" />
-      {/* Terminal bud on vertical */}
-      <circle cx="10" cy="70" r="2.8" fill="none" stroke="currentColor" strokeWidth=".7" strokeOpacity=".45" />
-      <circle cx="10" cy="70" r="1.1" fill="currentColor" fillOpacity=".5" />
+    <svg viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" overflow="visible">
+      {/* Outer almond / mandorla — the eye of antiquity */}
+      <path
+        d="M4 26 C4 15 26 4 26 4 C26 4 48 15 48 26 C48 37 26 48 26 48 C26 48 4 37 4 26 Z"
+        fill="none" stroke="currentColor" strokeWidth="0.78" strokeOpacity="0.52"
+      />
+      {/* Inner iris ring */}
+      <circle cx="26" cy="26" r="9.5" fill="none" stroke="currentColor" strokeWidth="0.48" strokeOpacity="0.32" />
+      {/* Solid pupil */}
+      <circle cx="26" cy="26" r="6" fill="currentColor" fillOpacity="0.68" />
+      {/* Subtle inner glint — off-center */}
+      <circle cx="23.5" cy="23.5" r="1.8" fill="currentColor" fillOpacity="0.28" />
+      {/* Leaf tips at the four almond cardinal points — organic, not geometric */}
+      <path d="M26 4   C24 7   28 7   26 4"   fill="currentColor" fillOpacity="0.5" />
+      <path d="M26 48  C24 45  28 45  26 48"  fill="currentColor" fillOpacity="0.5" />
+      <path d="M4  26  C7  24  7  28  4  26"  fill="currentColor" fillOpacity="0.38" />
+      <path d="M48 26  C45 24  45 28  48 26"  fill="currentColor" fillOpacity="0.38" />
+      {/* Upper eyelash curves — 3 short organic strokes arcing outward */}
+      <path d="M17 13 C15 9  18 8  19 11"  fill="none" stroke="currentColor" strokeWidth="0.55" strokeOpacity="0.38" strokeLinecap="round" />
+      <path d="M26 5  C25 1  27 1  28 5"   fill="none" stroke="currentColor" strokeWidth="0.55" strokeOpacity="0.35" strokeLinecap="round" />
+      <path d="M35 13 C37 9  34 8  33 11"  fill="none" stroke="currentColor" strokeWidth="0.55" strokeOpacity="0.38" strokeLinecap="round" />
     </svg>
   );
 }

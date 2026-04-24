@@ -593,24 +593,26 @@ input, textarea, select { font-family: inherit; color: inherit; }
 
 /* ─── Code card manuscript frame (rendered via React) ─────── */
 .code-frame {
-  position: absolute; inset: 14px;
+  position: absolute; inset: 18px;
   pointer-events: none;
+  /* Thin connecting border — the corners terminate on this line */
+  border: 1px solid color-mix(in srgb, var(--gold-2) 30%, transparent);
 }
 .code-corner {
   position: absolute;
   display: block;
-  width: 80px; height: 80px;
-  /* color cascades to SVG currentColor */
+  width: 52px; height: 52px;
   color: var(--gold-2);
   filter:
-    drop-shadow(0 0 5px color-mix(in srgb, var(--gold-2) 45%, transparent))
-    drop-shadow(0 1px 2px rgba(100, 65, 10, 0.25));
+    drop-shadow(0 0 6px color-mix(in srgb, var(--gold-2) 55%, transparent))
+    drop-shadow(0 1px 2px rgba(100, 65, 10, 0.28));
 }
-.code-corner svg { width: 100%; height: 100%; display: block; }
-.code-corner--tl { top: 0; left: 0; }
-.code-corner--tr { top: 0; right: 0; transform: scaleX(-1); }
-.code-corner--bl { bottom: 0; left: 0; transform: scaleY(-1); }
-.code-corner--br { bottom: 0; right: 0; transform: scale(-1); }
+.code-corner svg { width: 100%; height: 100%; display: block; overflow: visible; }
+/* Center each ornament precisely on the border corner */
+.code-corner--tl { top: -26px; left: -26px; }
+.code-corner--tr { top: -26px; right: -26px; }
+.code-corner--bl { bottom: -26px; left: -26px; }
+.code-corner--br { bottom: -26px; right: -26px; }
 /* On dark chapters, corners use accent color for warmth */
 .app[data-dark="true"] .code-corner { color: var(--accent); }
 .code-head {
@@ -716,23 +718,26 @@ input, textarea, select { font-family: inherit; color: inherit; }
       color-mix(in srgb, #c4a265 22%, transparent), transparent 60%);
 }
 .lore-frame {
-  position: absolute; inset: 14px;
+  position: absolute; inset: 18px;
   pointer-events: none;
+  /* Softer, slightly warmer connecting border for the organic card */
+  border: 1px solid rgba(196, 162, 101, 0.26);
 }
 .lore-corner {
   position: absolute;
   display: block;
-  width: 80px; height: 80px;
+  width: 52px; height: 52px;
   color: #c4a265;
   filter:
-    drop-shadow(0 0 5px rgba(196, 162, 101, 0.4))
-    drop-shadow(0 1px 2px rgba(100, 65, 10, 0.2));
+    drop-shadow(0 0 6px rgba(196, 162, 101, 0.5))
+    drop-shadow(0 1px 2px rgba(100, 65, 10, 0.22));
 }
-.lore-corner svg { width: 100%; height: 100%; display: block; }
-.lore-corner--tl { top: 0; left: 0; }
-.lore-corner--tr { top: 0; right: 0; transform: scaleX(-1); }
-.lore-corner--bl { bottom: 0; left: 0; transform: scaleY(-1); }
-.lore-corner--br { bottom: 0; right: 0; transform: scale(-1); }
+.lore-corner svg { width: 100%; height: 100%; display: block; overflow: visible; }
+/* Center ornament on the border corner */
+.lore-corner--tl { top: -26px; left: -26px; }
+.lore-corner--tr { top: -26px; right: -26px; }
+.lore-corner--bl { bottom: -26px; left: -26px; }
+.lore-corner--br { bottom: -26px; right: -26px; }
 
 .lore-head {
   display: flex; align-items: center; gap: 18px;
