@@ -75,10 +75,10 @@ const CHAPTERS: Chapter[] = [
       shadow: "#8a5a24",
       dark: false
     },
-    invocation: "Your whole life — the entire arc, even your wildest success — is the prologue to what comes next. We are going to reconnect with who you were before the world started shaping you, and watch the whole arc unfold as one story going somewhere all along.",
+    invocation: "Your whole life, everything you have built and lost and survived, is backstory. The prologue to a story not yet started, the title crawl setting context before the real action begins. You have scars from that backstory, and those scars are still showing up. We are here to find the story underneath what happened, the recurring thread, the pattern that kept reappearing no matter how many times the circumstances changed. Think like a storyteller. What is the shape of the arc?",
     code: {
       title: "The Code",
-      body: "Story and reality share the same circuitry. Your brain constructs reality rather than receiving it. The same neural circuits fire for a lived experience as for a vividly told one. Every time you revisit your life and hold it in a different story, the emotional architecture rewrites permanently."
+      body: "The brain stitches experience into continuity. Memory is not a recording, it is a reconstruction, and every time you tell your life, the neural architecture rewrites. Each time you hold the arc in a different story, the emotional weight of what happened updates. You are not remembering your life. You are rebuilding it every time you tell it."
     },
     scenes: [
       {
@@ -134,10 +134,10 @@ const CHAPTERS: Chapter[] = [
       shadow: "#a03040",
       dark: true
     },
-    invocation: "Every character carries a wound. The wound drives the quest, qualifies the hero, connects them to everyone carrying the same mark. You are about to look directly at the wound the character you just described has been carrying. The wound does not appreciate being examined. The closer you look, the louder the alarms. Those alarms are the treasure.",
+    invocation: "Every character carries a wound. The wound drives the quest, qualifies the hero for the journey, connects them to everyone carrying the same mark. You are about to look directly at the wound the character you just described has been carrying, the conditions that shaped them, the voices narrating their worth since before they had language to argue. The wound does not appreciate being examined. The closer you look, the louder the alarms. Those alarms are the treasure. Shame has many masks in this chapter. The urge to minimize: it was not that bad. The performance of strength: I have already done the work. Each is the old story's immune system doing its job.",
     code: {
       title: "The Code",
-      body: "The loop runs from story, and story lives in the body. Thought → action → behavior → habit → character → identity → life story → next thought. Thoughts are downstream. They regenerate from the story, and the story lives in the tissue. You have to work at the source."
+      body: "Something happened, and the brain asked what does this mean about me, and the answer fused to identity. You stopped being someone who experienced harm and started being someone who is the harm. I am broken. I am too much. I am not enough. These feel like facts, but they are constructions, held in place by the body that stores the emotional signature, running as rumination. The stuckness is not that you cannot release the wound. It is that the wound became the self, and releasing it feels like dissolution. What we are doing is separating you from it, carefully, so you can see it is a story and the author can choose a different one."
     },
     scenes: [
       {
@@ -202,10 +202,10 @@ const CHAPTERS: Chapter[] = [
       shadow: "#186030",
       dark: true
     },
-    invocation: "Life is a gift. You are the gift. If that sounds like a greeting card, let it land before you dismiss it: if your life is a gift, then everything in it was given — the beauty and the breaking, the losses and the lucky accidents. Gratitude is the master alchemist. It does not change what happened. It changes what it means.",
+    invocation: "Life is a gift. You are the gift. If that sounds like something printed on a card, sit with it for a moment and let it actually land, because the implications are enormous. If everything that happened to you happened for you, then nothing was wasted. The pain had a purpose. The confusion was preparation. The years you thought you were lost were the years you were being trained for something you could not see yet. Gratitude is the alchemist. It does not change what happened. It changes what it means. And what it means is what drives everything downstream.",
     code: {
       title: "The Code",
-      body: "Memory rewrites permanently when the meaning changes. Every time you revisit a memory while holding a different meaning, the brain rewrites the emotional trace permanently. This is memory reconsolidation. The memories do not change. What they mean changes. And what they mean is what drives everything downstream."
+      body: "Every time you recall a memory, the neural trace becomes temporarily labile, open to revision. If you revisit it while holding a different emotional meaning, the rewritten trace embeds the new meaning permanently. Researchers call this memory reconsolidation. The memories do not change. What they mean changes, which changes what they do in you from that moment on. Hold your worst chapter inside \"what was this preparing me for\" while the body is in gratitude, and you are literally rewriting how it is stored."
     },
     scenes: [
       {
@@ -260,10 +260,10 @@ const CHAPTERS: Chapter[] = [
       shadow: "#204080",
       dark: true
     },
-    invocation: "The forces that shaped you did not begin with your birth. Their parents were shaped by theirs, all the way back, until you reach something that precedes all the wounds. Something underneath everything.",
+    invocation: "When people ask where are you from, they almost never mean it the way the question deserves to be answered. Underneath the reflex, there is a real question reaching for something much bigger. The forces that shaped the character you just described did not begin with their birth. Their parents were shaped by theirs, who were shaped by theirs, all the way back to patterns so old they feel less like history and more like gravity. Every cell in your body is made of stardust, atoms forged in the cores of stars that exploded billions of years ago so that, eventually, impossibly, something could open its eyes and wonder where it came from.",
     code: {
       title: "The Code",
-      body: "The brain was built to find the source. The human brain has not changed in three hundred thousand years — only the stories have. When the meaning-maker is pointed past the personal and into the infinite, it produces the experience traditions across all of human history have called sacred. Whatever you call what it finds is yours to name."
+      body: "The same network that builds the small personal self has another mode, one that turns toward the vast and dissolves the boundary between you and everything. This is what meditation trains. This is what psychedelics trigger. This is what every religious tradition cultivated. The experience of unity, awe, belonging, the sacred. You are not reaching outside yourself for it. The faculty that built every cathedral and carried every pilgrimage is in you, and it can consecrate your own existence the moment you turn it there."
     },
     outside: true,
     scenes: [
@@ -309,10 +309,10 @@ const CHAPTERS: Chapter[] = [
       shadow: "#2c2010",
       dark: true
     },
-    invocation: "Everything you excavated — the seed, the wound, the gift, the source — you built as separate threads. You are about to discover they were one fabric, woven by one loom. There is a voice in your head that has never stopped talking. You mistook it for thinking. You mistook it for you.",
+    invocation: "Everything you have excavated across four chapters, the seed, the character, the wound, the voices, the loops, the gifts hidden inside the wounds, the source underneath it all, you built as separate threads. You are about to discover they were one fabric, woven by one loom, so continuously you never saw the weaving. Stop. Right now. Listen. There is a voice in your head that has never stopped talking. It replays what happened, rehearses what might, maintains the running account of who you are and what you are worth, so automatically you have probably never noticed you were listening. You mistook it for thinking. You mistook it for yourself.",
     code: {
       title: "The Code",
-      body: "The Narrator authors your consciousness on autopilot. Neuroscience calls it the default mode network — the most energy-intensive system in the brain. It decides what your memories mean, builds futures so vivid your body floods with cortisol for events that have not happened, and constructs the reality you inhabit. Normal is the Narrator's masterpiece — the most powerful story ever told, because it does not announce itself as a story."
+      body: "Neuroscience calls this the default mode network, the most energy-intensive system in your brain, running every moment you are not absorbed in something external. It uses more energy to be than to do. What it does is author your consciousness. It tells you what the past means. It builds futures so vivid your body floods with cortisol for events that have not happened. It generates the default character you become when depleted. It constructs the reality you live inside: the story shapes how you show up, how you show up shapes how people respond, how people respond confirms the story, and the loop tightens until the wall feels like a fact of nature. Normal is this system's masterpiece. The most powerful story ever told, because it does not announce itself as a story."
     },
     scenes: [
       {
@@ -362,10 +362,10 @@ const CHAPTERS: Chapter[] = [
       shadow: "#0a4832",
       dark: false
     },
-    invocation: "Do you remember when you could imagine? Before anyone taught you to be practical, there was a time when you could walk into a field and build a civilization in the grass. That was the dreaming power. The most natural thing about you.",
+    invocation: "Do you remember when you could imagine? Before anyone taught you to be practical, before the word realistic entered your vocabulary, before the dreams got trained out of you by a world that needed you compliant, there was a time when you could walk into a field and build a civilization in the grass. Close your eyes and be somewhere else so completely your body responded as though it was real. That was the dreaming power. And it was the most natural thing about you. That power never left. The Narrator put it on a leash and used it to worry, to catastrophize, to build worst-case futures with breathtaking clarity. Every hour of anxiety you have ever felt was the dreaming power running in reverse.",
     code: {
       title: "The Code",
-      body: "Imagination and reality run on the same hardware. The brain builds future simulations from the same materials it uses to store memories. Where you are going is what makes the past make sense. Viktor Frankl held one thing they could not take from him in Auschwitz: the capacity to imagine a future vividly enough to generate the conditions for his survival. Worry is imagination pointed at the wrong future. Dreams are the instructions for building reality."
+      body: "The brain does not distinguish between a vividly imagined event and a real one. The motor cortex fires during mental rehearsal at nearly the intensity of physical practice. Studies show that people who only imagine doing strength training gain measurable strength. Elite athletes install their performance by running the neural program hundreds of times before the body executes it. Visualization is not metaphor. It is rehearsal. The body prepares for what you imagine. Heart rate rises for imagined threats. Cortisol spikes for imagined failures. The autonomic nervous system cannot tell the difference. What you rehearse, the body builds the capacity for. Viktor Frankl imagined the lecture he would give until his body organized itself around the survival that would let him give it. He survived. He gave the lecture. Dreaming, practiced with conviction, is how humans have always built the future they are standing in."
     },
     scenes: [
       {
@@ -416,10 +416,10 @@ const CHAPTERS: Chapter[] = [
       shadow: "#6a5030",
       dark: false
     },
-    invocation: "The story that brought you here succeeded. It is finished. The stuckness you feel is the ache of something complete that has not been given permission to end. A story that never properly ends becomes a loop.",
+    invocation: "You are standing at the end of a chapter, maybe the longest chapter of your life. The story that brought you here succeeded. It did its job. It carried you through everything it needed to, and now it is finished. You can feel the completeness even when part of you wants to stay in the familiar pattern because at least it is known. The stuckness you have been feeling is the ache of something finished that has not been given permission to end. A story that never properly ends becomes a loop, a pattern repeating itself until someone has the courage to write its last page and mean it.",
     code: {
       title: "The Code",
-      body: "Story becomes real through the circuit between teller and witness. When you tell your story to another person, their nervous system mirrors yours, treats it as real, reflects it back. The telling completes the circuit. The witness makes it real. This is how civilizations formed around campfires, how every lasting shift in consciousness began."
+      body: "When you tell your story to another person, their nervous system mirrors yours, treats the narrative as real, reflects it back, and the story comes alive between you in a way thinking alone keeps circular. This is why healing traditions across all of human history involve speaking the story aloud in the presence of someone who receives it. The telling completes the circuit. The witness makes it real. This is how civilizations formed around campfires, how movements gathered force, how every lasting shift in human consciousness began. One person told a story true enough that another person's body recognized it, and reality reorganized around what they built together."
     },
     scenes: [
       {

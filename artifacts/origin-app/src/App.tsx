@@ -125,12 +125,11 @@ function PreludeTileView({ onEnter }: { onEnter: () => void }) {
         <h1 className="prelude-title">THE ORIGIN</h1>
         <div className="prelude-sub">seven chapters · seven codes · seven thresholds</div>
         <p className="prelude-body">
-          The world is made of stories. Your mind is creating one right now, so seamlessly you mistake the story for the world itself.
-          The story running in your head is generating your reality. If you can reach the story, you can change what is real.
+          Before you can author the story of your life, you have to understand how life has been authoring you.
+          You have been living inside a story. The story running in your head generates your reality. If you can reach the story, you can change what is real.
         </p>
         <p className="prelude-body dim">
-          The north star: everything that happened to you happened for a reason — even if you are the one who makes that reason.
-          The only adversary is shame. Each time it shows up, recognize it: the old story's immune system. Proof you are approaching something real.
+          The posture you practice here is meaning-making: holding every experience in the question "what was this preparing me for?" instead of "why did this happen to me?" That single shift changes what you find when you dig.
         </p>
         <div className="prelude-before">
           <div className="before-head">before we begin</div>
@@ -170,10 +169,12 @@ function EpilogueTileView({ onRestart }: { onRestart: () => void }) {
         <h1 className="prelude-title">CHAPTER ONE</h1>
         <div className="prelude-sub">everything you uncovered is chapter one</div>
         <p className="prelude-body">
-          The power you just accessed is real. The Origin opened the door. The metamyth is the container — where your wounds reveal themselves as your qualification, where meaning sharpens into purpose, purpose rises into vision, and vision becomes a path you can walk.
+          You have walked the Origin. Seven chapters. Seven codes. Seven thresholds crossed. The old story honored, felt, and closed.
+          Everything you uncovered is Chapter One.
         </p>
         <p className="prelude-body">
-          Find one person and tell them your story. Then ask about theirs. That exchange is the oldest technology on earth.
+          The power you just accessed is real. It is as real as the wound that was using it against you.
+          The Origin opened the door. The metamyth is the container. Bring your Origin. Come as you are.
         </p>
         <p className="prelude-body dim">The future we dream is one story away.</p>
         <button className="primary-btn" onClick={onRestart}>
