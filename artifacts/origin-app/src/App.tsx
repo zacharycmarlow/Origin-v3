@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import CHAPTERS, { Chapter } from './chapters';
 import { getTileIdx, setTileIdx as saveTileIdx, resetAll } from './storage';
 import SceneComponent from './components/Scene';
+import JournalOverlay from './components/JournalOverlay';
 
 /* ─── Types ──────────────────────────────────────────── */
 interface PreludeTile { kind: 'prelude' }
@@ -404,6 +405,7 @@ function Deck({ tiles, tileIdx, setTileIdxState, chapters, onEnter, onRestart }:
 export default function App() {
   const chapters = CHAPTERS;
   const [tileIdx, setTileIdxState] = useState<number>(() => getTileIdx());
+  const [journalOpen, setJournalOpen] = useState(false);
 
   useEffect(() => { saveTileIdx(tileIdx); }, [tileIdx]);
 
@@ -418,6 +420,16 @@ export default function App() {
   else if (currentTile?.kind === 'code') currentCh = (currentTile as CodeTile).ch;
   else if (currentTile?.kind === 'scene') currentCh = (currentTile as SceneTileData).ch;
   else if (currentTile?.kind === 'epilogue') currentCh = chapters.length - 1;
+
+  const reachedCh = useMemo(() => {
+    let max = 0;
+    for (let i = 0; i <= tileIdx && i < tiles.length; i++) {
+      const t = tiles[i];
+      if (t && 'ch' in t) max = Math.max(max, (t as OpenerTile).ch);
+    }
+    if (currentTile?.kind === 'epilogue') max = chapters.length - 1;
+    return max;
+  }, [tileIdx, tiles, chapters, currentTile]);
 
   const isOutside = currentTile?.kind === 'prelude' || currentTile?.kind === 'epilogue';
   const palette = chapters[currentCh].palette;
@@ -482,6 +494,32 @@ export default function App() {
           onRestart={restartToPrelude}
         />
       </main>
+
+      <div className="floating-toolbar">
+        <button
+          className="toolbar-btn journal-btn"
+          onClick={() => setJournalOpen(true)}
+          aria-label="Open journal"
+          title="Journal"
+        >
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+            <rect x="5" y="4" width="16" height="20" rx="1.5" fill="none" stroke="#C4A265" strokeWidth="1.4" />
+            <path d="M5 7.5h16" stroke="#C4A265" strokeWidth="1" strokeOpacity=".5" />
+            <path d="M5 11h16M5 14.5h10M5 18h8" stroke="#C4A265" strokeWidth="1" strokeOpacity=".35" />
+            <path d="M21 4v20" stroke="#C4A265" strokeWidth="1.4" strokeOpacity=".4" />
+            <rect x="22.5" y="5" width="1.5" height="18" rx=".75" fill="#C4A265" fillOpacity=".25" />
+          </svg>
+        </button>
+      </div>
+
+      {journalOpen && (
+        <JournalOverlay
+          onClose={() => setJournalOpen(false)}
+          chapters={chapters}
+          currentCh={currentCh}
+          reachedCh={reachedCh}
+        />
+      )}
     </div>
   );
 }

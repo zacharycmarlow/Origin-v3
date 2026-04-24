@@ -20,3 +20,32 @@ export function resetAll(): void {
   localStorage.removeItem(STORAGE);
   localStorage.removeItem("origin.tile");
 }
+
+export interface BodyEntry {
+  id: string;
+  energyCenter: string;
+  chapter: number;
+  note: string;
+  timestamp: number;
+}
+
+export interface StreamEntry {
+  id: string;
+  chapter: number;
+  text: string;
+  timestamp: number;
+}
+
+export function getBodyEntries(): BodyEntry[] {
+  const entries = load()['bodyEntries'];
+  return Array.isArray(entries) ? (entries as BodyEntry[]) : [];
+}
+
+export function getStreamEntries(): StreamEntry[] {
+  const entries = load()['streamEntries'];
+  return Array.isArray(entries) ? (entries as StreamEntry[]) : [];
+}
+
+export function deleteStreamEntry(id: string): void {
+  save('streamEntries', getStreamEntries().filter(e => e.id !== id));
+}

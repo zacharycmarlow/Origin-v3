@@ -1,0 +1,66 @@
+# Instruction 2: The Body Tool
+
+## What to add
+
+A second icon joins the toolbar: a small human figure silhouette, teal (`#2E5D4B`), 28px. Sits above the Stream icon. Tapping it opens a slide-in panel from the right edge of the screen.
+
+## The Panel
+
+Covers approximately 40% of screen width on desktop, 85% on mobile. The step content behind dims with a subtle scrim. Tap the scrim or a close X top-right to dismiss. Title at top: "The Body" in the display font, teal.
+
+## The Body Diagram
+
+A simple, elegant, gender-neutral human figure facing forward. Line art, matching the app's aesthetic. On this figure, 12 tappable energy points shown as small dots:
+
+- Crown (top of head)
+- Third Eye (forehead)
+- Throat (neck)
+- Heart (center chest)
+- Solar Plexus (upper abdomen)
+- Sacral (lower abdomen)
+- Root (base of spine)
+- Jaw
+- Left Shoulder
+- Right Shoulder
+- Belly (lower gut, distinct from sacral)
+- Hands (both, one point)
+
+Idle state: small muted dots. Points with existing notes: soft glowing halo, brighter with more notes.
+
+## When the user taps a point
+
+A small card appears near the tapped point (positioned to stay on screen):
+
+- Energy center name (e.g., "Heart")
+- Text input: "What do you feel here?" with the existing voice input mic
+- Below: any previous notes at this point, listed with a colored chapter tag and timestamp
+- A "Save" button
+
+## Chapter color coding for note tags
+
+- I Prologue: warm gold
+- II Wound: deep red
+- III Gift: amber
+- IV Source: deep blue
+- V Narrator: silver
+- VI Dream: violet
+- VII Ending: teal
+
+## On save
+
+The note persists in the `bodyEntries` array in UserStore:
+```json
+{
+  "id": "body-[uuid]",
+  "energyCenter": "heart",
+  "chapter": "[current chapter id]",
+  "note": "user text",
+  "timestamp": "ISO datetime"
+}
+```
+
+The point's halo updates. The card can be dismissed.
+
+## Body prompt hint
+
+Some somatic steps in the chapter data should be able to trigger a gentle pulse on the Body toolbar icon. Add support for a `bodyPrompt: true` flag on step definitions. When the step engine encounters this flag, pulse the Body icon for 5 seconds. Do not add the flag to any steps yet — just support the behavior so it can be activated later when chapter content is updated.

@@ -22,7 +22,9 @@ Warm handmade paper manuscript aesthetic:
 - `src/index.css` — complete unified CSS system (~1200 lines, no Tailwind)
 - `src/storage.ts` — localStorage persistence for journal entries and tile position
 - `src/components/Scene.tsx` — routes to 10 interactive scene components
-- `src/components/` — BreathPacer, Journal, ShameMask, VoicesList, Declarations, Gratitude, Gathering, MoveTimer, Broadcast
+- `src/components/` — BreathPacer, Journal, ShameMask, VoicesList, Declarations, Gratitude, Gathering, MoveTimer, Broadcast, JournalOverlay
+- `src/storage.ts` — exports `BodyEntry`, `StreamEntry` types + `getBodyEntries`, `getStreamEntries`, `deleteStreamEntry` helpers
+- Floating toolbar (bottom-right, z-80): book icon opens JournalOverlay. Slots reserved for Stream (wave) and Body (figure) icons from Tasks #4/#5.
 
 ### Chapters
 1. Prologue — The Wound (shame mask, breath pacer, journaling)

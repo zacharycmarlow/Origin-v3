@@ -1298,6 +1298,288 @@ input, textarea, select { font-family: inherit; color: inherit; }
   border-color: color-mix(in srgb, var(--ink) 18%, transparent);
 }
 
+/* ─── Floating Toolbar ─────────────────────────────────────── */
+.floating-toolbar {
+  position: fixed;
+  bottom: 88px;
+  right: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 80;
+}
+.toolbar-btn {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  border: 1px solid rgba(196, 162, 101, 0.3);
+  background: rgba(20, 14, 6, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: background .2s, border-color .2s, transform .15s;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+.toolbar-btn:hover {
+  background: rgba(30, 20, 8, 0.75);
+  border-color: rgba(196, 162, 101, 0.65);
+  transform: scale(1.07);
+}
+.toolbar-btn:active { transform: scale(.96); }
+
+/* ─── Journal Overlay ──────────────────────────────────────── */
+.jov-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 200;
+  display: flex; align-items: stretch; justify-content: flex-end;
+  animation: jov-fade-in .18s ease;
+}
+@keyframes jov-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.jov-panel {
+  width: min(600px, 100vw);
+  height: 100%;
+  background: #f5efe2;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  animation: jov-slide-in .22s cubic-bezier(.22, 1, .36, 1);
+  box-shadow: -8px 0 40px rgba(0, 0, 0, 0.3);
+}
+@keyframes jov-slide-in {
+  from { transform: translateX(60px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+.jov-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 24px 14px;
+  border-bottom: 1px solid rgba(196, 162, 101, 0.25);
+  flex-shrink: 0;
+}
+.jov-title {
+  font-family: var(--font-title);
+  font-size: 13px;
+  letter-spacing: .35em;
+  text-transform: uppercase;
+  color: #8a6e3a;
+}
+.jov-close {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 1px solid rgba(196, 162, 101, 0.25);
+  background: transparent;
+  display: flex; align-items: center; justify-content: center;
+  color: #8a6e3a;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.jov-close:hover { background: rgba(196, 162, 101, 0.15); color: #5a3e1a; }
+
+.jov-chapters {
+  display: flex; gap: 4px; flex-wrap: nowrap;
+  padding: 12px 24px 10px;
+  border-bottom: 1px solid rgba(196, 162, 101, 0.18);
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+}
+.jov-chapters::-webkit-scrollbar { display: none; }
+.jov-ch-btn {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: .28em; text-transform: uppercase;
+  padding: 5px 10px; border-radius: 2px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #a08050;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.jov-ch-btn:hover {
+  background: rgba(196, 162, 101, 0.12);
+  color: #6a4a1a;
+}
+.jov-ch-btn.active {
+  background: rgba(196, 162, 101, 0.18);
+  border-color: rgba(196, 162, 101, 0.5);
+  color: #6a4a1a;
+}
+
+.jov-tabs {
+  display: flex; gap: 0;
+  padding: 0 24px;
+  border-bottom: 1px solid rgba(196, 162, 101, 0.18);
+  flex-shrink: 0;
+}
+.jov-tab {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: .32em; text-transform: uppercase;
+  padding: 12px 16px 10px;
+  border: none; background: transparent;
+  color: #b09060;
+  cursor: pointer;
+  position: relative;
+  transition: color .15s;
+}
+.jov-tab::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: #c89838;
+  transform: scaleX(0); transform-origin: left;
+  transition: transform .18s ease;
+}
+.jov-tab.active { color: #5a3e1a; }
+.jov-tab.active::after { transform: scaleX(1); }
+.jov-tab:hover:not(.active) { color: #7a5a2a; }
+
+.jov-content {
+  flex: 1; overflow-y: auto;
+  padding: 20px 24px 40px;
+}
+.jov-content::-webkit-scrollbar { width: 4px; }
+.jov-content::-webkit-scrollbar-track { background: transparent; }
+.jov-content::-webkit-scrollbar-thumb { background: rgba(196, 162, 101, 0.3); border-radius: 2px; }
+
+/* ─── Spine tab ─── */
+.jov-spine { display: flex; flex-direction: column; gap: 0; }
+
+.jov-ch-heading {
+  font-family: var(--font-title);
+  font-size: 11px; letter-spacing: .4em; text-transform: uppercase;
+  margin: 22px 0 12px;
+  opacity: .9;
+}
+.jov-ch-heading:first-child { margin-top: 4px; }
+
+.jov-spine-entry { padding: 6px 0 14px; }
+.jov-spine-prompt {
+  font-family: var(--font-body);
+  font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
+  color: #a08a60; opacity: .85;
+  margin-bottom: 8px; line-height: 1.5;
+}
+.jov-spine-response {
+  font-family: var(--font-body);
+  font-size: 15px; line-height: 1.65;
+  color: #4a3a24;
+  border-left: 3px solid #c89838;
+  padding-left: 14px;
+  white-space: pre-wrap;
+}
+.jov-spine-empty {
+  font-family: var(--font-script);
+  font-size: 14px; font-style: italic;
+  color: #b0996a; opacity: .6;
+  padding-left: 14px;
+}
+.jov-divider {
+  height: 1px;
+  background: linear-gradient(90deg, rgba(196, 162, 101, 0.3), transparent);
+  margin: 2px 0 6px;
+}
+
+/* ─── Body tab ─── */
+.jov-body-list { display: flex; flex-direction: column; gap: 14px; }
+.jov-body-entry {
+  padding: 14px 16px;
+  background: rgba(196, 162, 101, 0.08);
+  border-radius: 4px;
+  border-left: 3px solid;
+}
+.jov-body-center {
+  font-family: var(--font-mono);
+  font-size: 9.5px; letter-spacing: .38em; text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.jov-body-note {
+  font-family: var(--font-body);
+  font-size: 15px; line-height: 1.6; color: #4a3a24;
+}
+.jov-body-time {
+  font-family: var(--font-mono);
+  font-size: 10px; color: #a09070; margin-top: 6px;
+}
+
+/* ─── Stream tab ─── */
+.jov-stream-list { display: flex; flex-direction: column; gap: 12px; }
+.jov-stream-entry {
+  padding: 14px 16px;
+  background: rgba(196, 162, 101, 0.07);
+  border-radius: 4px;
+  border: 1px solid rgba(196, 162, 101, 0.2);
+}
+.jov-stream-text {
+  font-family: var(--font-body);
+  font-size: 15px; line-height: 1.65; color: #4a3a24;
+  white-space: pre-wrap;
+}
+.jov-stream-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 10px; gap: 8px;
+}
+.jov-stream-time {
+  font-family: var(--font-mono);
+  font-size: 10px; color: #a09070;
+}
+.jov-stream-actions {
+  display: flex; align-items: center; gap: 10px;
+}
+.jov-more-btn {
+  font-family: var(--font-mono);
+  font-size: 9.5px; letter-spacing: .22em; text-transform: uppercase;
+  background: transparent; border: none;
+  color: #c89838; cursor: pointer;
+  padding: 2px 4px;
+  transition: opacity .15s;
+}
+.jov-more-btn:hover { opacity: .7; }
+.jov-trash-btn {
+  background: transparent; border: none;
+  color: #c0a060; opacity: .5;
+  cursor: pointer; padding: 4px;
+  transition: opacity .15s, color .15s;
+  display: flex; align-items: center;
+}
+.jov-trash-btn:hover { opacity: 1; color: #8a3020; }
+.jov-delete-confirm {
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono); font-size: 10px; color: #8a6040;
+}
+.jov-delete-yes, .jov-delete-no {
+  font-family: var(--font-mono);
+  font-size: 9.5px; letter-spacing: .18em; text-transform: uppercase;
+  background: transparent; border: 1px solid currentColor;
+  padding: 2px 7px; border-radius: 2px; cursor: pointer;
+  transition: background .15s;
+}
+.jov-delete-yes { color: #8a3020; border-color: rgba(138, 48, 32, 0.4); }
+.jov-delete-yes:hover { background: rgba(138, 48, 32, 0.1); }
+.jov-delete-no { color: #a09070; border-color: rgba(160, 144, 112, 0.4); }
+.jov-delete-no:hover { background: rgba(160, 144, 112, 0.1); }
+
+/* ─── Empty state ─── */
+.jov-empty {
+  font-family: var(--font-body);
+  font-size: 15px; color: #a09070;
+  line-height: 1.7; padding: 28px 0;
+  text-align: center;
+}
+.jov-empty span {
+  display: block; margin-top: 8px;
+  font-size: 13px; opacity: .7;
+}
+
+@media (max-width: 600px) {
+  .floating-toolbar { right: 14px; bottom: 76px; }
+  .toolbar-btn { width: 42px; height: 42px; }
+  .jov-panel { width: 100vw; }
+  .jov-topbar, .jov-chapters, .jov-content { padding-left: 18px; padding-right: 18px; }
+  .jov-tabs { padding: 0 18px; }
+}
+
 /* ─── Responsive ───────────────────────────────────────────── */
 @media (max-width: 1100px) {
   .spine-name { display: none; }
