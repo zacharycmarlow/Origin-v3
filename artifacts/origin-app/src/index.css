@@ -808,6 +808,9 @@ input, textarea, select { font-family: inherit; color: inherit; }
     transparent 0%, var(--teal-halo) 15%, var(--teal-core) 50%, var(--teal-halo) 85%, transparent 100%);
   box-shadow: 0 0 12px var(--teal-core), 0 0 24px var(--teal-halo);
 }
+.journal-textarea-wrap {
+  position: relative;
+}
 .journal textarea {
   width: 100%; background: transparent; border: none;
   resize: vertical; outline: none;
@@ -823,6 +826,33 @@ input, textarea, select { font-family: inherit; color: inherit; }
   font-family: var(--font-title);
   font-size: 22px; font-style: italic; line-height: 1.6;
 }
+
+/* ─── Mic button ──────────────────────────────────────────── */
+.mic-btn {
+  position: absolute;
+  bottom: 8px;
+  right: 22px; /* leave room for resize handle */
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: none; padding: 0;
+  cursor: pointer;
+  color: #C4A265;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+.mic-btn:hover { opacity: 1; }
+.mic-btn--active {
+  opacity: 1;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: #2E5D4B;
+  animation: mic-pulse 1.2s ease-in-out infinite;
+}
+@keyframes mic-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(46, 93, 75, 0.6); }
+  50% { box-shadow: 0 0 0 8px rgba(46, 93, 75, 0); }
+}
+
 .journal-meta {
   margin-top: 10px;
   font-family: var(--font-title);
