@@ -83,6 +83,19 @@ export function deleteStreamEntry(id: string): void {
   save('streamEntries', getStreamEntries().filter(e => e.id !== id));
 }
 
+export function addStreamEntry(chapter: number, text: string): StreamEntry {
+  const entry: StreamEntry = {
+    id: `s-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    chapter,
+    text: text.trim(),
+    timestamp: Date.now(),
+  };
+  const list = getStreamEntries();
+  list.push(entry);
+  save('streamEntries', list);
+  return entry;
+}
+
 export function addBodyEntry(zoneId: string, zoneName: string, chapter: number, note: string): BodyEntry {
   const entry: BodyEntry = {
     id: `b-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,

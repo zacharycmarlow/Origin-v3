@@ -4,6 +4,7 @@ import { getTileIdx, setTileIdx as saveTileIdx, resetAll } from './storage';
 import SceneComponent from './components/Scene';
 import JournalOverlay from './components/JournalOverlay';
 import BodyOverlay from './components/BodyOverlay';
+import StreamOverlay from './components/StreamOverlay';
 
 /* ─── Types ──────────────────────────────────────────── */
 interface PreludeTile { kind: 'prelude' }
@@ -519,6 +520,7 @@ export default function App() {
   const [tileIdx, setTileIdxState] = useState<number>(() => getTileIdx());
   const [journalOpen, setJournalOpen] = useState(false);
   const [bodyOpen, setBodyOpen] = useState(false);
+  const [streamOpen, setStreamOpen] = useState(false);
 
   useEffect(() => { saveTileIdx(tileIdx); }, [tileIdx]);
 
@@ -611,6 +613,19 @@ export default function App() {
 
       <div className="floating-toolbar">
         <button
+          className="toolbar-btn stream-btn"
+          onClick={() => setStreamOpen(true)}
+          aria-label="Open stream"
+          title="Stream"
+        >
+          {/* Three flowing ripples — water/breath glyph */}
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+            <path d="M4 9 Q8 6 14 9 T24 9" stroke="#C4A265" strokeWidth="1.2" strokeLinecap="round" fill="none" />
+            <path d="M4 14 Q8 11 14 14 T24 14" stroke="#C4A265" strokeWidth="1.2" strokeLinecap="round" fill="none" opacity="0.85" />
+            <path d="M4 19 Q8 16 14 19 T24 19" stroke="#C4A265" strokeWidth="1.2" strokeLinecap="round" fill="none" opacity="0.7" />
+          </svg>
+        </button>
+        <button
           className="toolbar-btn body-btn"
           onClick={() => setBodyOpen(true)}
           aria-label="Open body"
@@ -640,6 +655,14 @@ export default function App() {
           </svg>
         </button>
       </div>
+
+      {streamOpen && (
+        <StreamOverlay
+          onClose={() => setStreamOpen(false)}
+          chapters={chapters}
+          currentCh={currentCh}
+        />
+      )}
 
       {bodyOpen && (
         <BodyOverlay

@@ -30,6 +30,12 @@
   font-weight: 400;
   font-display: swap;
 }
+@font-face {
+  font-family: "Maritim";
+  src: url("/fonts/Maritim.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
 
 /* ─── Animated CSS Custom Properties ─────────────────────── */
 /* @property enables smooth color transitions on custom properties */
@@ -70,6 +76,7 @@
   --font-script: "FantasyMagist", "Cormorant Garamond", Georgia, serif;
   --font-body: "Futura", "Century Gothic", "Jost", "AppleGothic", Tahoma, sans-serif;
   --font-mono: "JetBrains Mono", "Menlo", monospace;
+  --font-stream: "Maritim", "Cormorant Garamond", Georgia, serif;
 
   /* Chapter CSS vars (overridden per-chapter via inline style on .app) */
   --bg: #ece1c3;
@@ -2031,6 +2038,245 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .body-history-yes:hover { background: rgba(138, 48, 32, 0.1); }
 .body-history-no { color: #a09070; border-color: rgba(160, 144, 112, 0.4); }
 .body-history-no:hover { background: rgba(160, 144, 112, 0.1); }
+
+/* ─── Stream Overlay ───────────────────────────────────────── */
+/* A cream-paper surface for stream-of-consciousness — write or speak.
+   The user's words flow in Maritim; the chrome stays in the system fonts.
+   The font itself carries most of the visual identity. */
+.stream-backdrop {
+  position: fixed; inset: 0;
+  background: #f5efe2;
+  z-index: 200;
+  display: flex; align-items: stretch; justify-content: center;
+  animation: stream-reveal .42s cubic-bezier(.4, 0, .2, 1);
+}
+@keyframes stream-reveal {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.stream-shell {
+  width: 100%;
+  max-width: 760px;
+  height: 100%;
+  display: flex; flex-direction: column;
+  position: relative;
+  animation: stream-shell-rise .55s cubic-bezier(.4, 0, .2, 1);
+}
+@keyframes stream-shell-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.stream-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 24px 14px;
+  border-bottom: 1px solid rgba(196, 162, 101, 0.22);
+  flex-shrink: 0;
+  gap: 12px;
+}
+.stream-title {
+  font-family: var(--font-title);
+  font-size: 13px;
+  letter-spacing: .35em;
+  text-transform: uppercase;
+  color: #8a6e3a;
+}
+.stream-meta {
+  flex: 1; text-align: center;
+  font-family: var(--font-script);
+  font-size: 14px; font-style: italic;
+  color: #a08a60; opacity: .8;
+}
+.stream-close {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 1px solid rgba(196, 162, 101, 0.25);
+  background: transparent;
+  display: flex; align-items: center; justify-content: center;
+  color: #8a6e3a;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  flex-shrink: 0;
+}
+.stream-close:hover { background: rgba(196, 162, 101, 0.15); color: #5a3e1a; }
+
+.stream-stage {
+  flex: 1;
+  display: flex; flex-direction: column;
+  padding: 28px 28px 36px;
+  overflow-y: auto;
+  gap: 6px;
+}
+.stream-stage::-webkit-scrollbar { width: 4px; }
+.stream-stage::-webkit-scrollbar-thumb { background: rgba(196, 162, 101, 0.3); border-radius: 2px; }
+
+.stream-write {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+.stream-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: vertical;
+  min-height: 180px;
+  padding: 8px 56px 8px 0;
+  font-family: var(--font-stream);
+  font-size: 26px;
+  line-height: 1.5;
+  letter-spacing: .005em;
+  color: #3a2a14;
+}
+.stream-input::placeholder {
+  font-family: var(--font-stream);
+  font-size: 26px;
+  color: #b09870;
+  opacity: .55;
+  font-style: normal;
+}
+.stream-input:focus::placeholder { opacity: .35; }
+
+.stream-mic {
+  position: absolute;
+  top: 4px;
+  right: 0;
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid rgba(196, 162, 101, 0.3);
+  color: #8a6e3a;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: background .15s, border-color .2s, color .15s;
+}
+.stream-mic:hover { background: rgba(196, 162, 101, 0.12); color: #5a3e1a; }
+.stream-mic.is-listening {
+  border-color: #c89838;
+  background: rgba(200, 152, 56, 0.12);
+  color: #5a3e1a;
+}
+.stream-mic-pulse {
+  display: inline-flex; align-items: flex-end; gap: 2px; height: 14px;
+}
+.stream-mic-pulse span {
+  display: block; width: 2.5px; background: #c89838; border-radius: 1px;
+  animation: stream-mic-bounce 1s ease-in-out infinite;
+}
+.stream-mic-pulse span:nth-child(1) { height: 6px;  animation-delay: 0s; }
+.stream-mic-pulse span:nth-child(2) { height: 12px; animation-delay: .15s; }
+.stream-mic-pulse span:nth-child(3) { height: 8px;  animation-delay: .3s; }
+@keyframes stream-mic-bounce {
+  0%, 100% { transform: scaleY(0.55); }
+  50%      { transform: scaleY(1.2); }
+}
+
+.stream-actions {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(196, 162, 101, 0.18);
+  flex-shrink: 0;
+  gap: 12px;
+}
+.stream-hint {
+  font-family: var(--font-mono);
+  font-size: 9.5px; letter-spacing: .28em; text-transform: uppercase;
+  color: #a08060; opacity: .75;
+}
+.stream-save {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: .32em; text-transform: uppercase;
+  background: transparent;
+  border: 1px solid #c89838;
+  color: #5a3e1a;
+  padding: 7px 22px; border-radius: 2px;
+  cursor: pointer;
+  transition: background .15s, opacity .15s;
+}
+.stream-save:hover:not(:disabled) { background: rgba(200, 152, 56, 0.1); }
+.stream-save:disabled { opacity: .35; cursor: not-allowed; }
+
+.stream-history {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(196, 162, 101, 0.18);
+  display: flex; flex-direction: column;
+  gap: 22px;
+}
+.stream-empty {
+  font-family: var(--font-script);
+  font-size: 15px; font-style: italic;
+  color: #a08a60; opacity: .65;
+  text-align: center;
+  padding: 24px 0;
+}
+.stream-history-label {
+  font-family: var(--font-mono);
+  font-size: 9px; letter-spacing: .35em; text-transform: uppercase;
+  color: #a08060; opacity: .65;
+  margin-bottom: 4px;
+}
+
+.stream-entry {
+  display: flex; flex-direction: column;
+  gap: 6px;
+  padding-bottom: 18px;
+  border-bottom: 1px dashed rgba(196, 162, 101, 0.15);
+}
+.stream-entry:last-child { border-bottom: none; }
+.stream-entry-text {
+  font-family: var(--font-stream);
+  font-size: 20px;
+  line-height: 1.55;
+  color: #4a3a24;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.stream-entry-meta {
+  display: flex; align-items: center; gap: 14px;
+  flex-wrap: wrap;
+}
+.stream-entry-stamp {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 9.5px; letter-spacing: .3em; text-transform: uppercase;
+}
+.stream-entry-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 4px currentColor;
+}
+.stream-entry-time {
+  font-family: var(--font-mono);
+  font-size: 9.5px; color: #a09070; opacity: .8;
+}
+.stream-entry-trash {
+  margin-left: auto;
+  background: transparent; border: none;
+  color: #c0a060; opacity: .4;
+  cursor: pointer; padding: 2px;
+  display: flex; align-items: center;
+  transition: opacity .15s, color .15s;
+}
+.stream-entry-trash:hover { opacity: 1; color: #8a3020; }
+.stream-entry-confirm {
+  margin-left: auto;
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 9px; letter-spacing: .25em; text-transform: uppercase;
+  color: #8a6040;
+}
+.stream-entry-yes, .stream-entry-no {
+  font-family: var(--font-mono);
+  font-size: 9px; letter-spacing: .18em; text-transform: uppercase;
+  background: transparent; border: 1px solid currentColor;
+  padding: 2px 6px; border-radius: 2px; cursor: pointer;
+}
+.stream-entry-yes { color: #8a3020; border-color: rgba(138, 48, 32, 0.4); }
+.stream-entry-yes:hover { background: rgba(138, 48, 32, 0.1); }
+.stream-entry-no { color: #a09070; border-color: rgba(160, 144, 112, 0.4); }
+.stream-entry-no:hover { background: rgba(160, 144, 112, 0.1); }
 
 /* ─── Journal Body tab — figure at top, list below ─── */
 .jov-body-tab { display: flex; flex-direction: column; gap: 6px; }
