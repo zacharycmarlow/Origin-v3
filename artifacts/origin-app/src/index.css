@@ -1493,29 +1493,32 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .toolbar-btn:active { transform: scale(.96); }
 
 /* ─── Journal Overlay ──────────────────────────────────────── */
+/* Full-screen — the journal is its own space, a personal artifact
+   separate from the journey. Cream fills the entire viewport so the
+   chapter behind is fully replaced. */
 .jov-backdrop {
   position: fixed; inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: #f5efe2;
   z-index: 200;
-  display: flex; align-items: stretch; justify-content: flex-end;
-  animation: jov-fade-in .18s ease;
+  display: flex; align-items: stretch; justify-content: center;
+  animation: jov-fade-in .22s ease;
 }
 @keyframes jov-fade-in {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
 .jov-panel {
-  width: min(600px, 100vw);
+  width: 100%;
+  max-width: 760px;
   height: 100%;
-  background: #f5efe2;
+  background: transparent;
   display: flex; flex-direction: column;
   overflow: hidden;
-  animation: jov-slide-in .22s cubic-bezier(.22, 1, .36, 1);
-  box-shadow: -8px 0 40px rgba(0, 0, 0, 0.3);
+  animation: jov-rise-in .28s cubic-bezier(.22, 1, .36, 1);
 }
-@keyframes jov-slide-in {
-  from { transform: translateX(60px); opacity: 0; }
-  to   { transform: translateX(0);    opacity: 1; }
+@keyframes jov-rise-in {
+  from { transform: translateY(12px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
 }
 
 .jov-topbar {
@@ -1621,10 +1624,11 @@ input, textarea, select { font-family: inherit; color: inherit; }
 
 .jov-spine-entry { padding: 6px 0 14px; }
 .jov-spine-prompt {
-  font-family: var(--font-body);
-  font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
+  font-family: var(--font-title);
+  font-size: 14px; letter-spacing: .04em;
+  font-style: italic;
   color: #a08a60; opacity: .85;
-  margin-bottom: 8px; line-height: 1.5;
+  margin-bottom: 10px; line-height: 1.5;
 }
 .jov-spine-response {
   font-family: var(--font-body);

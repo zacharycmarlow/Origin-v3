@@ -290,7 +290,7 @@ export default function JournalOverlay({ onClose, chapters, currentCh, reachedCh
   };
 
   return (
-    <div className="jov-backdrop" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="jov-backdrop">
       <div className="jov-panel" role="dialog" aria-modal="true" aria-label="Journal">
         <div className="jov-topbar">
           <span className="jov-title">Journal</span>
