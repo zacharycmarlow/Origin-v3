@@ -25,6 +25,9 @@ Warm handmade paper manuscript aesthetic:
 - `src/components/` — BreathPacer, Journal, ShameMask, VoicesList, Declarations, Gratitude, Gathering, MoveTimer, Broadcast, JournalOverlay
 - `src/storage.ts` — exports `BodyEntry`, `StreamEntry` types + `getBodyEntries`, `getStreamEntries`, `deleteStreamEntry` helpers
 - Floating toolbar (bottom-right, z-80): book icon opens JournalOverlay. Slots reserved for Stream (wave) and Body (figure) icons from Tasks #4/#5.
+- Code tiles: collapsed by default (essence line + explore chevron). Tap to expand full body text; tap collapse to return.
+- Lore tiles: new tile type after each Code tile. Organic vine+eye corner frame, gold (#C4A265). Same expand/collapse as Code. Essence line collapsed; rich tradition text expanded.
+- `chapters.ts`: Chapter.code has `essence` field; Chapter.lore: `{ essence, expandedContent }` per chapter with Dagara/Aboriginal/Kogi/Sufi/etc. tradition content.
 
 ### Chapters
 1. Prologue — The Wound (shame mask, breath pacer, journaling)

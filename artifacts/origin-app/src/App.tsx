@@ -9,8 +9,9 @@ interface PreludeTile { kind: 'prelude' }
 interface EpilogueTile { kind: 'epilogue' }
 interface OpenerTile { kind: 'opener'; ch: number }
 interface CodeTile { kind: 'code'; ch: number }
+interface LoreTile { kind: 'lore'; ch: number }
 interface SceneTileData { kind: 'scene'; ch: number; sc: number }
-type Tile = PreludeTile | EpilogueTile | OpenerTile | CodeTile | SceneTileData;
+type Tile = PreludeTile | EpilogueTile | OpenerTile | CodeTile | LoreTile | SceneTileData;
 
 function buildTiles(chapters: Chapter[]): Tile[] {
   const tiles: Tile[] = [];
@@ -18,6 +19,7 @@ function buildTiles(chapters: Chapter[]): Tile[] {
   chapters.forEach((ch, ci) => {
     tiles.push({ kind: 'opener', ch: ci });
     tiles.push({ kind: 'code', ch: ci });
+    tiles.push({ kind: 'lore', ch: ci });
     ch.scenes.forEach((_, si) => {
       tiles.push({ kind: 'scene', ch: ci, sc: si });
     });
@@ -257,17 +259,135 @@ function CodeFrame() {
 }
 
 function CodeTileView({ chapter }: { chapter: Chapter }) {
+  const [expanded, setExpanded] = useState(false);
   return (
     <div className="tile tile-code">
       <div className="tile-inner">
-        <div className="code-card">
+        <div className={'code-card' + (expanded ? ' code-card--expanded' : '')}>
           <CodeFrame />
           <div className="code-head">
             <div className="code-mark"><CodeGlyph /></div>
             <div className="code-label">{chapter.code.title}</div>
             <div className="code-num">ch · {chapter.roman}</div>
           </div>
-          <div className="code-body">{chapter.code.body}</div>
+          <div className="code-essence">{chapter.code.essence}</div>
+          {expanded && (
+            <div className="code-expanded">
+              <div className="code-body code-body--detail">{chapter.code.body}</div>
+              <button className="code-collapse" onClick={() => setExpanded(false)}>
+                <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
+                  <polyline points="1,5 5,1 9,5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                collapse
+              </button>
+            </div>
+          )}
+          {!expanded && (
+            <button className="code-explore" onClick={() => setExpanded(true)}>
+              <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
+                <polyline points="1,1 5,5 9,1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              explore
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Lore card organic frame ───────────────────────────── */
+function LoreCornerSvg() {
+  return (
+    <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      {/* Eye socket at pivot */}
+      <ellipse cx="10" cy="10" rx="8" ry="5.5" fill="none" stroke="currentColor" strokeWidth=".85" strokeOpacity=".55" />
+      <circle cx="10" cy="10" r="2.2" fill="currentColor" fillOpacity=".65" />
+      <circle cx="10" cy="10" r=".9" fill="currentColor" fillOpacity=".9" />
+      {/* Horizontal vine stem */}
+      <path d="M 18 10 Q 44 8 70 10" fill="none" stroke="currentColor" strokeWidth=".9" strokeOpacity=".5" strokeLinecap="round" />
+      {/* Leaf sprigs on horizontal stem */}
+      <path d="M 34 10 C 32 4, 38 3, 36 10" fill="currentColor" fillOpacity=".3" />
+      <path d="M 34 10 C 32 16, 38 17, 36 10" fill="currentColor" fillOpacity=".2" />
+      <path d="M 54 10 C 52 5, 57 4, 56 10" fill="currentColor" fillOpacity=".25" />
+      <path d="M 54 10 C 52 15, 57 16, 56 10" fill="currentColor" fillOpacity=".18" />
+      {/* Terminal bud on horizontal */}
+      <circle cx="70" cy="10" r="2.8" fill="none" stroke="currentColor" strokeWidth=".7" strokeOpacity=".45" />
+      <circle cx="70" cy="10" r="1.1" fill="currentColor" fillOpacity=".5" />
+      {/* Vertical vine stem */}
+      <path d="M 10 18 Q 8 44 10 70" fill="none" stroke="currentColor" strokeWidth=".9" strokeOpacity=".5" strokeLinecap="round" />
+      {/* Leaf sprigs on vertical stem */}
+      <path d="M 10 36 C 4 34, 3 40, 10 38" fill="currentColor" fillOpacity=".3" />
+      <path d="M 10 36 C 16 34, 17 40, 10 38" fill="currentColor" fillOpacity=".2" />
+      <path d="M 10 55 C 4 53, 3 58, 10 57" fill="currentColor" fillOpacity=".25" />
+      <path d="M 10 55 C 16 53, 17 58, 10 57" fill="currentColor" fillOpacity=".18" />
+      {/* Terminal bud on vertical */}
+      <circle cx="10" cy="70" r="2.8" fill="none" stroke="currentColor" strokeWidth=".7" strokeOpacity=".45" />
+      <circle cx="10" cy="70" r="1.1" fill="currentColor" fillOpacity=".5" />
+    </svg>
+  );
+}
+
+function LoreGlyph() {
+  return (
+    <svg viewBox="0 0 48 48" width="40" height="40" fill="none" aria-hidden="true">
+      {/* Outer leaf/eye shape */}
+      <path d="M 6 24 C 6 14, 24 6, 24 6 C 24 6, 42 14, 42 24 C 42 34, 24 42, 24 42 C 24 42, 6 34, 6 24 Z"
+        fill="none" stroke="currentColor" strokeWidth=".7" strokeOpacity=".5" />
+      {/* Inner pupil rings */}
+      <circle cx="24" cy="24" r="9" fill="none" stroke="currentColor" strokeWidth=".6" strokeOpacity=".4" />
+      <circle cx="24" cy="24" r="4.5" fill="currentColor" fillOpacity=".75" />
+      <circle cx="24" cy="24" r="1.8" fill="currentColor" fillOpacity=".35" />
+      {/* Small leaf accents at cardinal points */}
+      <path d="M 24 6 C 22 10, 26 10, 24 6" fill="currentColor" fillOpacity=".3" />
+      <path d="M 24 42 C 22 38, 26 38, 24 42" fill="currentColor" fillOpacity=".3" />
+    </svg>
+  );
+}
+
+function LoreFrame() {
+  return (
+    <div className="lore-frame" aria-hidden="true">
+      <span className="lore-corner lore-corner--tl"><LoreCornerSvg /></span>
+      <span className="lore-corner lore-corner--tr"><LoreCornerSvg /></span>
+      <span className="lore-corner lore-corner--bl"><LoreCornerSvg /></span>
+      <span className="lore-corner lore-corner--br"><LoreCornerSvg /></span>
+    </div>
+  );
+}
+
+function LoreTileView({ chapter }: { chapter: Chapter }) {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <div className="tile tile-lore">
+      <div className="tile-inner">
+        <div className={'lore-card' + (expanded ? ' lore-card--expanded' : '')}>
+          <LoreFrame />
+          <div className="lore-head">
+            <div className="lore-mark"><LoreGlyph /></div>
+            <div className="lore-label">The Lore</div>
+            <div className="lore-num">ch · {chapter.roman}</div>
+          </div>
+          <div className="lore-essence">{chapter.lore.essence}</div>
+          {expanded && (
+            <div className="lore-expanded">
+              <div className="lore-body">{chapter.lore.expandedContent}</div>
+              <button className="lore-collapse" onClick={() => setExpanded(false)}>
+                <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
+                  <polyline points="1,5 5,1 9,5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                collapse
+              </button>
+            </div>
+          )}
+          {!expanded && (
+            <button className="lore-explore" onClick={() => setExpanded(true)}>
+              <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
+                <polyline points="1,1 5,5 9,1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              explore
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -303,6 +423,7 @@ function renderTile(tile: Tile, chapters: Chapter[], onEnter: () => void, onRest
   if (tile.kind === 'epilogue') return <EpilogueTileView onRestart={onRestart} />;
   if (tile.kind === 'opener') return <OpenerTileView chapter={chapters[tile.ch]} idx={tile.ch} total={chapters.length} />;
   if (tile.kind === 'code') return <CodeTileView chapter={chapters[tile.ch]} />;
+  if (tile.kind === 'lore') return <LoreTileView chapter={chapters[tile.ch]} />;
   if (tile.kind === 'scene') {
     const ch = chapters[tile.ch];
     return (
@@ -330,7 +451,8 @@ function DeckNav({ tileIdx, total, go, tiles }: {
   if (!next) label = 'complete';
   else if (tile?.kind === 'prelude') label = 'enter chapter I';
   else if (tile?.kind === 'opener') label = 'receive the code';
-  else if (tile?.kind === 'code') label = 'begin';
+  else if (tile?.kind === 'code') label = 'explore the lore';
+  else if (tile?.kind === 'lore') label = 'begin';
   else if (next.kind === 'opener') label = 'cross the threshold';
   else if (next.kind === 'epilogue') label = 'complete the origin';
 
@@ -418,6 +540,7 @@ export default function App() {
   let currentCh = 0;
   if (currentTile?.kind === 'opener') currentCh = (currentTile as OpenerTile).ch;
   else if (currentTile?.kind === 'code') currentCh = (currentTile as CodeTile).ch;
+  else if (currentTile?.kind === 'lore') currentCh = (currentTile as LoreTile).ch;
   else if (currentTile?.kind === 'scene') currentCh = (currentTile as SceneTileData).ch;
   else if (currentTile?.kind === 'epilogue') currentCh = chapters.length - 1;
 

@@ -50,13 +50,19 @@ export interface Scene {
   minutes?: number;
 }
 
+export interface LoreContent {
+  essence: string;
+  expandedContent: string;
+}
+
 export interface Chapter {
   roman: string;
   title: string;
   subtitle: string;
   palette: Palette;
   invocation: string;
-  code: { title: string; body: string };
+  code: { title: string; essence: string; body: string };
+  lore: LoreContent;
   outside?: boolean;
   scenes: Scene[];
 }
@@ -78,7 +84,12 @@ const CHAPTERS: Chapter[] = [
     invocation: "Your whole life, everything you have built and lost and survived, is backstory. The prologue to a story not yet started, the title crawl setting context before the real action begins. You have scars from that backstory, and those scars are still showing up. We are here to find the story underneath what happened, the recurring thread, the pattern that kept reappearing no matter how many times the circumstances changed. Think like a storyteller. What is the shape of the arc?",
     code: {
       title: "The Code",
+      essence: "Memory is not a recording. It is a reconstruction — and you rewrite it every time you tell the story.",
       body: "The brain stitches experience into continuity. Memory is not a recording, it is a reconstruction, and every time you tell your life, the neural architecture rewrites. Each time you hold the arc in a different story, the emotional weight of what happened updates. You are not remembering your life. You are rebuilding it every time you tell it."
+    },
+    lore: {
+      essence: "The acorn.",
+      expandedContent: "Before you arrived, the Dagara people of West Africa would gather to receive what the incoming soul was bringing — the gift, the mission, the reason for coming. James Hillman named this the acorn theory: every life organized around a core image present from the beginning, waiting to unfold the way an oak is latent in the seed. The Yoruba call it ori — the personal divine essence you carried into embodiment. The Jungians named it the daimon. Every tradition that has looked closely enough found the same architecture: you did not arrive empty. The longing that has driven you since childhood, the thing you kept returning to despite every discouragement — that was not preference. It was instruction. The seed was never given to you. It was what you were."
     },
     scenes: [
       {
@@ -137,7 +148,12 @@ const CHAPTERS: Chapter[] = [
     invocation: "Every character carries a wound. The wound drives the quest, qualifies the hero for the journey, connects them to everyone carrying the same mark. You are about to look directly at the wound the character you just described has been carrying, the conditions that shaped them, the voices narrating their worth since before they had language to argue. The wound does not appreciate being examined. The closer you look, the louder the alarms. Those alarms are the treasure. Shame has many masks in this chapter. The urge to minimize: it was not that bad. The performance of strength: I have already done the work. Each is the old story's immune system doing its job.",
     code: {
       title: "The Code",
+      essence: "You did not become the harm. You became a story the harm wrote — and stories can be rewritten.",
       body: "Something happened, and the brain asked what does this mean about me, and the answer fused to identity. You stopped being someone who experienced harm and started being someone who is the harm. I am broken. I am too much. I am not enough. These feel like facts, but they are constructions, held in place by the body that stores the emotional signature, running as rumination. The stuckness is not that you cannot release the wound. It is that the wound became the self, and releasing it feels like dissolution. What we are doing is separating you from it, carefully, so you can see it is a story and the author can choose a different one."
+    },
+    lore: {
+      essence: "The Songline.",
+      expandedContent: "The Aboriginal Australians do not speak of history the way the modern world does. The Songlines — tjuringa paths — are invisible pathways sung into the land and into the self by the ancestors. Every stretch of country has a song. To walk your Songline is to sing it into existence as you move. Your circumstances, the conditions you were born into, the wounds you absorbed without choosing — these were not accidents or detours from some better route. They are your Songline. The path was always the one you walked. In Dreaming cosmology, nothing can be understood in isolation: every wound, every difficulty, connects to a thread older and longer than your biography. The detours were the route. The damage was the instruction. What the wound asks is not that you forget it — but that you learn the part of the song it was carrying."
     },
     scenes: [
       {
@@ -205,7 +221,12 @@ const CHAPTERS: Chapter[] = [
     invocation: "Life is a gift. You are the gift. If that sounds like something printed on a card, sit with it for a moment and let it actually land, because the implications are enormous. If everything that happened to you happened for you, then nothing was wasted. The pain had a purpose. The confusion was preparation. The years you thought you were lost were the years you were being trained for something you could not see yet. Gratitude is the alchemist. It does not change what happened. It changes what it means. And what it means is what drives everything downstream.",
     code: {
       title: "The Code",
+      essence: "Every time you revisit a wound inside a different emotional meaning, the brain permanently rewrites how it is stored.",
       body: "Every time you recall a memory, the neural trace becomes temporarily labile, open to revision. If you revisit it while holding a different emotional meaning, the rewritten trace embeds the new meaning permanently. Researchers call this memory reconsolidation. The memories do not change. What they mean changes, which changes what they do in you from that moment on. Hold your worst chapter inside \"what was this preparing me for\" while the body is in gratitude, and you are literally rewriting how it is stored."
+    },
+    lore: {
+      essence: "Kintsugi.",
+      expandedContent: "Japanese craftspeople repair shattered pottery with urushi lacquer mixed with gold powder — kintsukuroi, golden joinery — so that the break becomes the most luminous part of the vessel. The philosophy holds that the history of the damage is part of the object's beauty, not a flaw to conceal. Rumi wrote: the wound is the place where the light enters. Permaculture's first principle holds that the problem is the solution: the very difficulty contains the resource for resolving it. The Sufi mystics understood that the heart's capacity for grief is the exact measure of its capacity for love — the same depth, differently directed. Modern trauma research confirms what these traditions held: post-traumatic growth, when given space and witness, produces capacities of resilience, empathy, and creativity that no unwounded life can generate. The gold in the seam is not metaphor. It is what the breaking made possible."
     },
     scenes: [
       {
@@ -263,7 +284,12 @@ const CHAPTERS: Chapter[] = [
     invocation: "When people ask where are you from, they almost never mean it the way the question deserves to be answered. Underneath the reflex, there is a real question reaching for something much bigger. The forces that shaped the character you just described did not begin with their birth. Their parents were shaped by theirs, who were shaped by theirs, all the way back to patterns so old they feel less like history and more like gravity. Every cell in your body is made of stardust, atoms forged in the cores of stars that exploded billions of years ago so that, eventually, impossibly, something could open its eyes and wonder where it came from.",
     code: {
       title: "The Code",
+      essence: "The faculty that built every cathedral and carried every pilgrimage is in you — and it can consecrate your own existence.",
       body: "The same network that builds the small personal self has another mode, one that turns toward the vast and dissolves the boundary between you and everything. This is what meditation trains. This is what psychedelics trigger. This is what every religious tradition cultivated. The experience of unity, awe, belonging, the sacred. You are not reaching outside yourself for it. The faculty that built every cathedral and carried every pilgrimage is in you, and it can consecrate your own existence the moment you turn it there."
+    },
+    lore: {
+      essence: "The thread.",
+      expandedContent: "The Kogi of the Sierra Nevada de Santa Marta have never left the mountain. For five hundred years they have held the ecological and spiritual memory of their territory through an unbroken lineage of mamos — elder initiates trained in darkness for nine years to perceive the underlying order. They call it Aluna: the primordial thought, the generative intelligence that underlies all physical reality. The Haudenosaunee Confederacy holds every decision inside a span of seven generations past and seven generations forward, because anything smaller is a kind of amnesia. The Lakota speak of mitákuye oyásʼiŋ — all my relations — not as metaphor but as cosmological fact: every entity, visible and invisible, is kin. The carbon in your bones was forged in the hearts of stars. The longing you carry did not begin with your birth. Following it backward reveals not emptiness but ancestry. Following it forward reveals not uncertainty but responsibility. The thread does not end with you."
     },
     outside: true,
     scenes: [
@@ -312,7 +338,12 @@ const CHAPTERS: Chapter[] = [
     invocation: "Everything you have excavated across four chapters, the seed, the character, the wound, the voices, the loops, the gifts hidden inside the wounds, the source underneath it all, you built as separate threads. You are about to discover they were one fabric, woven by one loom, so continuously you never saw the weaving. Stop. Right now. Listen. There is a voice in your head that has never stopped talking. It replays what happened, rehearses what might, maintains the running account of who you are and what you are worth, so automatically you have probably never noticed you were listening. You mistook it for thinking. You mistook it for yourself.",
     code: {
       title: "The Code",
+      essence: "The default mode network authors your consciousness — constructing the reality you live inside, and calling it fact.",
       body: "Neuroscience calls this the default mode network, the most energy-intensive system in your brain, running every moment you are not absorbed in something external. It uses more energy to be than to do. What it does is author your consciousness. It tells you what the past means. It builds futures so vivid your body floods with cortisol for events that have not happened. It generates the default character you become when depleted. It constructs the reality you live inside: the story shapes how you show up, how you show up shapes how people respond, how people respond confirms the story, and the loop tightens until the wall feels like a fact of nature. Normal is this system's masterpiece. The most powerful story ever told, because it does not announce itself as a story."
+    },
+    lore: {
+      essence: "The loom.",
+      expandedContent: "The Sufis called it the nafs — the self that speaks. They mapped seven stations: from the commanding nafs (the one that demands, defends, and constructs) to the pure nafs (the witness that sees without distortion). The great work of Sufi practice was not to destroy the narrator but to move it from commander to servant. The Vedic tradition named the same faculty ahamkara — the I-maker — the function that stitches sensory experience into a continuous self and announces the result as truth. The Buddhists observed citta-santana: the stream of consciousness, an unbroken river of mental formations flowing so continuously that you mistake the current for the riverbed. Vipassana is the practice of sitting at the bank without being swept away. Every wisdom tradition that looked carefully at the human mind found the same structure: a voice running beneath awareness, generating selfhood, and the liberation was never destroying the loom — it was finally seeing that you were the one weaving."
     },
     scenes: [
       {
@@ -365,7 +396,12 @@ const CHAPTERS: Chapter[] = [
     invocation: "Do you remember when you could imagine? Before anyone taught you to be practical, before the word realistic entered your vocabulary, before the dreams got trained out of you by a world that needed you compliant, there was a time when you could walk into a field and build a civilization in the grass. Close your eyes and be somewhere else so completely your body responded as though it was real. That was the dreaming power. And it was the most natural thing about you. That power never left. The Narrator put it on a leash and used it to worry, to catastrophize, to build worst-case futures with breathtaking clarity. Every hour of anxiety you have ever felt was the dreaming power running in reverse.",
     code: {
       title: "The Code",
+      essence: "The brain cannot distinguish a vividly imagined event from a real one. What you rehearse, the body builds the capacity for.",
       body: "The brain does not distinguish between a vividly imagined event and a real one. The motor cortex fires during mental rehearsal at nearly the intensity of physical practice. Studies show that people who only imagine doing strength training gain measurable strength. Elite athletes install their performance by running the neural program hundreds of times before the body executes it. Visualization is not metaphor. It is rehearsal. The body prepares for what you imagine. Heart rate rises for imagined threats. Cortisol spikes for imagined failures. The autonomic nervous system cannot tell the difference. What you rehearse, the body builds the capacity for. Viktor Frankl imagined the lecture he would give until his body organized itself around the survival that would let him give it. He survived. He gave the lecture. Dreaming, practiced with conviction, is how humans have always built the future they are standing in."
+    },
+    lore: {
+      essence: "The Dreamtime.",
+      expandedContent: "The Aboriginal Australians did not place the Dreamtime in the past. Tjukurpa — the Dreaming — is not mythology. It is the dimension that underlies and continuously generates physical reality, accessible in every waking moment to those who have learned to move between the layers. To dream correctly is not escapism — it is participation in creation. The Iroquois held dream councils: when a member of the community dreamed something significant, the community gathered to help the dreamer enact what the dream required, because the dream was not private communication. It was the soul's instruction, and the community's responsibility. The Toltec tradition distinguished between the first attention — the ordinary waking world — and the second attention — the dreaming body that moves through other dimensions of reality. The shaman's work was navigating between them with intention. The dreaming power was never supernatural. It was always the oldest natural technology available to the human mind: the capacity to hold a world vividly enough that the body reorganizes itself around its reality."
     },
     scenes: [
       {
@@ -419,7 +455,12 @@ const CHAPTERS: Chapter[] = [
     invocation: "You are standing at the end of a chapter, maybe the longest chapter of your life. The story that brought you here succeeded. It did its job. It carried you through everything it needed to, and now it is finished. You can feel the completeness even when part of you wants to stay in the familiar pattern because at least it is known. The stuckness you have been feeling is the ache of something finished that has not been given permission to end. A story that never properly ends becomes a loop, a pattern repeating itself until someone has the courage to write its last page and mean it.",
     code: {
       title: "The Code",
+      essence: "Telling your story to another person completes the circuit. The witness makes it real.",
       body: "When you tell your story to another person, their nervous system mirrors yours, treats the narrative as real, reflects it back, and the story comes alive between you in a way thinking alone keeps circular. This is why healing traditions across all of human history involve speaking the story aloud in the presence of someone who receives it. The telling completes the circuit. The witness makes it real. This is how civilizations formed around campfires, how movements gathered force, how every lasting shift in human consciousness began. One person told a story true enough that another person's body recognized it, and reality reorganized around what they built together."
+    },
+    lore: {
+      essence: "The thin place.",
+      expandedContent: "The Celts called them caol áit — thin places — locations and moments where the membrane between worlds grows permeable. Not metaphorical worlds: actual dimensions of reality that ordinarily remain opaque. A genuine ending is a thin place. The old form has completed its function; the new has not yet taken shape. The Aztec and Maya understood time as cyclical — each age consuming itself so that the next could emerge, every ending a composting of the ground for the next creation. The Buddhists call the gap state bardo: the intermediate dimension between one form of being and the next, traditionally understood as one of the most fertile spiritual territories available to a human being. The Dagara elders mark the transition out of one life-phase with ceremony — not because ceremony is symbolic, but because what is not properly completed does not properly end and begins instead to repeat. You are standing in a thin place. It happens only a few times in a life. The correct response is not to hurry through it. It is to speak, out loud, what you are ending — so the membrane can close behind you and the new form can begin to take shape."
     },
     scenes: [
       {

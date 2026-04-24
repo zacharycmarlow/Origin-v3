@@ -1,0 +1,63 @@
+# Instruction 5: Code Evolution + Lore Step
+
+## Two changes, one pattern
+
+Both the Code step and the new Lore step follow the same interaction: an essence line visible by default, an expand action that reveals deeper content, and a collapse action to return. They differ only in visual treatment. Build the expandable behavior once, skin it twice.
+
+---
+
+## Change A: Evolve the Code Step
+
+The Code step already exists with its geometric circuit-border frame. Keep that frame. Change how content is displayed inside it.
+
+**Current behavior:** The full Code text displays in the frame at all times.
+
+**New behavior:**
+
+**Collapsed (default):** The frame shows only the essence line, centered, in the display font. Below it, a small subtle chevron or "explore" text in muted gold, indicating more content is available.
+
+**On tap/expand:** The frame smoothly grows taller (animate the height). The essence line moves to the top. The expanded content fades in below it. If the expanded content is longer than the visible frame area, it scrolls within the frame. The circuit-border ornaments at the corners stay anchored to the frame edges as it grows.
+
+**On collapse:** Tap the essence line, the chevron, or a small "close" affordance. The frame smoothly shrinks back. The expanded content fades out.
+
+The expanded content for each chapter's Code is already in the chapter content file from instruction 4 (the `expandedContent` field on `code` type steps).
+
+---
+
+## Change B: Add the Lore Step Type
+
+Create a new step type: `lore`. It follows the same expandable pattern as the Code but with a distinct visual treatment.
+
+**The frame:**
+
+Where the Code uses geometric circuit-border ornaments (clean lines, nodes, connectors), the Lore uses an organic border treatment:
+
+- Subtle hand-drawn or vine-like ornamental curves at the four corners of the frame
+- Warmer gold tones (`#C4A265`) for the border rather than the Code's teal
+- The interior background is very slightly warmer than the chapter's base color — a faint parchment warmth, achieved with a subtle overlay or tint
+- A small icon next to "The Lore" label: something organic (a leaf, a spiral, an open eye) to distinguish from the Code's geometric icon
+
+**Label:** "The Lore" in display font, gold, with chapter indicator (e.g., "ch · I") on the right side, matching how the Code step shows its chapter tag.
+
+**Collapsed (default):** The Lore essence/title displayed prominently inside the frame. Example: "The acorn." Below it, a subtle "explore" chevron or text.
+
+**On expand:** Same behavior as the Code — frame grows, essence moves to top, expanded content fades in below, scrollable if needed. The organic corner ornaments stay anchored to the frame edges as it grows.
+
+**On collapse:** Same as Code.
+
+**Content source:** The `expandedContent` field on `lore` type steps in the chapter content file from instruction 4.
+
+---
+
+## Visual summary
+
+| | Code | Lore |
+|---|---|---|
+| Border | Geometric circuit lines, teal | Organic vine curves, gold |
+| Background | Chapter base color | Slightly warmer, faint parchment tint |
+| Icon | Geometric (existing) | Organic (leaf, spiral, or eye) |
+| Label | "The Code" | "The Lore" |
+| Font color | Teal (`#2E5D4B`) | Gold (`#C4A265`) |
+| Interaction | Expand/collapse | Identical to Code |
+
+These two visual registers — geometric/futuristic and organic/ancient — carry through the rest of the app (the Library in instruction 6 will use them for its two tabs).

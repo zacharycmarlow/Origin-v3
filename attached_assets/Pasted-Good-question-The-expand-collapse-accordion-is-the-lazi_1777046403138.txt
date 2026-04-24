@@ -1,0 +1,45 @@
+Good question. The expand-collapse accordion is the laziest option. Let me think about what would actually feel like discovering something.
+
+**The circuit board is already there.** The Code frame has nodes and connection lines at the corners. What if those nodes are tappable? Each node on the frame is a doorway into a different layer of the Code:
+
+- One node: **The Mechanism** — what is actually happening in the brain
+- One node: **The Research** — the specific science, the study, the finding
+- One node: **The Thread** — how this Code connects to the other chapters' Codes, the DMN architecture building across the journey
+- One node: **The Practice** — what this means for what the user just did, why it worked
+
+The essence line sits in the center as always. The nodes glow softly at the corners. The user taps a node and that layer's content appears inside the frame, replacing the essence temporarily. Tap another node, see another layer. Tap the center to return to the essence. The frame becomes an interactive object, a terminal the user accesses at different ports.
+
+This also means the Code doesn't dump 500 words at once. Each layer is a focused piece, maybe 80-120 words. The user explores at their own pace, in whatever order they want. Some users read all four. Some read one and move on. The depth is there without being forced.
+
+**For the Lore, the organic version of this:**
+
+The vine-like ornaments at the corners are the tappable elements. Each one opens a different lineage or tradition connected to that chapter's Lore:
+
+- One vine: **The Tradition** — the primary cultural source (Dagara, Kogi, Aboriginal, etc.)
+- One vine: **The Echo** — a second tradition that understood the same thing from a different angle
+- One vine: **The Practice** — what these cultures actually did with this knowledge, the ritual, the ceremony
+- One vine: **The Living Thread** — how this ancient wisdom connects to what the user just experienced in the chapter
+
+Same interaction pattern. Tap a vine, content appears inside the organic frame. Tap another, see another perspective. Return to the essence at center. The Lore becomes a living manuscript the user explores.
+
+**A third approach for both:** depth levels rather than lateral nodes.
+
+The Code presents its essence. Tap to go deeper. Level one: the mechanism in plain language. Tap again: the specific research. Tap again: the cross-chapter connection. Each level feels like descending into a system, peeling back layers. The frame visually responds, maybe the circuit lines illuminate progressively as you go deeper, or the background darkens slightly with each level.
+
+For Lore, the same depth model feels like going back in time. Level one: the tradition named. Level two: the deeper story. Level three: what the culture practiced. Each level, the organic frame responds, the vines grow slightly, the warmth deepens.
+
+**A fourth option:** the Code or Lore opens into its own dedicated space.
+
+Tapping the Code doesn't expand the frame inline. It transitions the user into a dedicated Code space, a full-screen experience with its own visual treatment (the geometric/futuristic aesthetic, dark background, teal circuit lines, the content presented as accessed data). The user explores inside this space, then exits back to the chapter flow. This makes each Code feel like entering a different room, not reading a longer card.
+
+For Lore, the dedicated space has the organic aesthetic: warm tones, manuscript feel, the content presented as recovered wisdom.
+
+**What I'd recommend:**
+
+The tappable nodes/vines on the existing frame corners. It uses what's already built (the circuit-border frame), makes it interactive, keeps the user in the chapter flow, and lets the content be modular (four focused pieces per Code/Lore rather than one long block). It's also the most buildable since the frame already has nodes at the corners, they just need to become tappable.
+
+The depth-level approach is also strong, especially if combined with the nodes: each node has its own depth you can drill into.
+
+The dedicated-space approach is the most dramatic but the biggest build and might break the flow of the journey.
+
+What feels right to you?
