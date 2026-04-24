@@ -1,0 +1,130 @@
+# THE ORIGIN APP — v1 Evolution Overview
+
+## READ THIS FIRST. DO NOT BUILD ANYTHING FROM THIS DOCUMENT.
+
+This document describes the full picture of what we are adding to the existing Origin app over the next several instructions. Its purpose is to give you the complete architecture so you can make smart structural decisions as you build each piece. Each piece will arrive as its own focused instruction. Build only what each instruction asks for. This overview is context, not a task list.
+
+---
+
+## What Exists
+
+A step-based card flow guiding users through seven chapters (I–VII). Each chapter has its own color theme. Users advance through named steps within each chapter using back/continue navigation. Steps include body text, writing prompts with text areas, a breath orb visualization, and a Code step displayed in a geometric frame. Chapter nav dots sit on the left side. A progress counter (01/05, etc.) sits top-right. Voice input already exists on text areas.
+
+## What We Are Adding
+
+Six things, delivered one at a time in separate instructions:
+
+### 1. The Stream
+A floating capture tool for recording thoughts during the journey. One small icon (wave/ripple) floating in the bottom-right corner, above the nav bar. Tapping it opens a small slide-up capture card. User types or speaks a thought, taps capture, it saves and closes. Data: array of text entries, each tagged to the current chapter with a timestamp.
+
+### 2. The Body Tool
+A second icon (human figure silhouette) joins the Stream icon in the bottom-right corner. Tapping it opens a slide-in panel from the right showing a body diagram with tappable energy centers (12 points: 7 chakras + jaw, shoulders, belly, hands). User taps a point, adds a note about what they feel there. Notes accumulate across chapters, color-coded by chapter. Data: array of entries, each with energy center, chapter, note text, timestamp.
+
+### 3. The Journal
+A third icon (open book) joins the others. Tapping it opens a full-screen overlay showing all the user's accumulated work. Three swipeable tabs: **Spine** (structured prompt responses), **Body** (body diagram notes), **Stream** (captured thoughts). A chapter selector at the top lets the user filter by chapter or view all. Read-only, with an edit link on Spine responses that jumps back to that step.
+
+### 4. Chapter Content Update
+The text content of all seven chapters gets updated to the definitive version. New step breakdowns with named step titles. This is a data change — the step rendering engine stays the same, the content in the chapter definition files changes. Some chapters will gain or lose steps.
+
+### 5. Code Evolution + Lore Step
+The existing Code step gets enhanced: the geometric frame now shows only the essence line by default, with an "explore" action that expands the frame to reveal deeper content. A new step type, Lore, is added with a distinct organic visual treatment (warmer, more hand-crafted feel vs. the Code's geometric/futuristic frame). Same expandable pattern: essence line visible, deeper content on expand.
+
+### 6. Step Insights + Library
+Small earned elements (paired Code + Lore insights) that appear as floating icons after the user completes specific steps. Tapping reveals a small card with a few sentences of science and wisdom specific to that step. A fourth icon (stacked books) joins the toolbar, opening the Library: a full-screen browsable collection of all unlocked Codes, Lore, and step insights, organized in two tabs — **Codex** (science, geometric aesthetic) and **Archive** (wisdom, organic aesthetic).
+
+---
+
+## The Toolbar
+
+The floating icons in the bottom-right corner grow over time:
+- After instruction 1: one icon (Stream)
+- After instruction 2: two icons (Stream + Body)
+- After instruction 3: three icons (Stream + Body + Journal)
+- After instruction 6: four icons (Stream + Body + Journal + Library)
+
+These icons should be built as a single toolbar component that accepts children. Each tool registers its icon into the toolbar. This way adding a new tool later means adding one component, not restructuring the toolbar.
+
+---
+
+## Data Model
+
+All user data persists in local storage. Structure the storage access through a single abstracted module (e.g., `UserStore`) so server-side persistence can replace local storage later without touching any UI code.
+
+The complete data shape by the end of all six instructions:
+
+```json
+{
+  "userId": "anon-[uuid]",
+  "currentChapter": "wound",
+  "currentStep": 3,
+  "completedChapters": ["prologue"],
+  "responses": {
+    "prologue-seed": "user text...",
+    "prologue-thread": "user text...",
+    "prologue-character": "user text..."
+  },
+  "bodyEntries": [
+    {
+      "id": "body-[uuid]",
+      "energyCenter": "heart",
+      "chapter": "wound",
+      "note": "sharp, like a fist",
+      "timestamp": "ISO datetime"
+    }
+  ],
+  "streamEntries": [
+    {
+      "id": "stream-[uuid]",
+      "chapter": "wound",
+      "text": "I just remembered...",
+      "timestamp": "ISO datetime"
+    }
+  ],
+  "unlockedInsights": ["prologue-seed-insight"],
+  "unlockedChapterCodes": ["prologue-code"],
+  "unlockedChapterLore": ["prologue-lore"]
+}
+```
+
+Build the `UserStore` module and this data shape now, even though instructions 1-3 will only use parts of it. This prevents restructuring later.
+
+---
+
+## Visual Language
+
+Two aesthetic registers run throughout the app:
+
+**Geometric / Futuristic** — used for Codes, science, the Codex tab in the Library. Clean lines, circuit-like border ornaments (already exists in the Code frame), teal accents. This is the brain, the mechanism.
+
+**Organic / Ancient** — used for Lore, wisdom, the Archive tab in the Library. Warmer tones, hand-drawn flourishes, gold accents, subtle textures. This is the soul, the lineage.
+
+These two registers are distinct but harmonious. They share the same color palette (teal and gold) but express it differently.
+
+---
+
+## Overlay Patterns
+
+Three overlay patterns are used across the tools:
+
+1. **Slide-up card** (Stream): small, covers ~30% of screen from bottom, step content dims behind it.
+2. **Slide-in panel** (Body): covers ~40% from the right on desktop, ~85% on mobile, step content dims behind it.
+3. **Full-screen overlay** (Journal, Library): covers entire screen with close button top-right.
+
+Build these as reusable overlay components. Each tool provides its own content; the overlay provides the container, backdrop, and dismiss behavior.
+
+---
+
+## What Is NOT in v1
+
+- Morpho (the AI companion) — later
+- AI analysis of any user data — later
+- PDF export — later
+- Photo/handwriting capture — later
+- Voice-guided walkthrough — later
+- Server-side persistence — later
+
+---
+
+## Repeat: DO NOT BUILD FROM THIS DOCUMENT.
+
+Wait for each focused instruction. This overview exists so you understand where we're going and can make architectural decisions that support the whole plan. Set up the UserStore module, the toolbar component, and the overlay components now if you want. Everything else waits for its instruction.
