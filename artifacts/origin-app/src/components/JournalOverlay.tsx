@@ -5,6 +5,7 @@ import {
   BodyEntry, StreamEntry
 } from '../storage';
 import { Chapter } from '../chapters';
+import { BodyFigure } from './BodyOverlay';
 
 type Tab = 'spine' | 'body' | 'stream';
 
@@ -147,38 +148,72 @@ function SpineTab({ chapters, selectedCh, reachedCh }: { chapters: Chapter[]; se
   );
 }
 
-function BodyTab({ entries, chapters, selectedCh }: { entries: BodyEntry[]; chapters: Chapter[]; selectedCh: number | 'all' }) {
-  if (entries.length === 0) {
+function BodyTab({
+  entries,
+  allEntries,
+  chapters,
+  selectedCh,
+}: {
+  entries: BodyEntry[];
+  allEntries: BodyEntry[];
+  chapters: Chapter[];
+  selectedCh: number | 'all';
+}) {
+  // Figure is the artifact-at-a-glance: it always shows the full somatic
+  // map across the entire journey, regardless of the chapter filter.
+  // The list below the figure is what changes with the filter.
+  const figureEntries = allEntries;
+
+  if (allEntries.length === 0) {
     return (
       <div className="jov-empty">
         No body notes yet.<br />
-        <span>Body notes will appear here when you add them during the journey.</span>
+        <span>Tap the body icon during the journey to mark where the work lands in you.</span>
       </div>
     );
   }
 
+  const sorted = [...entries].sort((a, b) => b.timestamp - a.timestamp);
   let lastChIdx = -1;
+
   return (
-    <div className="jov-body-list">
-      {entries.map(entry => {
-        const showHeading = selectedCh === 'all' && entry.chapter !== lastChIdx;
-        if (showHeading) lastChIdx = entry.chapter;
-        const accent = chapters[entry.chapter]?.palette.accent || '#c89838';
-        return (
-          <div key={entry.id}>
-            {showHeading && (
-              <div className="jov-ch-heading" style={{ color: accent }}>
-                {chapters[entry.chapter]?.roman} · {chapters[entry.chapter]?.title}
+    <div className="jov-body-tab">
+      <div className="jov-body-figure-wrap" style={{ color: '#8a6e3a' }}>
+        <BodyFigure
+          entries={figureEntries}
+          chapters={chapters}
+          interactive={false}
+          scale={0.7}
+        />
+      </div>
+
+      {sorted.length === 0 ? (
+        <div className="jov-empty" style={{ paddingTop: 12 }}>
+          No notes for this chapter.
+        </div>
+      ) : (
+        <div className="jov-body-list">
+          {sorted.map(entry => {
+            const showHeading = selectedCh === 'all' && entry.chapter !== lastChIdx;
+            if (showHeading) lastChIdx = entry.chapter;
+            const accent = chapters[entry.chapter]?.palette.accent || '#c89838';
+            return (
+              <div key={entry.id}>
+                {showHeading && (
+                  <div className="jov-ch-heading" style={{ color: accent }}>
+                    {chapters[entry.chapter]?.roman} · {chapters[entry.chapter]?.title}
+                  </div>
+                )}
+                <div className="jov-body-entry" style={{ borderLeftColor: accent }}>
+                  <div className="jov-body-center" style={{ color: accent }}>{entry.energyCenter}</div>
+                  <div className="jov-body-note">{entry.note}</div>
+                  <div className="jov-body-time">{formatTime(entry.timestamp)}</div>
+                </div>
               </div>
-            )}
-            <div className="jov-body-entry">
-              <div className="jov-body-center" style={{ color: accent }}>{entry.energyCenter}</div>
-              <div className="jov-body-note">{entry.note}</div>
-              <div className="jov-body-time">{formatTime(entry.timestamp)}</div>
-            </div>
-          </div>
-        );
-      })}
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -331,7 +366,12 @@ export default function JournalOverlay({ onClose, chapters, currentCh, reachedCh
             <SpineTab chapters={chapters} selectedCh={selectedCh} reachedCh={reachedCh} />
           )}
           {tab === 'body' && (
-            <BodyTab entries={filteredBody} chapters={chapters} selectedCh={selectedCh} />
+            <BodyTab
+              entries={filteredBody}
+              allEntries={bodyEntries}
+              chapters={chapters}
+              selectedCh={selectedCh}
+            />
           )}
           {tab === 'stream' && (
             <StreamTab

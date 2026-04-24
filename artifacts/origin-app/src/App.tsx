@@ -3,6 +3,7 @@ import CHAPTERS, { Chapter } from './chapters';
 import { getTileIdx, setTileIdx as saveTileIdx, resetAll } from './storage';
 import SceneComponent from './components/Scene';
 import JournalOverlay from './components/JournalOverlay';
+import BodyOverlay from './components/BodyOverlay';
 
 /* ─── Types ──────────────────────────────────────────── */
 interface PreludeTile { kind: 'prelude' }
@@ -517,6 +518,7 @@ export default function App() {
   const chapters = CHAPTERS;
   const [tileIdx, setTileIdxState] = useState<number>(() => getTileIdx());
   const [journalOpen, setJournalOpen] = useState(false);
+  const [bodyOpen, setBodyOpen] = useState(false);
 
   useEffect(() => { saveTileIdx(tileIdx); }, [tileIdx]);
 
@@ -609,6 +611,21 @@ export default function App() {
 
       <div className="floating-toolbar">
         <button
+          className="toolbar-btn body-btn"
+          onClick={() => setBodyOpen(true)}
+          aria-label="Open body"
+          title="Body"
+        >
+          {/* Minimal human silhouette icon — head + shoulders + torso line art */}
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+            <circle cx="14" cy="7" r="3.2" fill="none" stroke="#C4A265" strokeWidth="1.2" />
+            <path d="M7 17 Q9 13 14 12.5 Q19 13 21 17" fill="none" stroke="#C4A265" strokeWidth="1.2" />
+            <path d="M9 17 L9 24" stroke="#C4A265" strokeWidth="1.1" strokeLinecap="round" />
+            <path d="M19 17 L19 24" stroke="#C4A265" strokeWidth="1.1" strokeLinecap="round" />
+            <path d="M14 13 L14 20" stroke="#C4A265" strokeWidth="0.8" strokeOpacity=".55" strokeDasharray="1 2" />
+          </svg>
+        </button>
+        <button
           className="toolbar-btn journal-btn"
           onClick={() => setJournalOpen(true)}
           aria-label="Open journal"
@@ -623,6 +640,14 @@ export default function App() {
           </svg>
         </button>
       </div>
+
+      {bodyOpen && (
+        <BodyOverlay
+          onClose={() => setBodyOpen(false)}
+          chapters={chapters}
+          currentCh={currentCh}
+        />
+      )}
 
       {journalOpen && (
         <JournalOverlay

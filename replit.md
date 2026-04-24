@@ -23,8 +23,9 @@ Warm handmade paper manuscript aesthetic:
 - `src/storage.ts` — localStorage persistence for journal entries and tile position
 - `src/components/Scene.tsx` — routes to 10 interactive scene components
 - `src/components/` — BreathPacer, Journal, ShameMask, VoicesList, Declarations, Gratitude, Gathering, MoveTimer, Broadcast, JournalOverlay
-- `src/storage.ts` — exports `BodyEntry`, `StreamEntry` types + `getBodyEntries`, `getStreamEntries`, `deleteStreamEntry` helpers
-- Floating toolbar (bottom-right, z-80): book icon opens JournalOverlay. Slots reserved for Stream (wave) and Body (figure) icons from Tasks #4/#5.
+- `src/storage.ts` — exports `BodyEntry` (with `zoneId` field + legacy migration from `energyCenter`), `StreamEntry` types + `getBodyEntries`, `getStreamEntries`, `deleteStreamEntry`, `addBodyEntry`, `deleteBodyEntry` helpers
+- Floating toolbar (bottom-right, z-80): book icon opens JournalOverlay; body silhouette icon (above book) opens BodyOverlay. Slot reserved for Stream (wave) icon.
+- `src/components/BodyOverlay.tsx` — full-screen "where does this live in your body?" tool. Line-art figure (240×600 SVG) with 11 zones (Head/Brow/Jaw/Throat/Shoulders/Heart/Gut/Belly/Root/Hands(paired)/Back). Faint dashed Back-echo silhouette behind torso. Notes accumulate as colored petal-clusters around each zone, distributed within a chapter-owned 51.4° sector (one sector per chapter, starting at top). Per-zone bottom-sheet for note entry + history. Keyboard accessible (Tab/Enter/Space, ESC closes sheet then overlay, ⌘/Ctrl+Enter saves). Exports named `BodyFigure` for read-only reuse in Journal Body tab as the artifact-at-a-glance (always shows full journey, ignores chapter filter).
 - Code tiles: collapsed by default (essence line + explore chevron). Tap to expand full body text; tap collapse to return.
 - Lore tiles: new tile type after each Code tile. Organic vine+eye corner frame, gold (#C4A265). Same expand/collapse as Code. Essence line collapsed; rich tradition text expanded.
 - `chapters.ts`: Chapter.code has `essence` field; Chapter.lore: `{ essence, expandedContent }` per chapter with Dagara/Aboriginal/Kogi/Sufi/etc. tradition content.
