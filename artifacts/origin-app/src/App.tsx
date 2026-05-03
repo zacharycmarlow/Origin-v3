@@ -126,29 +126,35 @@ function PreludeTileView({ onEnter }: { onEnter: () => void }) {
         <div className="prelude-glyph">
           <CompassGlyph size={120} />
         </div>
-        <div className="prelude-eyebrow">a guided excavation for the metamyth journey</div>
+        <div className="prelude-eyebrow">a guide for becoming the author of your reality</div>
         <h1 className="prelude-title">THE ORIGIN</h1>
         <div className="prelude-sub">seven chapters · seven codes · seven thresholds</div>
         <p className="prelude-body">
-          Before you can author the story of your life, you have to understand how life has been authoring you.
-          You have been living inside a story. The story running in your head generates your reality. If you can reach the story, you can change what is real.
+          The world is made of stories. Your brain is generating one right now about who you are and what's real, so continuously and so seamlessly that you have probably never noticed it happening. The same circuits fire whether you're living something or remembering it. The story running in your head is building the reality you inhabit from the inside.
+        </p>
+        <p className="prelude-body">
+          You are already authoring reality. The question is whether you're doing it on purpose.
         </p>
         <p className="prelude-body dim">
-          The posture you practice here is meaning-making: holding every experience in the question "what was this preparing me for?" instead of "why did this happen to me?" That single shift changes what you find when you dig.
+          These seven chapters are about hearing the voice that has been writing you, seeing the story it has been telling, and taking the pen back. The posture you practice here is meaning-making: holding every experience in the question "what was this preparing me for?" rather than "why did this happen to me?"
         </p>
         <div className="prelude-before">
           <div className="before-head">before we begin</div>
           <div className="before-row">
             <div className="before-num">I</div>
-            <div className="before-text">stay with what surfaces — a raw emotion moves through the body in about ninety seconds.</div>
+            <div className="before-text">stay with what surfaces — a raw emotion, fully felt, moves through the body in about ninety seconds.</div>
           </div>
           <div className="before-row">
             <div className="before-num">II</div>
-            <div className="before-text">tell this in the past tense — shift from living it to narrating it.</div>
+            <div className="before-text">tell this in the past tense — speaking your life as something that already happened shifts you from inside the story to outside it.</div>
           </div>
           <div className="before-row">
             <div className="before-num">III</div>
-            <div className="before-text">speak aloud if you can — the story lives in the voice and the breath.</div>
+            <div className="before-text">speak aloud when you can — the story lives in the voice and the breath.</div>
+          </div>
+          <div className="before-row">
+            <div className="before-num">IV</div>
+            <div className="before-text">the only adversary is shame — when it shows up wearing a new mask, that is proof you are approaching something real.</div>
           </div>
         </div>
         <button className="primary-btn" onClick={onEnter}>
@@ -170,16 +176,14 @@ function EpilogueTileView({ onRestart }: { onRestart: () => void }) {
             <path d="M20 60 Q60 20 100 60 Q60 100 20 60" fill="none" stroke="currentColor" strokeWidth=".4" />
           </svg>
         </div>
-        <div className="prelude-eyebrow">the beginning</div>
+        <div className="prelude-eyebrow">what comes next</div>
         <h1 className="prelude-title">CHAPTER ONE</h1>
         <div className="prelude-sub">everything you uncovered is chapter one</div>
         <p className="prelude-body">
-          You have walked the Origin. Seven chapters. Seven codes. Seven thresholds crossed. The old story honored, felt, and closed.
-          Everything you uncovered is Chapter One.
+          You have walked the Origin. Seven chapters. Seven codes. Seven thresholds crossed. The old story honored, felt, and closed. The end. Which is to say, the beginning.
         </p>
         <p className="prelude-body">
-          The power you just accessed is real. It is as real as the wound that was using it against you.
-          The Origin opened the door. The metamyth is the container. Bring your Origin. Come as you are.
+          The power you just accessed — the capacity to make meaning from suffering, to see your life as sacred, to author your own consciousness and the reality you inhabit — is real. It is as real as the tension that was using it against you. And it is powerful enough to be dangerous. The Origin opened the door. What it opened onto is too large to navigate alone.
         </p>
         <p className="prelude-body dim">The future we dream is one story away.</p>
         <button className="primary-btn" onClick={onRestart}>

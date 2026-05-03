@@ -32,8 +32,8 @@ Warm handmade paper manuscript aesthetic:
 - `chapters.ts`: Chapter.code has `essence` field; Chapter.lore: `{ essence, expandedContent }` per chapter with Dagara/Aboriginal/Kogi/Sufi/etc. tradition content.
 
 ### Chapters
-1. Prologue — The Wound (shame mask, breath pacer, journaling)
-2. Wound — The Conditioned Self (voices list, shame mask, journaling)
+1. Prologue — The opening chapter of a story only you can tell (Theater, Seed, Arc, Third Person, First Page)
+2. Tension — The more tension in your story, the more powerful the resolution (Score, Conditions, Loop, Unedited Version, Threshold)
 3. Gift — The Kintsugi (gratitude, declarations)
 4. Source — The Power (breath, journaling)
 5. Narrator — The Story (scene journaling)
