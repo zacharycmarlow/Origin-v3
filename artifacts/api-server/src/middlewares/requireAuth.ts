@@ -13,16 +13,22 @@ declare global {
   }
 }
 
+// Atomic upsert: insert then do-nothing on the clerkId unique constraint,
+// then select. This is safe under concurrent requests (e.g. the 4-parallel
+// pullAll calls fired immediately after sign-in) because the DB enforces the
+// constraint — no race between select+insert can produce duplicate rows or 500s.
 async function getOrCreateUser(clerkId: string): Promise<string> {
+  const id = randomUUID();
+  await db
+    .insert(usersTable)
+    .values({ id, clerkId, email: "" })
+    .onConflictDoNothing({ target: usersTable.clerkId });
   const rows = await db
     .select({ id: usersTable.id })
     .from(usersTable)
     .where(eq(usersTable.clerkId, clerkId))
     .limit(1);
-  if (rows.length > 0) return rows[0].id;
-  const id = randomUUID();
-  await db.insert(usersTable).values({ id, clerkId, email: "" });
-  return id;
+  return rows[0].id;
 }
 
 export const requireAuth: RequestHandler = async (req, res, next) => {

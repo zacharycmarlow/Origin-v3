@@ -596,13 +596,17 @@ export default function App() {
   // Gate all server writes behind initial pull completing — prevents a fresh
   // device (tileIdx=0) from overwriting existing server state on sign-in.
   const hydratedRef = useRef(false);
+  // When migration prompt is showing, all automatic pushes are suppressed until
+  // the user explicitly confirms "save journey" (handleMigrate). This prevents
+  // local data from being written to the server before the user decides.
+  const migrationPendingRef = useRef(false);
 
   useEffect(() => { saveTileIdx(tileIdx); }, [tileIdx]);
 
-  // Server sync: push tileIdx only after hydration is complete so a fresh
-  // device login never clobbers existing progress pulled from the server.
+  // Server sync: push tileIdx only after hydration is complete and no migration
+  // decision is pending. A fresh-device login never clobbers existing progress.
   useEffect(() => {
-    if (user && hydratedRef.current) {
+    if (user && hydratedRef.current && !migrationPendingRef.current) {
       pushTileIdx(tileIdx).catch(() => {});
     }
   }, [tileIdx, user]);
@@ -618,26 +622,37 @@ export default function App() {
       // data, so migration prompt fires only for genuine pre-auth local journeys.
       const hadLocalData = hasLocalData();
       hydratedRef.current = false;
-      pullAll().then(() => {
+      migrationPendingRef.current = false;
+      pullAll().then((success) => {
+        // Only activate write paths if pull succeeded; if pull failed (network
+        // error, server 500), keep hydration false so we never push stale state.
+        if (!success) return;
         hydratedRef.current = true;
         // Hydrate all in-memory state from storage after server data is merged
         // so a new device immediately shows the user's last position.
         setTileIdxState(getTileIdx());
         setHasCumulative(!!getCumulative());
         if (hadLocalData && prevId === null) {
+          // Show migration prompt; gate all automatic pushes until user decides
+          migrationPendingRef.current = true;
           setShowMigrationPrompt(true);
         }
       });
-      // Periodic background push — starts 30s after sign-in, by which time
-      // hydration will always have completed.
+      // Periodic background push — gated by hydration and migration pending refs.
       if (syncIntervalRef.current) clearInterval(syncIntervalRef.current);
       syncIntervalRef.current = setInterval(() => {
-        if (hydratedRef.current) pushAll().catch(() => {});
+        if (hydratedRef.current && !migrationPendingRef.current) {
+          pushAll().catch(() => {});
+        }
       }, 30_000);
     } else if (!currentId && prevId) {
-      // User just signed out — flush data to server, then stop sync
-      if (hydratedRef.current) pushAll().catch(() => {});
+      // User just signed out — flush data to server (if hydrated and no pending
+      // migration choice), then stop sync.
+      if (hydratedRef.current && !migrationPendingRef.current) {
+        pushAll().catch(() => {});
+      }
       hydratedRef.current = false;
+      migrationPendingRef.current = false;
       if (syncIntervalRef.current) {
         clearInterval(syncIntervalRef.current);
         syncIntervalRef.current = null;
@@ -649,9 +664,13 @@ export default function App() {
 
   // Flush to server whenever the tab is hidden (tab switch, app close, etc.)
   // and on beforeunload. keepalive=true lets beforeunload fetches survive page unload.
+  // Both are suppressed while migration is pending — no silent server writes
+  // before the user decides what to do with their guest journey.
   useEffect(() => {
     const flush = (keepalive = false) => {
-      if (user && hydratedRef.current) pushAll(keepalive).catch(() => {});
+      if (user && hydratedRef.current && !migrationPendingRef.current) {
+        pushAll(keepalive).catch(() => {});
+      }
     };
     const handleVisibility = () => { if (document.hidden) flush(); };
     const handleUnload = () => flush(true);
@@ -671,6 +690,8 @@ export default function App() {
   }, []);
 
   const handleMigrate = useCallback(() => {
+    // User confirmed "save journey" — clear migration gate and push immediately
+    migrationPendingRef.current = false;
     setShowMigrationPrompt(false);
     pushAll().catch(() => {});
   }, []);
