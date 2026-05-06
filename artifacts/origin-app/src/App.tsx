@@ -1,11 +1,14 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useUser } from '@clerk/react';
 import CHAPTERS, { Chapter } from './chapters';
 import {
   getTileIdx, setTileIdx as saveTileIdx,
   isChapterComplete, getReading, getCumulative, saveCumulative,
-  extractChapterBeats,
+  extractChapterBeats, load,
 } from './storage';
 import { fetchMorpho, fetchSage } from './api/readings';
+import { pullAll, pushAll, pushTileIdx } from './api/userApi';
+import AuthBar from './components/AuthBar';
 import SceneComponent from './components/Scene';
 import JournalOverlay from './components/JournalOverlay';
 import BodyOverlay from './components/BodyOverlay';
@@ -567,8 +570,16 @@ function Deck({ tiles, tileIdx, advance, chapters, onEnter, onRestart,
   );
 }
 
+function hasLocalData(): boolean {
+  try {
+    const d = load();
+    return Object.keys(d).length > 0 || getTileIdx() > 0;
+  } catch { return false; }
+}
+
 export default function App() {
   const chapters = CHAPTERS;
+  const { user, isLoaded: authLoaded } = useUser();
   const [tileIdx, setTileIdxState] = useState<number>(() => getTileIdx());
   const [journalOpen, setJournalOpen] = useState(false);
   const [bodyOpen, setBodyOpen] = useState(false);
@@ -578,9 +589,59 @@ export default function App() {
   const [generatingCumulative, setGeneratingCumulative] = useState(false);
   const [cumulativeError, setCumulativeError] = useState<string | null>(null);
   const [journalInitialTab, setJournalInitialTab] = useState<'reading' | 'spine' | 'body' | 'stream' | 'archive' | undefined>(undefined);
+  const [showMigrationPrompt, setShowMigrationPrompt] = useState(false);
   const sessionHorizonsRef = useRef<Set<number>>(new Set());
+  const prevUserIdRef = useRef<string | null>(null);
+  const syncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => { saveTileIdx(tileIdx); }, [tileIdx]);
+
+  // Server sync: push tileIdx whenever it changes (fire-and-forget)
+  useEffect(() => {
+    if (user) pushTileIdx(tileIdx).catch(() => {});
+  }, [tileIdx, user]);
+
+  // Auth state transitions: pull on sign-in, push on sign-out
+  useEffect(() => {
+    if (!authLoaded) return;
+    const currentId = user?.id ?? null;
+    const prevId = prevUserIdRef.current;
+
+    if (currentId && currentId !== prevId) {
+      // User just signed in — pull from server, offer migration if local data exists
+      pullAll().then(() => {
+        setHasCumulative(!!getCumulative());
+        if (hasLocalData() && prevId === null) {
+          setShowMigrationPrompt(true);
+        }
+      });
+      // Periodic background push every 30s
+      if (syncIntervalRef.current) clearInterval(syncIntervalRef.current);
+      syncIntervalRef.current = setInterval(() => {
+        pushAll().catch(() => {});
+      }, 30_000);
+    } else if (!currentId && prevId) {
+      // User just signed out — stop sync
+      if (syncIntervalRef.current) {
+        clearInterval(syncIntervalRef.current);
+        syncIntervalRef.current = null;
+      }
+    }
+
+    prevUserIdRef.current = currentId;
+  }, [user, authLoaded]);
+
+  // Cleanup interval on unmount
+  useEffect(() => {
+    return () => {
+      if (syncIntervalRef.current) clearInterval(syncIntervalRef.current);
+    };
+  }, []);
+
+  const handleMigrate = useCallback(() => {
+    setShowMigrationPrompt(false);
+    pushAll().catch(() => {});
+  }, []);
 
   const restartToPrelude = () => {
     sessionHorizonsRef.current.clear();
@@ -738,6 +799,10 @@ export default function App() {
               {chapters[currentCh].roman} · {chapters[currentCh].title}
             </div>
           )}
+          <AuthBar
+            hasMigrationPrompt={showMigrationPrompt}
+            onMigrate={handleMigrate}
+          />
         </div>
       </header>
 
