@@ -11,13 +11,17 @@ import type {
 
 const API = "/api/user";
 
+// keepalive=true is used on beforeunload so the browser queues the request
+// even if the page is being unloaded (spec: keepalive requests survive page close).
 async function apiFetch<T>(
   path: string,
   init: RequestInit = {},
+  keepalive = false,
 ): Promise<T> {
   const res = await fetch(`${API}${path}`, {
     ...init,
     credentials: "include",
+    keepalive,
     headers: { "Content-Type": "application/json", ...(init.headers ?? {}) },
   });
   if (!res.ok) {
@@ -111,7 +115,8 @@ function mergeById<T extends { id: string }>(items: T[]): T[] {
 
 /* ─── Push (localStorage → server) ─────────────────────── */
 
-export async function pushAll(): Promise<void> {
+// keepalive=true is passed on beforeunload to survive page unload.
+export async function pushAll(keepalive = false): Promise<void> {
   try {
     const responses = load();
     const tileIdx = getTileIdx();
@@ -122,19 +127,19 @@ export async function pushAll(): Promise<void> {
     const cumulative = getCumulative();
 
     await Promise.all([
-      apiFetch("/state", { method: "PUT", body: JSON.stringify({ tileIdx, responses }) }),
+      apiFetch("/state", { method: "PUT", body: JSON.stringify({ tileIdx, responses }) }, keepalive),
       apiFetch("/entries", {
         method: "PUT",
         body: JSON.stringify({ stream: streamEntries, body: bodyEntries }),
-      }),
+      }, keepalive),
       apiFetch("/readings", {
         method: "PUT",
         body: JSON.stringify({ readings, cumulative }),
-      }),
-      apiFetch("/archive", { method: "PUT", body: JSON.stringify({ unlocked: archive }) }),
+      }, keepalive),
+      apiFetch("/archive", { method: "PUT", body: JSON.stringify({ unlocked: archive }) }, keepalive),
     ]);
   } catch {
-    /* silent — localStorage is source of truth */
+    /* silent — localStorage is source of truth for guests; server is best-effort */
   }
 }
 

@@ -635,7 +635,8 @@ export default function App() {
         if (hydratedRef.current) pushAll().catch(() => {});
       }, 30_000);
     } else if (!currentId && prevId) {
-      // User just signed out — stop sync and reset hydration flag
+      // User just signed out — flush data to server, then stop sync
+      if (hydratedRef.current) pushAll().catch(() => {});
       hydratedRef.current = false;
       if (syncIntervalRef.current) {
         clearInterval(syncIntervalRef.current);
@@ -645,6 +646,22 @@ export default function App() {
 
     prevUserIdRef.current = currentId;
   }, [user, authLoaded]);
+
+  // Flush to server whenever the tab is hidden (tab switch, app close, etc.)
+  // and on beforeunload. keepalive=true lets beforeunload fetches survive page unload.
+  useEffect(() => {
+    const flush = (keepalive = false) => {
+      if (user && hydratedRef.current) pushAll(keepalive).catch(() => {});
+    };
+    const handleVisibility = () => { if (document.hidden) flush(); };
+    const handleUnload = () => flush(true);
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("beforeunload", handleUnload);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("beforeunload", handleUnload);
+    };
+  }, [user]);
 
   // Cleanup interval on unmount
   useEffect(() => {
