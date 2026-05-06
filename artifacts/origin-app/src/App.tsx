@@ -19,6 +19,7 @@ import BodyOverlay from './components/BodyOverlay';
 import StreamOverlay from './components/StreamOverlay';
 import HorizonOverlay from './components/HorizonOverlay';
 import SharingConsent from './components/SharingConsent';
+import ReadingStage from './components/ReadingStage';
 import { ButterflyIcon, CompassIcon } from './components/MorphoCompassIcons';
 
 /* ─── Types ──────────────────────────────────────────── */
@@ -449,28 +450,33 @@ function Deck({ tiles, tileIdx, advance, chapters, onEnter, onRestart,
     const W = wrap?.offsetWidth || window.innerWidth;
 
     if (fromSwipe && wrap) {
-      // Animate from current drag position to exit
+      // Swipe exit: animate from drag position using inline transform (no transition override)
       wrap.style.transition = 'transform 260ms cubic-bezier(.4,0,1,1), opacity 220ms ease';
       wrap.style.opacity = '0.2';
       wrap.style.transform = `translateX(${forward ? -W * 0.6 : W * 0.6}px)`;
       setTimeout(() => {
         pendingRef.current = false;
-        if (wrap) { wrap.style.transition = ''; wrap.style.transform = ''; wrap.style.opacity = ''; }
-        advance(nextIdx);
-        setAnimKey(k => k + 1);
+        // Clear inline styles before React state update to avoid flash
+        if (wrap) { wrap.style.transition = 'none'; wrap.style.transform = ''; wrap.style.opacity = ''; }
+        requestAnimationFrame(() => {
+          advance(nextIdx);
+          setAnimKey(k => k + 1);
+        });
       }, 240);
     } else {
-      // Button / keyboard: instant exit then entrance
+      // Button / keyboard: use CSS keyframe class — no style.transition override
+      // so it never competes with @property transitions on .app
       if (wrap) {
-        wrap.style.transition = 'transform 200ms cubic-bezier(.4,0,1,1), opacity 180ms ease';
-        wrap.style.opacity = '0';
-        wrap.style.transform = `translateX(${forward ? -30 : 30}px)`;
+        wrap.classList.add(forward ? 'tile-exiting-fwd' : 'tile-exiting-back');
       }
       setTimeout(() => {
         pendingRef.current = false;
-        if (wrap) { wrap.style.transition = ''; wrap.style.transform = ''; wrap.style.opacity = ''; }
-        advance(nextIdx);
-        setAnimKey(k => k + 1);
+        // rAF separates DOM cleanup from React state update,
+        // giving @property transitions a clean compositing frame.
+        requestAnimationFrame(() => {
+          advance(nextIdx);
+          setAnimKey(k => k + 1);
+        });
       }, 200);
     }
   }, [tileIdx, tiles.length, advance]);
@@ -584,6 +590,8 @@ export default function App() {
   const [bodyOpen, setBodyOpen] = useState(false);
   const [streamOpen, setStreamOpen] = useState(false);
   const [horizon, setHorizon] = useState<{ ch: number; nextIdx: number; cycles?: number } | null>(null);
+  const [readingStage, setReadingStage] = useState<{ ch: number; nextIdx: number } | null>(null);
+  const sessionReadingsRef = useRef<Set<number>>(new Set());
   const [hasCumulative, setHasCumulative] = useState<boolean>(() => !!getCumulative());
   const [generatingCumulative, setGeneratingCumulative] = useState(false);
   const [cumulativeError, setCumulativeError] = useState<string | null>(null);
@@ -719,6 +727,8 @@ export default function App() {
 
   const restartToPrelude = () => {
     sessionHorizonsRef.current.clear();
+    sessionReadingsRef.current.clear();
+    setReadingStage(null);
     setTileIdxState(0);
   };
   const enterBegin = () => setTileIdxState(1);
@@ -768,8 +778,8 @@ export default function App() {
     if (i >= 0) setTileIdxState(i);
   };
 
-  // Intercepted advance: triggers Horizon when crossing into next chapter
-  // from a completed one (and we haven't already shown it this session).
+  // Intercepted advance: triggers ReadingStage → then Horizon when crossing into next chapter
+  // from a completed one (and we haven't already shown them this session).
   const advance = useCallback((nextIdx: number) => {
     if (nextIdx > tileIdx) {
       const cur = tiles[tileIdx];
@@ -782,16 +792,30 @@ export default function App() {
         fromCh >= 0 &&
         enteringNextCh &&
         isChapterComplete(chapters[fromCh]) &&
-        !sessionHorizonsRef.current.has(fromCh)
+        !sessionReadingsRef.current.has(fromCh)
       ) {
-        sessionHorizonsRef.current.add(fromCh);
-        const cycles = nxt?.kind === 'epilogue' ? 12 : 6;
-        setHorizon({ ch: fromCh, nextIdx, cycles });
+        sessionReadingsRef.current.add(fromCh);
+        setReadingStage({ ch: fromCh, nextIdx });
         return;
       }
     }
     setTileIdxState(nextIdx);
   }, [tileIdx, tiles, chapters]);
+
+  const onReadingStageComplete = () => {
+    if (!readingStage) return;
+    const { ch, nextIdx } = readingStage;
+    setReadingStage(null);
+    // After reading, show Horizon if not already shown this session
+    if (!sessionHorizonsRef.current.has(ch)) {
+      sessionHorizonsRef.current.add(ch);
+      const nxt = tiles[nextIdx];
+      const cycles = nxt?.kind === 'epilogue' ? 12 : 6;
+      setHorizon({ ch, nextIdx, cycles });
+    } else {
+      setTileIdxState(nextIdx);
+    }
+  };
 
   const onHorizonComplete = () => {
     if (horizon) {
@@ -919,6 +943,19 @@ export default function App() {
           currentCh={currentCh}
           reachedCh={reachedCh}
           initialTab={journalInitialTab}
+        />
+      )}
+      {readingStage && (
+        <ReadingStage
+          chapter={chapters[readingStage.ch]}
+          chapterIdx={readingStage.ch}
+          chapters={chapters}
+          onCross={onReadingStageComplete}
+          onCancel={() => {
+            const nextIdx = readingStage.nextIdx;
+            setReadingStage(null);
+            setTileIdxState(nextIdx);
+          }}
         />
       )}
       {horizon && (

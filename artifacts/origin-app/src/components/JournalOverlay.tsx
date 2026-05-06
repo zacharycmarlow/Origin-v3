@@ -270,109 +270,203 @@ function StreamTab({ entries, chapters, selectedCh, onDelete, deletingId, onCanc
 function ArchiveTab({ chapters, codex, cumulative }: {
   chapters: Chapter[]; codex: CodexEntry[]; cumulative: CumulativeReading | null;
 }) {
+  const [cumulativeOpen, setCumulativeOpen] = useState(true);
+  const [openAccordions, setOpenAccordions] = useState<Set<number>>(new Set());
+  const [codexFilter, setCodexFilter] = useState<number | 'all'>('all');
+
   const unlocked = useMemo(() => getUnlockedArchive(), []);
   const totalUnlocked = ARCHIVE.filter(e => unlocked.has(`${e.chapterIdx}|${e.kind}|${e.title}`)).length;
+
   const grouped: Record<number, ArchiveEntry[]> = {};
   for (const e of ARCHIVE) {
     (grouped[e.chapterIdx] ||= []).push(e);
   }
-  const personalized = [...codex].sort((a, b) => a.chapter - b.chapter || a.timestamp - b.timestamp);
+
+  const personalized = useMemo(
+    () => [...codex].sort((a, b) => a.chapter - b.chapter || a.timestamp - b.timestamp),
+    [codex]
+  );
+
+  const filteredCodex = useMemo(
+    () => codexFilter === 'all' ? personalized : personalized.filter(e => e.chapter === codexFilter),
+    [personalized, codexFilter]
+  );
+
+  const chaptersWithCodex = useMemo(
+    () => [...new Set(personalized.map(e => e.chapter))].sort((a, b) => a - b),
+    [personalized]
+  );
+
+  const toggleAccordion = (ci: number) => {
+    setOpenAccordions(prev => {
+      const next = new Set(prev);
+      next.has(ci) ? next.delete(ci) : next.add(ci);
+      return next;
+    });
+  };
+
+  const LockIcon = () => (
+    <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+      <rect x="3" y="5.5" width="6" height="5" rx="1" stroke="currentColor" strokeWidth="1.2" />
+      <path d="M4.5 5.5V4a1.5 1.5 0 1 1 3 0v1.5" stroke="currentColor" strokeWidth="1.2" />
+    </svg>
+  );
+  const CheckIcon = () => (
+    <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+      <path d="M2 6L5 9L10 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+  const ChevronIcon = ({ open }: { open: boolean }) => (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"
+      style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 240ms ease' }}>
+      <polyline points="2,4 6,8 10,4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    </svg>
+  );
 
   return (
     <div className="jov-archive-tab">
-      <div className="jov-archive-meter">
-        <span className="jov-archive-count">{totalUnlocked}<span className="jov-archive-of">/{ARCHIVE.length}</span></span>
-        <span className="jov-archive-meter-label">passages unlocked across the seven chapters</span>
-      </div>
-      {totalUnlocked === 0 && (
-        <p className="jov-archive-hint">
-          Tap "open the code" or "enter the lore" inside any scene to unlock its full passage here.
-        </p>
-      )}
 
+      {/* ── 1. Cumulative Reading ───────────────────────────── */}
       {cumulative && (
-        <div className="jov-codex-cumulative">
-          <div className="jov-codex-cumulative-head">
-            <ButterflyIcon size={18} />
-            <CompassIcon size={18} />
-            <span>The Cumulative Reading</span>
-          </div>
-          <div className="mj-block-label">through-line of the whole arc</div>
-          <div className="mj-block-text">{cumulative.morpho.throughLine}</div>
-          <div className="mj-block-label">subtext</div>
-          <div className="mj-block-text">{cumulative.morpho.subtext}</div>
-          <div className="mj-block-label">resonance</div>
-          <div className="mj-block-text">{cumulative.sage.resonance}</div>
-        </div>
-      )}
-
-      {chapters.map((ch, ci) => {
-        const items = grouped[ci] || [];
-        if (items.length === 0) return null;
-        const accent = ch.palette.accent || '#c89838';
-        return (
-          <section key={ci} className="jov-archive-chapter">
-            <div className="jov-ch-heading" style={{ color: accent }}>
-              {ch.roman} · {ch.title}
+        <section className="arc-cumulative">
+          <button
+            className="arc-cumulative-head"
+            onClick={() => setCumulativeOpen(o => !o)}
+            aria-expanded={cumulativeOpen}
+          >
+            <span className="arc-cumulative-glyphs">
+              <ButterflyIcon size={16} glowing />
+              <CompassIcon size={16} glowing />
+            </span>
+            <span className="arc-cumulative-title">The Cumulative Reading</span>
+            <ChevronIcon open={cumulativeOpen} />
+          </button>
+          {cumulativeOpen && (
+            <div className="arc-cumulative-body">
+              <div className="arc-field-label">through-line</div>
+              <div className="arc-field-text">{cumulative.morpho.throughLine}</div>
+              <div className="arc-field-label">subtext</div>
+              <div className="arc-field-text">{cumulative.morpho.subtext}</div>
+              <div className="arc-field-label">resonance</div>
+              <div className="arc-field-text">{cumulative.sage.resonance}</div>
             </div>
-            {items.map((entry) => {
-              const id = `${entry.chapterIdx}|${entry.kind}|${entry.title}`;
-              const isUnlocked = unlocked.has(id);
-              return (
-                <article
-                  key={id}
-                  className={
-                    'archive-card archive-card--' + entry.kind +
-                    (isUnlocked ? ' archive-card--unlocked' : ' archive-card--locked')
-                  }
-                >
-                  <header className="archive-card-head">
-                    <span className="archive-card-kind">{entry.kind}</span>
-                    <span className="archive-card-scene">{entry.sceneTitle.toLowerCase()} · {entry.sceneKind.toLowerCase()}</span>
-                    <span className="archive-card-state" aria-hidden="true">
-                      {isUnlocked
-                        ? <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                        : <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="3" y="5.5" width="6" height="5" rx="1" stroke="currentColor" strokeWidth="1.2" /><path d="M4.5 5.5V4a1.5 1.5 0 1 1 3 0v1.5" stroke="currentColor" strokeWidth="1.2" /></svg>
-                      }
-                    </span>
-                  </header>
-                  <h3 className="archive-card-title">{entry.title}</h3>
-                  {isUnlocked ? (
-                    <div className="archive-card-body">
-                      {entry.body.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
-                    </div>
-                  ) : (
-                    <p className="archive-card-locked-note">
-                      Locked. Open this {entry.kind} inside the scene to reveal the full passage.
-                    </p>
-                  )}
-                </article>
-              );
-            })}
-          </section>
-        );
-      })}
-
-      {personalized.length > 0 && (
-        <section className="jov-archive-personal">
-          <div className="jov-ch-heading" style={{ color: '#c89838' }}>
-            ✦ Yours, drawn from your readings
-          </div>
-          {personalized.map(entry => {
-            const accent = chapters[entry.chapter]?.palette.accent || '#c89838';
-            return (
-              <article key={entry.id} className={'archive-card archive-card--unlocked archive-card--' + entry.kind} style={{ borderLeft: `2px solid ${accent}` }}>
-                <header className="archive-card-head">
-                  <span className="archive-card-kind">{entry.kind}</span>
-                  <span className="archive-card-scene">{chapters[entry.chapter]?.roman} · personal</span>
-                </header>
-                <h3 className="archive-card-title">{entry.title}</h3>
-                <div className="archive-card-body"><p>{entry.body}</p></div>
-              </article>
-            );
-          })}
+          )}
         </section>
       )}
+
+      {/* ── 2. Your Codex ───────────────────────────────────── */}
+      {personalized.length > 0 && (
+        <section className="arc-codex-section">
+          <div className="arc-section-head">
+            <span className="arc-section-title">Your Codex</span>
+            <span className="arc-section-sub">{personalized.length} personal {personalized.length === 1 ? 'passage' : 'passages'}</span>
+          </div>
+
+          {chaptersWithCodex.length > 1 && (
+            <div className="arc-codex-filter" role="group" aria-label="Filter by chapter">
+              <button
+                className={'arc-filter-btn' + (codexFilter === 'all' ? ' active' : '')}
+                onClick={() => setCodexFilter('all')}
+              >All</button>
+              {chaptersWithCodex.map(ci => (
+                <button
+                  key={ci}
+                  className={'arc-filter-btn' + (codexFilter === ci ? ' active' : '')}
+                  onClick={() => setCodexFilter(ci)}
+                >{chapters[ci]?.roman}</button>
+              ))}
+            </div>
+          )}
+
+          <div className="arc-codex-grid">
+            {filteredCodex.map(entry => (
+              <article
+                key={entry.id}
+                className={'arc-codex-card arc-codex-card--' + entry.kind}
+              >
+                <div className="arc-codex-card-meta">
+                  <span className="arc-codex-card-kind">{entry.kind}</span>
+                  <span className="arc-codex-card-ch">{chapters[entry.chapter]?.roman}</span>
+                </div>
+                <h3 className="arc-codex-card-title">{entry.title}</h3>
+                <p className="arc-codex-card-body">{entry.body}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── 3. The Archive ──────────────────────────────────── */}
+      <section className="arc-archive-section">
+        <div className="arc-section-head">
+          <span className="arc-section-title">The Archive</span>
+          <span className="arc-section-sub">
+            {totalUnlocked === 0
+              ? 'unlock passages by exploring codes and lore'
+              : `${totalUnlocked} of ${ARCHIVE.length} unlocked`}
+          </span>
+        </div>
+
+        {chapters.map((ch, ci) => {
+          const items = grouped[ci] || [];
+          if (items.length === 0) return null;
+          const isOpen = openAccordions.has(ci);
+          const unlockedCount = items.filter(e => unlocked.has(`${e.chapterIdx}|${e.kind}|${e.title}`)).length;
+          const accent = ch.palette.accent || '#c89838';
+          return (
+            <div key={ci} className={'arc-accordion' + (isOpen ? ' arc-accordion--open' : '')}>
+              <button
+                className="arc-accordion-head"
+                onClick={() => toggleAccordion(ci)}
+                aria-expanded={isOpen}
+                style={{ '--acc-accent': accent } as React.CSSProperties}
+              >
+                <span className="arc-acc-roman" style={{ color: accent }}>{ch.roman}</span>
+                <span className="arc-acc-title">{ch.title}</span>
+                <span className="arc-acc-progress">
+                  {unlockedCount}/{items.length}
+                </span>
+                <ChevronIcon open={isOpen} />
+              </button>
+              {isOpen && (
+                <div className="arc-accordion-body">
+                  {items.map((entry) => {
+                    const id = `${entry.chapterIdx}|${entry.kind}|${entry.title}`;
+                    const isUnlocked = unlocked.has(id);
+                    return (
+                      <article
+                        key={id}
+                        className={
+                          'archive-card archive-card--' + entry.kind +
+                          (isUnlocked ? ' archive-card--unlocked' : ' archive-card--locked')
+                        }
+                      >
+                        <header className="archive-card-head">
+                          <span className="archive-card-kind">{entry.kind}</span>
+                          <span className="archive-card-scene">{entry.sceneTitle.toLowerCase()} · {entry.sceneKind.toLowerCase()}</span>
+                          <span className="archive-card-state" aria-hidden="true">
+                            {isUnlocked ? <CheckIcon /> : <LockIcon />}
+                          </span>
+                        </header>
+                        <h3 className="archive-card-title">{entry.title}</h3>
+                        {isUnlocked ? (
+                          <div className="archive-card-body">
+                            {entry.body.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
+                          </div>
+                        ) : (
+                          <p className="archive-card-locked-note">
+                            Open this {entry.kind} inside the scene to reveal the full passage.
+                          </p>
+                        )}
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </section>
     </div>
   );
 }
