@@ -28,15 +28,22 @@ Sonnet/Haiku readings via `@workspace/integrations-anthropic-ai`:
 - App.tsx wraps tile navigation in `advance()` interceptor that triggers HorizonOverlay when crossing forward from a complete chapter (12 cycles when entering epilogue). `sessionHorizonsRef` prevents repeats. Spine shows butterfly/compass glyphs when readings exist.
 - Journal tab order: `reading | spine | body | stream | codex`. Reading is the default tab when current chapter is complete.
 
+### Gesture & Revelation UX (Future Magic Book)
+- **Swipe navigation**: Deck component tracks touch with axis-locking (h/v), rubber-band at edges, ref-based direct DOM transform (no React re-renders during drag). `go(idx, fromSwipe?)` handles swipe vs button exits differently. `pendingRef` prevents double-fires.
+- **Tile entrances**: `tileIn`/`tileInBack` are now horizontal (translateX ±36px + blur) matching swipe direction.
+- **Opener ceremony**: `OpenerTileView` uses `useEffect` timers — roman numeral (120ms), title (420ms), subtitle (720ms), invocation paragraphs staggered (1050ms + 280ms/para). CSS `.opener-phase` / `.opener-phase--in` with opacity+translateY+blur transitions.
+- **Progressive scene revelation**: `useSceneReveal` hook — phase 0: context materializes, phase 1: interaction slides up (auto after reading-time timer: 240ms/word, 1.6s–3.5s), phase 2: after-notes appear. SIMPLE_KINDS bypass phasing. Tap anywhere to advance early.
+- **Bottom tray**: `BottomTray` component replaces floating toolbar. Three tools (Stream/Body/Journal) with icons, names, descriptions. Triggered by three-dot grip in `DeckNav` center. Slides up with spring animation. Floating toolbar CSS set to `display: none`.
+- **Code/Lore frame entrance**: SVG corners animate in via `stroke-dashoffset` draw-in on tile mount.
+
 ### Architecture
-- `src/App.tsx` — shell with Spine nav, Deck navigator, 5 tile types (Prelude/Opener/Code/Scene/Epilogue)
+- `src/App.tsx` — shell with Spine nav, Deck navigator (swipe physics), BottomTray, 5 tile types (Prelude/Opener/Code/Scene/Epilogue)
 - `src/chapters.ts` — all 7 chapters' content with TypeScript types
-- `src/index.css` — complete unified CSS system (~1200 lines, no Tailwind)
+- `src/index.css` — complete unified CSS system (~2900 lines, no Tailwind)
 - `src/storage.ts` — localStorage persistence for journal entries and tile position
-- `src/components/Scene.tsx` — routes to 10 interactive scene components
+- `src/components/Scene.tsx` — progressive revelation phases + routes to 10 interactive scene components
 - `src/components/` — BreathPacer, Journal, ShameMask, VoicesList, Declarations, Gratitude, Gathering, MoveTimer, Broadcast, JournalOverlay
 - `src/storage.ts` — exports `BodyEntry` (with `zoneId` field + legacy migration from `energyCenter`), `StreamEntry` types + `getBodyEntries`, `getStreamEntries`, `deleteStreamEntry`, `addBodyEntry`, `deleteBodyEntry` helpers
-- Floating toolbar (bottom-right, z-80): three stacked buttons — Stream (ripples) → Body (silhouette) → Journal (book). Each opens its own full-screen overlay.
 - `src/components/BodyOverlay.tsx` — full-screen "where does this live in your body?" tool. Line-art figure (240×600 SVG) with 11 zones (Head/Brow/Jaw/Throat/Shoulders/Heart/Gut/Belly/Root/Hands(paired)/Back). Faint dashed Back-echo silhouette behind torso. Notes accumulate as colored petal-clusters around each zone, distributed within a chapter-owned 51.4° sector (one sector per chapter, starting at top). Per-zone bottom-sheet for note entry + history. Keyboard accessible (Tab/Enter/Space, ESC closes sheet then overlay, ⌘/Ctrl+Enter saves). Exports named `BodyFigure` for read-only reuse in Journal Body tab as the artifact-at-a-glance (always shows full journey, ignores chapter filter).
 - `src/components/StreamOverlay.tsx` — full-screen stream-of-consciousness tool. Type or speak (uses Web Speech API). User's words render in **Maritim** script font (`/public/fonts/Maritim.ttf`, exposed as `--font-stream` CSS var) — chrome stays in system fonts. Mic button toggles continuous recognition with a pulsing 3-bar visualizer; transcription streams into the textarea live. Save (⌘/Ctrl+Enter or Save button) writes to `streamEntries` via `addStreamEntry(chapter, text)`. History displayed below as a "downstream" — chronological reverse, each entry in Maritim with chapter color dot + relative timestamp + delete confirm.
 - Code tiles: collapsed by default (essence line + explore chevron). Tap to expand full body text; tap collapse to return.

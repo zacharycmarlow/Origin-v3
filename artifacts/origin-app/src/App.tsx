@@ -259,20 +259,33 @@ function EpilogueTileView({ onRestart, onCumulative, hasCumulative, generating }
 
 function OpenerTileView({ chapter, idx, total }: { chapter: Chapter; idx: number; total: number }) {
   const paragraphs = chapter.invocation.split('\n\n');
+  const [phase, setPhase] = useState(0);
+
+  useEffect(() => {
+    setPhase(0);
+    const timers = [
+      setTimeout(() => setPhase(1), 120),
+      setTimeout(() => setPhase(2), 420),
+      setTimeout(() => setPhase(3), 720),
+      ...paragraphs.map((_, i) => setTimeout(() => setPhase(4 + i), 1050 + i * 280)),
+    ];
+    return () => timers.forEach(clearTimeout);
+  }, [chapter.title]); // eslint-disable-line
+
   return (
     <div className="tile tile-opener">
       <div className="tile-inner">
-        <div className="opener-meta">
+        <div className={`opener-meta opener-phase${phase >= 1 ? ' opener-phase--in' : ''}`}>
           <span>chapter {String(idx + 1).padStart(2, '0')} of {String(total).padStart(2, '0')}</span>
           <span className="opener-rule" />
           <span>territory · {chapter.title.toLowerCase()}</span>
         </div>
-        <div className="opener-roman">{chapter.roman}</div>
-        <h1 className="opener-title">{chapter.title}</h1>
-        <div className="opener-sub">{chapter.subtitle}</div>
+        <div className={`opener-roman opener-phase${phase >= 1 ? ' opener-phase--in' : ''}`} style={{ transitionDelay: '60ms' }}>{chapter.roman}</div>
+        <h1 className={`opener-title opener-phase${phase >= 2 ? ' opener-phase--in' : ''}`}>{chapter.title}</h1>
+        <div className={`opener-sub opener-phase${phase >= 3 ? ' opener-phase--in' : ''}`}>{chapter.subtitle}</div>
         <blockquote className="opener-invocation">
           {paragraphs.map((para, i) => (
-            <p key={i} className="opener-invocation-para">{para}</p>
+            <p key={i} className={`opener-invocation-para opener-phase${phase >= 4 + i ? ' opener-phase--in' : ''}`} style={{ transitionDelay: `${i * 40}ms` }}>{para}</p>
           ))}
         </blockquote>
       </div>
@@ -485,11 +498,68 @@ function renderTile(
   return null;
 }
 
-function DeckNav({ tileIdx, total, go, tiles }: {
+function BottomTray({ open, onClose, onStream, onBody, onJournal }: {
+  open: boolean;
+  onClose: () => void;
+  onStream: () => void;
+  onBody: () => void;
+  onJournal: () => void;
+}) {
+  return (
+    <>
+      {open && <div className="tray-backdrop" onClick={onClose} />}
+      <div className={`bottom-tray${open ? ' bottom-tray--open' : ''}`} aria-hidden={!open}>
+        <div className="tray-grip-bar" />
+        <div className="tray-tools">
+          <button className="tray-tool" onClick={() => { onStream(); onClose(); }}>
+            <div className="tray-tool-icon">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <path d="M5 10 Q9 7 16 10 T27 10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none" />
+                <path d="M5 16 Q9 13 16 16 T27 16" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity=".75" />
+                <path d="M5 22 Q9 19 16 22 T27 22" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity=".5" />
+              </svg>
+            </div>
+            <span className="tray-tool-name">Stream</span>
+            <span className="tray-tool-desc">stream of consciousness</span>
+          </button>
+          <button className="tray-tool" onClick={() => { onBody(); onClose(); }}>
+            <div className="tray-tool-icon">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <circle cx="16" cy="8" r="3.5" fill="none" stroke="currentColor" strokeWidth="1.4" />
+                <path d="M8 19 Q10 15 16 14.5 Q22 15 24 19" fill="none" stroke="currentColor" strokeWidth="1.4" />
+                <path d="M10 19 L10 27" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+                <path d="M22 19 L22 27" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+                <path d="M16 15 L16 23" stroke="currentColor" strokeWidth=".8" strokeOpacity=".45" strokeDasharray="1.5 2.5" />
+              </svg>
+            </div>
+            <span className="tray-tool-name">Body</span>
+            <span className="tray-tool-desc">where does this live?</span>
+          </button>
+          <button className="tray-tool" onClick={() => { onJournal(); onClose(); }}>
+            <div className="tray-tool-icon">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <rect x="6" y="4" width="18" height="24" rx="2" fill="none" stroke="currentColor" strokeWidth="1.4" />
+                <path d="M6 9h18" stroke="currentColor" strokeWidth="1" strokeOpacity=".5" />
+                <path d="M6 13.5h18M6 18h12M6 22h9" stroke="currentColor" strokeWidth="1" strokeOpacity=".35" />
+                <circle cx="22" cy="20" r="4" fill="color-mix(in srgb, var(--teal-core) 18%, transparent)" stroke="var(--teal-core)" strokeWidth=".8" />
+                <path d="M20.5 20h3M22 18.5v3" stroke="var(--teal-core)" strokeWidth="1" strokeLinecap="round" />
+              </svg>
+            </div>
+            <span className="tray-tool-name">Journal</span>
+            <span className="tray-tool-desc">your writing across the journey</span>
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function DeckNav({ tileIdx, total, go, tiles, onOpenTray }: {
   tileIdx: number;
   total: number;
   go: (i: number) => void;
   tiles: Tile[];
+  onOpenTray: () => void;
 }) {
   const tile = tiles[tileIdx];
   const next = tiles[tileIdx + 1];
@@ -511,10 +581,15 @@ function DeckNav({ tileIdx, total, go, tiles }: {
         </svg>
         <span className="label">back</span>
       </button>
-      <div className="nav-progress">
-        <div className="nav-track">
-          <div className="nav-track-fill" style={{ width: ((tileIdx + 1) / total) * 100 + '%' }} />
+      <div className="nav-center">
+        <div className="nav-progress">
+          <div className="nav-track">
+            <div className="nav-track-fill" style={{ width: ((tileIdx + 1) / total) * 100 + '%' }} />
+          </div>
         </div>
+        <button className="nav-tray-handle" onClick={onOpenTray} aria-label="Open tools">
+          <span /><span /><span />
+        </button>
       </div>
       <button className="nav-btn nav-fwd primary" onClick={() => go(tileIdx + 1)} disabled={tileIdx === total - 1}>
         <span className="label">{label}</span>
@@ -528,7 +603,7 @@ function DeckNav({ tileIdx, total, go, tiles }: {
 }
 
 function Deck({ tiles, tileIdx, advance, chapters, onEnter, onRestart,
-  onCumulative, hasCumulative, generatingCumulative }: {
+  onCumulative, hasCumulative, generatingCumulative, onOpenTray }: {
   tiles: Tile[];
   tileIdx: number;
   advance: (i: number) => void;
@@ -538,17 +613,55 @@ function Deck({ tiles, tileIdx, advance, chapters, onEnter, onRestart,
   onCumulative: () => void;
   hasCumulative: boolean;
   generatingCumulative: boolean;
+  onOpenTray: () => void;
 }) {
   const [dir, setDir] = useState(1);
   const [animKey, setAnimKey] = useState(0);
+  const tileWrapRef = useRef<HTMLDivElement>(null);
+  const pendingRef = useRef(false);
+  const touchRef = useRef<{
+    x: number; y: number; t: number;
+    lockAxis: 'h' | 'v' | null; active: boolean;
+  } | null>(null);
 
-  const go = useCallback((nextIdx: number) => {
+  const go = useCallback((nextIdx: number, fromSwipe = false) => {
     if (nextIdx < 0 || nextIdx >= tiles.length) return;
-    setDir(nextIdx > tileIdx ? 1 : -1);
-    advance(nextIdx);
-    setAnimKey(k => k + 1);
+    if (pendingRef.current) return;
+    pendingRef.current = true;
+    const forward = nextIdx > tileIdx;
+    setDir(forward ? 1 : -1);
+
+    const wrap = tileWrapRef.current;
+    const W = wrap?.offsetWidth || window.innerWidth;
+
+    if (fromSwipe && wrap) {
+      // Animate from current drag position to exit
+      wrap.style.transition = 'transform 260ms cubic-bezier(.4,0,1,1), opacity 220ms ease';
+      wrap.style.opacity = '0.2';
+      wrap.style.transform = `translateX(${forward ? -W * 0.6 : W * 0.6}px)`;
+      setTimeout(() => {
+        pendingRef.current = false;
+        if (wrap) { wrap.style.transition = ''; wrap.style.transform = ''; wrap.style.opacity = ''; }
+        advance(nextIdx);
+        setAnimKey(k => k + 1);
+      }, 240);
+    } else {
+      // Button / keyboard: instant exit then entrance
+      if (wrap) {
+        wrap.style.transition = 'transform 200ms cubic-bezier(.4,0,1,1), opacity 180ms ease';
+        wrap.style.opacity = '0';
+        wrap.style.transform = `translateX(${forward ? -30 : 30}px)`;
+      }
+      setTimeout(() => {
+        pendingRef.current = false;
+        if (wrap) { wrap.style.transition = ''; wrap.style.transform = ''; wrap.style.opacity = ''; }
+        advance(nextIdx);
+        setAnimKey(k => k + 1);
+      }, 200);
+    }
   }, [tileIdx, tiles.length, advance]);
 
+  // Keyboard
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
@@ -563,13 +676,87 @@ function Deck({ tiles, tileIdx, advance, chapters, onEnter, onRestart,
     return () => window.removeEventListener('keydown', handler);
   }, [go, tileIdx]);
 
+  // Touch handlers
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    if (pendingRef.current) return;
+    touchRef.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+      t: Date.now(),
+      lockAxis: null,
+      active: false,
+    };
+  }, []);
+
+  const onTouchMove = useCallback((e: React.TouchEvent) => {
+    const touch = touchRef.current;
+    if (!touch || pendingRef.current) return;
+    const dx = e.touches[0].clientX - touch.x;
+    const dy = e.touches[0].clientY - touch.y;
+
+    if (touch.lockAxis === null) {
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+      touch.lockAxis = Math.abs(dx) > Math.abs(dy) * 1.1 ? 'h' : 'v';
+    }
+    if (touch.lockAxis === 'v') return;
+
+    e.preventDefault();
+    touch.active = true;
+
+    // Rubber band at edges
+    let eff = dx;
+    if (dx > 0 && tileIdx === 0) eff = dx * 0.22;
+    if (dx < 0 && tileIdx === tiles.length - 1) eff = dx * 0.22;
+
+    const wrap = tileWrapRef.current;
+    if (wrap) {
+      wrap.style.transition = 'none';
+      wrap.style.transform = `translateX(${eff}px)`;
+    }
+  }, [tileIdx, tiles.length]);
+
+  const onTouchEnd = useCallback((e: React.TouchEvent) => {
+    const touch = touchRef.current;
+    touchRef.current = null;
+    if (!touch || !touch.active) {
+      const wrap = tileWrapRef.current;
+      if (wrap) { wrap.style.transition = ''; wrap.style.transform = ''; }
+      return;
+    }
+    const dx = e.changedTouches[0].clientX - touch.x;
+    const dt = Math.max(Date.now() - touch.t, 1);
+    const velocity = Math.abs(dx) / dt;
+    const W = tileWrapRef.current?.offsetWidth || window.innerWidth;
+    const DIST = W * 0.26;
+    const VEL = 0.38;
+
+    if ((dx < -DIST || (dx < -18 && velocity > VEL)) && tileIdx < tiles.length - 1) {
+      go(tileIdx + 1, true);
+    } else if ((dx > DIST || (dx > 18 && velocity > VEL)) && tileIdx > 0) {
+      go(tileIdx - 1, true);
+    } else {
+      // Spring back
+      const wrap = tileWrapRef.current;
+      if (wrap) {
+        wrap.style.transition = 'transform 400ms cubic-bezier(.25,1,.3,1)';
+        wrap.style.transform = 'translateX(0)';
+        setTimeout(() => { if (wrap) wrap.style.transition = ''; }, 400);
+      }
+    }
+  }, [tileIdx, tiles.length, go]);
+
   const tile = tiles[tileIdx];
   return (
-    <div className="deck" data-kind={tile?.kind}>
-      <div key={animKey} className={'tile-wrap dir-' + (dir > 0 ? 'fwd' : 'back')}>
+    <div
+      className="deck" data-kind={tile?.kind}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
+      <div key={animKey} ref={tileWrapRef} className={'tile-wrap dir-' + (dir > 0 ? 'fwd' : 'back')}>
         {tile && renderTile(tile, chapters, onEnter, onRestart, onCumulative, hasCumulative, generatingCumulative)}
       </div>
-      <DeckNav tileIdx={tileIdx} total={tiles.length} go={go} tiles={tiles} />
+      <DeckNav tileIdx={tileIdx} total={tiles.length} go={go} tiles={tiles} onOpenTray={onOpenTray} />
     </div>
   );
 }
@@ -580,6 +767,7 @@ export default function App() {
   const [journalOpen, setJournalOpen] = useState(false);
   const [bodyOpen, setBodyOpen] = useState(false);
   const [streamOpen, setStreamOpen] = useState(false);
+  const [trayOpen, setTrayOpen] = useState(false);
   const [horizon, setHorizon] = useState<{ ch: number; nextIdx: number; cycles?: number } | null>(null);
   const [hasCumulative, setHasCumulative] = useState<boolean>(() => !!getCumulative());
   const [generatingCumulative, setGeneratingCumulative] = useState(false);
@@ -760,6 +948,7 @@ export default function App() {
           onCumulative={onCumulative}
           hasCumulative={hasCumulative}
           generatingCumulative={generatingCumulative}
+          onOpenTray={() => setTrayOpen(true)}
         />
       </main>
 
@@ -770,33 +959,13 @@ export default function App() {
         </div>
       )}
 
-      <div className="floating-toolbar">
-        <button className="toolbar-btn stream-btn" onClick={() => setStreamOpen(true)} aria-label="Open stream" title="Stream">
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-            <path d="M4 9 Q8 6 14 9 T24 9" stroke="#C4A265" strokeWidth="1.2" strokeLinecap="round" fill="none" />
-            <path d="M4 14 Q8 11 14 14 T24 14" stroke="#C4A265" strokeWidth="1.2" strokeLinecap="round" fill="none" opacity="0.85" />
-            <path d="M4 19 Q8 16 14 19 T24 19" stroke="#C4A265" strokeWidth="1.2" strokeLinecap="round" fill="none" opacity="0.7" />
-          </svg>
-        </button>
-        <button className="toolbar-btn body-btn" onClick={() => setBodyOpen(true)} aria-label="Open body" title="Body">
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-            <circle cx="14" cy="7" r="3.2" fill="none" stroke="#C4A265" strokeWidth="1.2" />
-            <path d="M7 17 Q9 13 14 12.5 Q19 13 21 17" fill="none" stroke="#C4A265" strokeWidth="1.2" />
-            <path d="M9 17 L9 24" stroke="#C4A265" strokeWidth="1.1" strokeLinecap="round" />
-            <path d="M19 17 L19 24" stroke="#C4A265" strokeWidth="1.1" strokeLinecap="round" />
-            <path d="M14 13 L14 20" stroke="#C4A265" strokeWidth="0.8" strokeOpacity=".55" strokeDasharray="1 2" />
-          </svg>
-        </button>
-        <button className="toolbar-btn journal-btn" onClick={() => setJournalOpen(true)} aria-label="Open journal" title="Journal">
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-            <rect x="5" y="4" width="16" height="20" rx="1.5" fill="none" stroke="#C4A265" strokeWidth="1.4" />
-            <path d="M5 7.5h16" stroke="#C4A265" strokeWidth="1" strokeOpacity=".5" />
-            <path d="M5 11h16M5 14.5h10M5 18h8" stroke="#C4A265" strokeWidth="1" strokeOpacity=".35" />
-            <path d="M21 4v20" stroke="#C4A265" strokeWidth="1.4" strokeOpacity=".4" />
-            <rect x="22.5" y="5" width="1.5" height="18" rx=".75" fill="#C4A265" fillOpacity=".25" />
-          </svg>
-        </button>
-      </div>
+      <BottomTray
+        open={trayOpen}
+        onClose={() => setTrayOpen(false)}
+        onStream={() => setStreamOpen(true)}
+        onBody={() => setBodyOpen(true)}
+        onJournal={() => setJournalOpen(true)}
+      />
 
       {streamOpen && (
         <StreamOverlay onClose={() => setStreamOpen(false)} chapters={chapters} currentCh={currentCh} />
