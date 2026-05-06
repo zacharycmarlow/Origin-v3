@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import CHAPTERS, { Chapter } from './chapters';
 import {
-  getTileIdx, setTileIdx as saveTileIdx, resetAll,
+  getTileIdx, setTileIdx as saveTileIdx,
   isChapterComplete, getReading, getCumulative, saveCumulative,
   extractChapterBeats,
 } from './storage';
@@ -738,13 +738,6 @@ export default function App() {
               {chapters[currentCh].roman} · {chapters[currentCh].title}
             </div>
           )}
-          <button
-            className="btn-ghost small reset-btn"
-            onClick={() => { if (confirm('Reset your entire journey? This cannot be undone.')) { resetAll(); sessionHorizonsRef.current.clear(); setTileIdxState(0); } }}
-            title="Reset journey"
-          >
-            <span className="label">reset</span>
-          </button>
         </div>
       </header>
 

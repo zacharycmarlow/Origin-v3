@@ -231,8 +231,6 @@ input, textarea, select { font-family: inherit; color: inherit; }
 }
 @keyframes pulse { 0%,100% { opacity: .5; } 50% { opacity: 1; } }
 
-.reset-btn { opacity: .35; pointer-events: auto; }
-.reset-btn:hover { opacity: .75; }
 
 /* ─── Spine — luminous teal waypoints on paper ─────────────── */
 .spine {
