@@ -24,6 +24,9 @@ export function resetAll(): void {
   localStorage.removeItem("origin.readings");
   localStorage.removeItem("origin.codex");
   localStorage.removeItem("origin.cumulative");
+  localStorage.removeItem("origin.archive.unlocked");
+  localStorage.removeItem("origin.body");
+  localStorage.removeItem("origin.stream");
 }
 
 export interface BodyEntry {
@@ -164,6 +167,23 @@ export interface CumulativeReading {
 const READINGS_KEY = "origin.readings";
 const CODEX_KEY = "origin.codex";
 const CUMULATIVE_KEY = "origin.cumulative";
+const ARCHIVE_UNLOCK_KEY = "origin.archive.unlocked";
+
+/** Set of unlocked archive entry IDs ("chapterIdx|kind|title"). */
+export function getUnlockedArchive(): Set<string> {
+  const raw = readJson<string[]>(ARCHIVE_UNLOCK_KEY, []);
+  return new Set(raw);
+}
+
+export function isArchiveUnlocked(chapterIdx: number, kind: 'code' | 'lore', title: string): boolean {
+  return getUnlockedArchive().has(`${chapterIdx}|${kind}|${title}`);
+}
+
+export function unlockArchive(chapterIdx: number, kind: 'code' | 'lore', title: string): void {
+  const set = getUnlockedArchive();
+  set.add(`${chapterIdx}|${kind}|${title}`);
+  writeJson(ARCHIVE_UNLOCK_KEY, [...set]);
+}
 
 function readJson<T>(key: string, fallback: T): T {
   try {

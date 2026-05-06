@@ -2,15 +2,16 @@ import { useState, useMemo } from 'react';
 import {
   load,
   getBodyEntries, getStreamEntries, deleteStreamEntry,
-  getCodex, getCumulative, isChapterComplete,
+  getCodex, getCumulative, isChapterComplete, getUnlockedArchive,
   BodyEntry, StreamEntry, CodexEntry, CumulativeReading,
 } from '../storage';
 import { Chapter } from '../chapters';
 import { BodyFigure } from './BodyOverlay';
 import MiniJournal from './MiniJournal';
 import { ButterflyIcon, CompassIcon } from './MorphoCompassIcons';
+import { ARCHIVE, ArchiveEntry } from '../archive';
 
-type Tab = 'reading' | 'spine' | 'body' | 'stream' | 'codex';
+type Tab = 'reading' | 'spine' | 'body' | 'stream' | 'archive';
 
 interface Props {
   onClose: () => void;
@@ -266,21 +267,29 @@ function StreamTab({ entries, chapters, selectedCh, onDelete, deletingId, onCanc
   );
 }
 
-function CodexTab({ codex, chapters, cumulative }: {
-  codex: CodexEntry[]; chapters: Chapter[]; cumulative: CumulativeReading | null;
+function ArchiveTab({ chapters, codex, cumulative }: {
+  chapters: Chapter[]; codex: CodexEntry[]; cumulative: CumulativeReading | null;
 }) {
-  if (codex.length === 0 && !cumulative) {
-    return (
-      <div className="jov-empty">
-        Your codex is empty.<br />
-        <span>Receive a Sage reading inside any completed chapter to begin gathering codes and lore that are yours specifically.</span>
-      </div>
-    );
+  const unlocked = useMemo(() => getUnlockedArchive(), []);
+  const totalUnlocked = ARCHIVE.filter(e => unlocked.has(`${e.chapterIdx}|${e.kind}|${e.title}`)).length;
+  const grouped: Record<number, ArchiveEntry[]> = {};
+  for (const e of ARCHIVE) {
+    (grouped[e.chapterIdx] ||= []).push(e);
   }
-  const sorted = [...codex].sort((a, b) => a.chapter - b.chapter || a.timestamp - b.timestamp);
-  let lastCh = -1;
+  const personalized = [...codex].sort((a, b) => a.chapter - b.chapter || a.timestamp - b.timestamp);
+
   return (
-    <div className="jov-codex-tab">
+    <div className="jov-archive-tab">
+      <div className="jov-archive-meter">
+        <span className="jov-archive-count">{totalUnlocked}<span className="jov-archive-of">/{ARCHIVE.length}</span></span>
+        <span className="jov-archive-meter-label">passages unlocked across the seven chapters</span>
+      </div>
+      {totalUnlocked === 0 && (
+        <p className="jov-archive-hint">
+          Tap "open the code" or "enter the lore" inside any scene to unlock its full passage here.
+        </p>
+      )}
+
       {cumulative && (
         <div className="jov-codex-cumulative">
           <div className="jov-codex-cumulative-head">
@@ -296,25 +305,74 @@ function CodexTab({ codex, chapters, cumulative }: {
           <div className="mj-block-text">{cumulative.sage.resonance}</div>
         </div>
       )}
-      {sorted.map(entry => {
-        const showHeading = entry.chapter !== lastCh;
-        if (showHeading) lastCh = entry.chapter;
-        const accent = chapters[entry.chapter]?.palette.accent || '#c89838';
+
+      {chapters.map((ch, ci) => {
+        const items = grouped[ci] || [];
+        if (items.length === 0) return null;
+        const accent = ch.palette.accent || '#c89838';
         return (
-          <div key={entry.id}>
-            {showHeading && (
-              <div className="jov-ch-heading" style={{ color: accent }}>
-                {chapters[entry.chapter]?.roman} · {chapters[entry.chapter]?.title}
-              </div>
-            )}
-            <div className={'mj-codex-card mj-codex-' + entry.kind}>
-              <div className="mj-codex-title">{entry.title}</div>
-              <div className="mj-codex-body">{entry.body}</div>
-              <div className="mj-codex-kind">{entry.kind}</div>
+          <section key={ci} className="jov-archive-chapter">
+            <div className="jov-ch-heading" style={{ color: accent }}>
+              {ch.roman} · {ch.title}
             </div>
-          </div>
+            {items.map((entry) => {
+              const id = `${entry.chapterIdx}|${entry.kind}|${entry.title}`;
+              const isUnlocked = unlocked.has(id);
+              return (
+                <article
+                  key={id}
+                  className={
+                    'archive-card archive-card--' + entry.kind +
+                    (isUnlocked ? ' archive-card--unlocked' : ' archive-card--locked')
+                  }
+                >
+                  <header className="archive-card-head">
+                    <span className="archive-card-kind">{entry.kind}</span>
+                    <span className="archive-card-scene">{entry.sceneTitle.toLowerCase()} · {entry.sceneKind.toLowerCase()}</span>
+                    <span className="archive-card-state" aria-hidden="true">
+                      {isUnlocked
+                        ? <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                        : <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="3" y="5.5" width="6" height="5" rx="1" stroke="currentColor" strokeWidth="1.2" /><path d="M4.5 5.5V4a1.5 1.5 0 1 1 3 0v1.5" stroke="currentColor" strokeWidth="1.2" /></svg>
+                      }
+                    </span>
+                  </header>
+                  <h3 className="archive-card-title">{entry.title}</h3>
+                  {isUnlocked ? (
+                    <div className="archive-card-body">
+                      {entry.body.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
+                    </div>
+                  ) : (
+                    <p className="archive-card-locked-note">
+                      Locked. Open this {entry.kind} inside the scene to reveal the full passage.
+                    </p>
+                  )}
+                </article>
+              );
+            })}
+          </section>
         );
       })}
+
+      {personalized.length > 0 && (
+        <section className="jov-archive-personal">
+          <div className="jov-ch-heading" style={{ color: '#c89838' }}>
+            ✦ Yours, drawn from your readings
+          </div>
+          {personalized.map(entry => {
+            const accent = chapters[entry.chapter]?.palette.accent || '#c89838';
+            return (
+              <article key={entry.id} className={'archive-card archive-card--unlocked archive-card--' + entry.kind} style={{ borderLeft: `2px solid ${accent}` }}>
+                <header className="archive-card-head">
+                  <span className="archive-card-kind">{entry.kind}</span>
+                  <span className="archive-card-scene">{chapters[entry.chapter]?.roman} · personal</span>
+                </header>
+                <h3 className="archive-card-title">{entry.title}</h3>
+                <div className="archive-card-body"><p>{entry.body}</p></div>
+              </article>
+            );
+          })}
+        </section>
+      )}
     </div>
   );
 }
@@ -363,7 +421,7 @@ export default function JournalOverlay({ onClose, chapters, currentCh, reachedCh
           </button>
         </div>
 
-        {tab !== 'codex' && (
+        {tab !== 'archive' && (
           <div className="jov-chapters">
             <button
               className={'jov-ch-btn' + (selectedCh === 'all' ? ' active' : '')}
@@ -380,7 +438,7 @@ export default function JournalOverlay({ onClose, chapters, currentCh, reachedCh
         )}
 
         <div className="jov-tabs">
-          {(['reading', 'spine', 'body', 'stream', 'codex'] as Tab[]).map(t => (
+          {(['reading', 'spine', 'body', 'stream', 'archive'] as Tab[]).map(t => (
             <button
               key={t}
               className={'jov-tab' + (tab === t ? ' active' : '')}
@@ -405,8 +463,8 @@ export default function JournalOverlay({ onClose, chapters, currentCh, reachedCh
               onDelete={handleDelete} deletingId={deletingId} onCancelDelete={() => setDeletingId(null)}
             />
           )}
-          {tab === 'codex' && (
-            <CodexTab codex={codex} chapters={chapters} cumulative={cumulative} />
+          {tab === 'archive' && (
+            <ArchiveTab chapters={chapters} codex={codex} cumulative={cumulative} />
           )}
         </div>
       </div>

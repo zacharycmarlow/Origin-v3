@@ -152,10 +152,6 @@ function PreludeTileView({ onEnter }: { onEnter: () => void }) {
             <div className="before-num">III</div>
             <div className="before-text">stay with what surfaces — a raw emotion, fully felt, moves through the body in about ninety seconds. longer than that, and a story is holding it in place.</div>
           </div>
-          <div className="before-row">
-            <div className="before-num">IV</div>
-            <div className="before-text">the only adversary is shame — when it shows up wearing a new mask, that is proof you are approaching something real.</div>
-          </div>
         </div>
         <div className="prelude-toc">
           <div className="toc-head">the seven chapters</div>
@@ -285,12 +281,13 @@ function OpenerTileView({ chapter, idx, total }: { chapter: Chapter; idx: number
 }
 
 
-function SceneTileView({ scene, sceneIdx, totalScenes, chapterRoman, chapterTitle }: {
+function SceneTileView({ scene, sceneIdx, totalScenes, chapterRoman, chapterTitle, chapterIdx }: {
   scene: Chapter['scenes'][number];
   sceneIdx: number;
   totalScenes: number;
   chapterRoman: string;
   chapterTitle: string;
+  chapterIdx: number;
 }) {
   return (
     <div className={'tile tile-scene tile-kind-' + scene.kind}>
@@ -303,7 +300,7 @@ function SceneTileView({ scene, sceneIdx, totalScenes, chapterRoman, chapterTitl
             <span>{String(totalScenes).padStart(2, '0')}</span>
           </span>
         </div>
-        <SceneComponent scene={scene} idx={sceneIdx} total={totalScenes} />
+        <SceneComponent scene={scene} idx={sceneIdx} total={totalScenes} chapterIdx={chapterIdx} />
       </div>
     </div>
   );
@@ -331,74 +328,21 @@ function renderTile(
         totalScenes={ch.scenes.length}
         chapterRoman={ch.roman}
         chapterTitle={ch.title}
+        chapterIdx={tile.ch}
       />
     );
   }
   return null;
 }
 
-function BottomTray({ open, onClose, onStream, onBody, onJournal }: {
-  open: boolean;
-  onClose: () => void;
-  onStream: () => void;
-  onBody: () => void;
-  onJournal: () => void;
-}) {
-  return (
-    <>
-      {open && <div className="tray-backdrop" onClick={onClose} />}
-      <div className={`bottom-tray${open ? ' bottom-tray--open' : ''}`} aria-hidden={!open}>
-        <div className="tray-grip-bar" />
-        <div className="tray-tools">
-          <button className="tray-tool" onClick={() => { onStream(); onClose(); }}>
-            <div className="tray-tool-icon">
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                <path d="M5 10 Q9 7 16 10 T27 10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none" />
-                <path d="M5 16 Q9 13 16 16 T27 16" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity=".75" />
-                <path d="M5 22 Q9 19 16 22 T27 22" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity=".5" />
-              </svg>
-            </div>
-            <span className="tray-tool-name">Stream</span>
-            <span className="tray-tool-desc">stream of consciousness</span>
-          </button>
-          <button className="tray-tool" onClick={() => { onBody(); onClose(); }}>
-            <div className="tray-tool-icon">
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                <circle cx="16" cy="8" r="3.5" fill="none" stroke="currentColor" strokeWidth="1.4" />
-                <path d="M8 19 Q10 15 16 14.5 Q22 15 24 19" fill="none" stroke="currentColor" strokeWidth="1.4" />
-                <path d="M10 19 L10 27" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-                <path d="M22 19 L22 27" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-                <path d="M16 15 L16 23" stroke="currentColor" strokeWidth=".8" strokeOpacity=".45" strokeDasharray="1.5 2.5" />
-              </svg>
-            </div>
-            <span className="tray-tool-name">Body</span>
-            <span className="tray-tool-desc">where does this live?</span>
-          </button>
-          <button className="tray-tool" onClick={() => { onJournal(); onClose(); }}>
-            <div className="tray-tool-icon">
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                <rect x="6" y="4" width="18" height="24" rx="2" fill="none" stroke="currentColor" strokeWidth="1.4" />
-                <path d="M6 9h18" stroke="currentColor" strokeWidth="1" strokeOpacity=".5" />
-                <path d="M6 13.5h18M6 18h12M6 22h9" stroke="currentColor" strokeWidth="1" strokeOpacity=".35" />
-                <circle cx="22" cy="20" r="4" fill="color-mix(in srgb, var(--teal-core) 18%, transparent)" stroke="var(--teal-core)" strokeWidth=".8" />
-                <path d="M20.5 20h3M22 18.5v3" stroke="var(--teal-core)" strokeWidth="1" strokeLinecap="round" />
-              </svg>
-            </div>
-            <span className="tray-tool-name">Journal</span>
-            <span className="tray-tool-desc">your writing across the journey</span>
-          </button>
-        </div>
-      </div>
-    </>
-  );
-}
-
-function DeckNav({ tileIdx, total, go, tiles, onOpenTray }: {
+function DeckNav({ tileIdx, total, go, tiles, onStream, onBody, onJournal }: {
   tileIdx: number;
   total: number;
   go: (i: number) => void;
   tiles: Tile[];
-  onOpenTray: () => void;
+  onStream: () => void;
+  onBody: () => void;
+  onJournal: () => void;
 }) {
   const tile = tiles[tileIdx];
   const next = tiles[tileIdx + 1];
@@ -424,9 +368,32 @@ function DeckNav({ tileIdx, total, go, tiles, onOpenTray }: {
             <div className="nav-track-fill" style={{ width: ((tileIdx + 1) / total) * 100 + '%' }} />
           </div>
         </div>
-        <button className="nav-tray-handle" onClick={onOpenTray} aria-label="Open tools">
-          <span /><span /><span />
-        </button>
+        <div className="nav-tools" role="group" aria-label="Tools">
+          <button className="nav-tool" onClick={onStream} aria-label="Stream of consciousness">
+            <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
+              <path d="M5 10 Q9 7 16 10 T27 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none" />
+              <path d="M5 16 Q9 13 16 16 T27 16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none" opacity=".75" />
+              <path d="M5 22 Q9 19 16 22 T27 22" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none" opacity=".5" />
+            </svg>
+            <span className="nav-tool-label">stream</span>
+          </button>
+          <button className="nav-tool" onClick={onBody} aria-label="Where does this live in your body">
+            <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
+              <circle cx="16" cy="8" r="3.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
+              <path d="M8 19 Q10 15 16 14.5 Q22 15 24 19" fill="none" stroke="currentColor" strokeWidth="1.6" />
+              <path d="M10 19 L10 27" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+              <path d="M22 19 L22 27" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            </svg>
+            <span className="nav-tool-label">body</span>
+          </button>
+          <button className="nav-tool" onClick={onJournal} aria-label="Open journal">
+            <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
+              <rect x="6" y="4" width="18" height="24" rx="2" fill="none" stroke="currentColor" strokeWidth="1.6" />
+              <path d="M6 13.5h18M6 18h12M6 22h9" stroke="currentColor" strokeWidth="1.2" strokeOpacity=".55" />
+            </svg>
+            <span className="nav-tool-label">journal</span>
+          </button>
+        </div>
       </div>
       <button className="nav-btn nav-fwd primary" onClick={() => go(tileIdx + 1)} disabled={tileIdx === total - 1}>
         <span className="label">{label}</span>
@@ -440,7 +407,7 @@ function DeckNav({ tileIdx, total, go, tiles, onOpenTray }: {
 }
 
 function Deck({ tiles, tileIdx, advance, chapters, onEnter, onRestart,
-  onCumulative, hasCumulative, generatingCumulative, onOpenTray }: {
+  onCumulative, hasCumulative, generatingCumulative, onStream, onBody, onJournal }: {
   tiles: Tile[];
   tileIdx: number;
   advance: (i: number) => void;
@@ -450,7 +417,9 @@ function Deck({ tiles, tileIdx, advance, chapters, onEnter, onRestart,
   onCumulative: () => void;
   hasCumulative: boolean;
   generatingCumulative: boolean;
-  onOpenTray: () => void;
+  onStream: () => void;
+  onBody: () => void;
+  onJournal: () => void;
 }) {
   const [dir, setDir] = useState(1);
   const [animKey, setAnimKey] = useState(0);
@@ -593,7 +562,7 @@ function Deck({ tiles, tileIdx, advance, chapters, onEnter, onRestart,
       <div key={animKey} ref={tileWrapRef} className={'tile-wrap dir-' + (dir > 0 ? 'fwd' : 'back')}>
         {tile && renderTile(tile, chapters, onEnter, onRestart, onCumulative, hasCumulative, generatingCumulative)}
       </div>
-      <DeckNav tileIdx={tileIdx} total={tiles.length} go={go} tiles={tiles} onOpenTray={onOpenTray} />
+      <DeckNav tileIdx={tileIdx} total={tiles.length} go={go} tiles={tiles} onStream={onStream} onBody={onBody} onJournal={onJournal} />
     </div>
   );
 }
@@ -604,12 +573,11 @@ export default function App() {
   const [journalOpen, setJournalOpen] = useState(false);
   const [bodyOpen, setBodyOpen] = useState(false);
   const [streamOpen, setStreamOpen] = useState(false);
-  const [trayOpen, setTrayOpen] = useState(false);
   const [horizon, setHorizon] = useState<{ ch: number; nextIdx: number; cycles?: number } | null>(null);
   const [hasCumulative, setHasCumulative] = useState<boolean>(() => !!getCumulative());
   const [generatingCumulative, setGeneratingCumulative] = useState(false);
   const [cumulativeError, setCumulativeError] = useState<string | null>(null);
-  const [journalInitialTab, setJournalInitialTab] = useState<'reading' | 'spine' | 'body' | 'stream' | 'codex' | undefined>(undefined);
+  const [journalInitialTab, setJournalInitialTab] = useState<'reading' | 'spine' | 'body' | 'stream' | 'archive' | undefined>(undefined);
   const sessionHorizonsRef = useRef<Set<number>>(new Set());
 
   useEffect(() => { saveTileIdx(tileIdx); }, [tileIdx]);
@@ -698,7 +666,7 @@ export default function App() {
 
   const onCumulative = async () => {
     if (hasCumulative) {
-      setJournalInitialTab('codex');
+      setJournalInitialTab('archive');
       setJournalOpen(true);
       return;
     }
@@ -735,7 +703,7 @@ export default function App() {
       });
       saveCumulative({ morpho, sage, generatedAt: Date.now() });
       setHasCumulative(true);
-      setJournalInitialTab('codex');
+      setJournalInitialTab('archive');
       setJournalOpen(true);
     } catch (e) {
       setCumulativeError(e instanceof Error ? e.message : String(e));
@@ -791,7 +759,9 @@ export default function App() {
           onCumulative={onCumulative}
           hasCumulative={hasCumulative}
           generatingCumulative={generatingCumulative}
-          onOpenTray={() => setTrayOpen(true)}
+          onStream={() => setStreamOpen(true)}
+          onBody={() => setBodyOpen(true)}
+          onJournal={() => setJournalOpen(true)}
         />
       </main>
 
@@ -801,14 +771,6 @@ export default function App() {
           <button className="btn-ghost small" onClick={() => setCumulativeError(null)}>dismiss</button>
         </div>
       )}
-
-      <BottomTray
-        open={trayOpen}
-        onClose={() => setTrayOpen(false)}
-        onStream={() => setStreamOpen(true)}
-        onBody={() => setBodyOpen(true)}
-        onJournal={() => setJournalOpen(true)}
-      />
 
       {streamOpen && (
         <StreamOverlay onClose={() => setStreamOpen(false)} chapters={chapters} currentCh={currentCh} />

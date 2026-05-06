@@ -2,18 +2,19 @@ import { useEffect, useState, useRef } from 'react';
 import { Scene as SceneType } from '../chapters';
 import BreathPacer from './BreathPacer';
 import Journal from './Journal';
-import ShameMask from './ShameMask';
 import VoicesList from './VoicesList';
 import Declarations from './Declarations';
 import Gratitude from './Gratitude';
 import Gathering from './Gathering';
 import MoveTimer from './MoveTimer';
 import Broadcast from './Broadcast';
+import { unlockArchive, isArchiveUnlocked } from '../storage';
 
 interface Props {
   scene: SceneType;
   idx: number;
   total: number;
+  chapterIdx: number;
 }
 
 // Kinds that show everything at once (no progressive reveal)
@@ -68,61 +69,85 @@ function Chevron({ dir }: { dir: 'down' | 'up' }) {
   );
 }
 
-function ExpandableCode({ title, body }: { title: string; body: string }) {
+function UnlockableInline({
+  kind, chapterIdx, title, body,
+}: { kind: 'code' | 'lore'; chapterIdx: number; title: string; body: string }) {
+  const initiallyUnlocked = isArchiveUnlocked(chapterIdx, kind, title);
   const [open, setOpen] = useState(false);
+  const [unlocked, setUnlocked] = useState(initiallyUnlocked);
+  const [justUnlocked, setJustUnlocked] = useState(false);
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const next = !open;
+    setOpen(next);
+    if (next && !unlocked) {
+      unlockArchive(chapterIdx, kind, title);
+      setUnlocked(true);
+      setJustUnlocked(true);
+      window.setTimeout(() => setJustUnlocked(false), 2400);
+    }
+  };
+
+  const klass = kind === 'code' ? 'inline-code' : 'inline-lore';
+  const sigil = kind === 'code' ? '◇' : '❋';
+  const label = kind === 'code' ? 'Code' : 'Lore';
+  const verb = kind === 'code' ? 'open the code' : 'enter the lore';
+
   return (
-    <div className={'inline-code-card' + (open ? ' inline-code-card--open' : '')}>
-      <div className="inline-code-head">
-        <span className="inline-code-label">Code</span>
-        <span className="inline-code-num" aria-hidden="true">◇</span>
+    <div
+      className={
+        `${klass}-card` +
+        (open ? ` ${klass}-card--open` : '') +
+        (unlocked ? ` ${klass}-card--unlocked` : '') +
+        (justUnlocked ? ` ${klass}-card--just-unlocked` : '')
+      }
+    >
+      {justUnlocked && <span className="archive-unlock-flash" aria-hidden="true" />}
+      <div className={`${klass}-head`}>
+        <span className={`${klass}-label`}>{label}</span>
+        {unlocked && (
+          <span className={`${klass}-archived`} title="Saved to your Archive">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
+              <path d="M2 5.5L4.5 8L9 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span>archived</span>
+          </span>
+        )}
+        <span className={`${klass}-num`} aria-hidden="true">{sigil}</span>
       </div>
-      <div className="inline-code-essence">{title}</div>
+      <div className={`${klass}-essence`}>{title}</div>
       {open && (
-        <div className="inline-code-body">
+        <div className={`${klass}-body`}>
           {body.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
+          {unlocked && (
+            <p className={`${klass}-archive-hint`}>
+              The full passage on this {kind} is now in your Archive — open the Journal to read it.
+            </p>
+          )}
         </div>
       )}
       <button
         type="button"
-        className="inline-code-toggle"
-        onClick={(e) => { e.stopPropagation(); setOpen(o => !o); }}
+        className={`${klass}-toggle`}
+        onClick={handleToggle}
         aria-expanded={open}
       >
         <Chevron dir={open ? 'up' : 'down'} />
-        <span>{open ? 'collapse' : 'open the code'}</span>
+        <span>{open ? 'collapse' : (unlocked ? `re-${verb}` : verb)}</span>
       </button>
     </div>
   );
 }
 
-function ExpandableLore({ title, body }: { title: string; body: string }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className={'inline-lore-card' + (open ? ' inline-lore-card--open' : '')}>
-      <div className="inline-lore-head">
-        <span className="inline-lore-label">Lore</span>
-        <span className="inline-lore-num" aria-hidden="true">❋</span>
-      </div>
-      <div className="inline-lore-essence">{title}</div>
-      {open && (
-        <div className="inline-lore-body">
-          {body.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
-        </div>
-      )}
-      <button
-        type="button"
-        className="inline-lore-toggle"
-        onClick={(e) => { e.stopPropagation(); setOpen(o => !o); }}
-        aria-expanded={open}
-      >
-        <Chevron dir={open ? 'up' : 'down'} />
-        <span>{open ? 'collapse' : 'enter the lore'}</span>
-      </button>
-    </div>
-  );
+function ExpandableCode(props: { title: string; body: string; chapterIdx: number }) {
+  return <UnlockableInline kind="code" {...props} />;
+}
+function ExpandableLore(props: { title: string; body: string; chapterIdx: number }) {
+  return <UnlockableInline kind="lore" {...props} />;
 }
 
-export default function Scene({ scene }: Props) {
+export default function Scene({ scene, chapterIdx }: Props) {
   const { phase, advance } = useSceneReveal(scene);
 
   const showInteraction = phase >= 1;
@@ -152,7 +177,7 @@ export default function Scene({ scene }: Props) {
           )
         )}
 
-        {scene.code && <ExpandableCode title={scene.code.title} body={scene.code.body} />}
+        {scene.code && <ExpandableCode title={scene.code.title} body={scene.code.body} chapterIdx={chapterIdx} />}
 
         {scene.middle && (
           scene.middle.includes('\n\n') ? (
@@ -164,7 +189,7 @@ export default function Scene({ scene }: Props) {
           )
         )}
 
-        {scene.lore && <ExpandableLore title={scene.lore.title} body={scene.lore.body} />}
+        {scene.lore && <ExpandableLore title={scene.lore.title} body={scene.lore.body} chapterIdx={chapterIdx} />}
 
         {scene.closing && <p className="scene-closing">{scene.closing}</p>}
 
@@ -212,7 +237,6 @@ export default function Scene({ scene }: Props) {
           {scene.kind === 'prompt' && scene.key && (
             <Journal sceneKey={scene.key} placeholder="" rows={scene.rows || 4} />
           )}
-          {scene.kind === 'shame' && scene.body && <ShameMask body={scene.body} />}
           {scene.kind === 'threshold' && (
             <div className="threshold">
               <div className="threshold-rule" />
@@ -241,10 +265,8 @@ export default function Scene({ scene }: Props) {
       {/* ── Reflection: after-notes and breath-after ── */}
       {showAfter && scene.after && scene.after.length > 0 && (
         <div className="scene-after scene-after--reveal">
-          {scene.after.map((line, i) => (
-            line.kind === 'shame'
-              ? <ShameMask key={i} body={line.text} />
-              : <p key={i} className={'after-line after-' + (line.kind || 'note')}>{line.text}</p>
+          {scene.after.filter(line => line.kind !== 'shame').map((line, i) => (
+            <p key={i} className={'after-line after-' + (line.kind || 'note')}>{line.text}</p>
           ))}
         </div>
       )}

@@ -3137,3 +3137,213 @@ input, textarea, select { font-family: inherit; color: inherit; }
   .scene-code-body, .scene-lore-body { font-size: 15px; }
   .scene-closing { font-size: 17px; }
 }
+
+/* ============================================================
+   NAV TOOLS — always-visible Stream / Body / Journal buttons
+   (replaces the hidden 3-dot tray handle)
+============================================================ */
+.nav-tools {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 6px;
+}
+.nav-tool {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 10px 4px;
+  background: rgba(255, 250, 235, 0.04);
+  border: 1px solid rgba(196, 162, 101, 0.22);
+  border-radius: 10px;
+  color: rgba(245, 232, 200, 0.78);
+  cursor: pointer;
+  transition: background 200ms ease, border-color 200ms ease, color 200ms ease, transform 160ms ease;
+  font-family: 'JetBrains Mono', monospace;
+}
+.nav-tool:hover {
+  background: rgba(196, 162, 101, 0.10);
+  border-color: rgba(196, 162, 101, 0.45);
+  color: #f5e8c8;
+  transform: translateY(-1px);
+}
+.nav-tool:active { transform: translateY(0); }
+.nav-tool-label {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.78;
+}
+
+/* Hide the legacy bottom tray (kept in CSS but unused). */
+.bottom-tray, .tray-backdrop, .nav-tray-handle { display: none !important; }
+
+/* ============================================================
+   INLINE CODE / LORE — unlock state + flash
+============================================================ */
+.inline-code-archived,
+.inline-lore-archived {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: rgba(196, 162, 101, 0.12);
+  border: 1px solid rgba(196, 162, 101, 0.35);
+  color: #c4a265;
+}
+.inline-code-archived { background: rgba(79, 240, 214, 0.08); border-color: rgba(79, 240, 214, 0.32); color: #4ff0d6; }
+
+.inline-code-archive-hint,
+.inline-lore-archive-hint {
+  margin-top: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  opacity: 0.62;
+  border-top: 1px dashed rgba(196, 162, 101, 0.25);
+  padding-top: 10px;
+}
+
+.inline-code-card--unlocked { box-shadow: 0 0 0 1px rgba(79, 240, 214, 0.18), 0 8px 24px -10px rgba(79, 240, 214, 0.18); }
+.inline-lore-card--unlocked { box-shadow: 0 0 0 1px rgba(196, 162, 101, 0.25), 0 8px 24px -10px rgba(196, 162, 101, 0.20); }
+
+.archive-unlock-flash {
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(60% 80% at 50% 0%, rgba(255, 240, 180, 0.28), transparent 70%);
+  animation: archive-unlock 2.4s ease-out forwards;
+}
+.inline-code-card, .inline-lore-card { position: relative; overflow: hidden; }
+
+.inline-code-card--just-unlocked,
+.inline-lore-card--just-unlocked {
+  animation: card-unlock-pulse 2.4s ease-out;
+}
+
+@keyframes archive-unlock {
+  0%   { opacity: 0; transform: translateY(-6px) scale(0.96); }
+  20%  { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: scale(1.02); }
+}
+@keyframes card-unlock-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(255, 240, 180, 0.55), 0 0 0 0 rgba(196, 162, 101, 0.45); }
+  35%  { box-shadow: 0 0 0 6px rgba(255, 240, 180, 0.0), 0 0 28px 4px rgba(196, 162, 101, 0.35); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 240, 180, 0), 0 0 0 0 rgba(196, 162, 101, 0); }
+}
+
+/* ============================================================
+   ARCHIVE TAB inside Journal
+============================================================ */
+.jov-archive-tab { padding: 4px 0 36px; }
+
+.jov-archive-meter {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 14px 18px;
+  margin: 0 0 18px;
+  background: rgba(196, 162, 101, 0.06);
+  border: 1px solid rgba(196, 162, 101, 0.20);
+  border-radius: 12px;
+}
+.jov-archive-count {
+  font-family: 'Cormorant SC', serif;
+  font-size: 32px;
+  color: #c89838;
+  letter-spacing: .03em;
+}
+.jov-archive-of { font-size: 16px; opacity: .55; margin-left: 4px; }
+.jov-archive-meter-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: .65;
+}
+.jov-archive-hint {
+  margin: 0 0 22px;
+  font-family: 'EB Garamond', serif;
+  font-size: 14px;
+  font-style: italic;
+  opacity: .72;
+  padding: 0 18px;
+}
+
+.jov-archive-chapter, .jov-archive-personal { margin-bottom: 24px; padding: 0 18px; }
+
+.archive-card {
+  position: relative;
+  margin: 10px 0;
+  padding: 14px 16px 14px 18px;
+  border-radius: 10px;
+  border: 1px solid rgba(196, 162, 101, 0.22);
+  background: rgba(255, 250, 235, 0.04);
+  transition: border-color 220ms ease, background 220ms ease, opacity 220ms ease;
+}
+.archive-card--locked {
+  opacity: 0.62;
+  background: rgba(80, 60, 30, 0.04);
+}
+.archive-card--unlocked.archive-card--code {
+  border-color: rgba(79, 240, 214, 0.35);
+  background: rgba(79, 240, 214, 0.04);
+}
+.archive-card--unlocked.archive-card--lore {
+  border-color: rgba(196, 162, 101, 0.40);
+  background: rgba(196, 162, 101, 0.06);
+}
+
+.archive-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: .7;
+  margin-bottom: 8px;
+}
+.archive-card-kind { color: #c89838; font-weight: 600; }
+.archive-card--code .archive-card-kind { color: #4ff0d6; }
+.archive-card-scene { opacity: .55; }
+.archive-card-state { margin-left: auto; opacity: .55; display: inline-flex; align-items: center; }
+.archive-card--unlocked .archive-card-state { opacity: .85; color: #c89838; }
+.archive-card--unlocked.archive-card--code .archive-card-state { color: #4ff0d6; }
+
+.archive-card-title {
+  font-family: 'Cormorant SC', serif;
+  font-size: 18px;
+  letter-spacing: .03em;
+  color: #c89838;
+  margin: 0 0 8px;
+  font-weight: 500;
+}
+.archive-card--code .archive-card-title { color: #5fe8d2; }
+
+.archive-card-body p {
+  font-family: 'EB Garamond', serif;
+  font-size: 15px;
+  line-height: 1.62;
+  margin: 0 0 10px;
+}
+.archive-card-body p:last-child { margin-bottom: 0; }
+
+.archive-card-locked-note {
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-size: 13px;
+  opacity: .60;
+  margin: 0;
+}

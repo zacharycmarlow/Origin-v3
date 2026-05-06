@@ -293,7 +293,7 @@ const CHAPTERS: Chapter[] = [
         key: "p3_turn",
         rows: 8,
         after: [
-          { kind: "shame", text: `If something tightened, stay with it. Four in, seven out. That resistance is shame insisting the pain was meaningless. You are rewriting it right now.` }
+          { kind: "note", text: `If something tightened, stay with it. Four in, seven out. The body completes what the mind tries to interrupt.` }
         ]
       },
       {
@@ -360,7 +360,7 @@ const CHAPTERS: Chapter[] = [
         key: "p4_naming",
         rows: 5,
         after: [
-          { kind: "shame", text: `If shame whispers "who am I to name something this vast" — recognize the mask. You are as qualified as anyone who ever stood under the sky and felt the pull.` }
+          { kind: "note", text: `You are as qualified as anyone who ever stood under the sky and felt the pull.` }
         ]
       },
       {
@@ -519,11 +519,12 @@ const CHAPTERS: Chapter[] = [
           title: "The vision quest",
           body: "The Lakota hanblecheyapi strips away comfort and certainty until what remains is what you actually are. The seeker goes alone to a high place, fasting for one to four days, praying continuously, exposed to the elements, stripped of everything that ordinarily cushions the interface between the individual and the vast. The vision that arrives, if it arrives, is understood as an instruction from the spirit world, a specific communication about the seeker's purpose. The community holds the seeker accountable to it. The vision is the assignment."
         },
-        closing: "What has been dreaming through you? The unnamed ache behind the busyness, the restlessness you scroll past at two in the morning? Let it include the world. Say it aloud before you write it. Without editing for plausibility.",
+        middle: "When we suppress our dreams, they go underground. They rule us in secret, the undertow beneath our decisions, the unnamed ache behind our busyness, the restlessness we medicate and distract and scroll past at two in the morning.",
+        closing: "What has been dreaming through you? Let it include the world. Say it aloud before you write it. Without editing for plausibility.",
         key: "p6_vision",
         rows: 8,
         after: [
-          { kind: "shame", text: `If shame says your dream is ridiculous — recognize the mask. "Be realistic" is shame's voice in this territory, defending someone else's dream against yours.` }
+          { kind: "note", text: `If a voice says your dream is ridiculous, notice it and keep writing. "Be realistic" is often someone else's dream defending itself against yours.` }
         ]
       },
       {
@@ -639,6 +640,7 @@ const CHAPTERS: Chapter[] = [
           title: "The witness makes it irreversible",
           body: "Inside your own mind, the narrator can revise endlessly. The moment the story enters another nervous system and that system receives it, the revision stops. The witness carries the impression into every subsequent interaction. The more witnesses, the more irreversible the new story becomes."
         },
+        middle: "What you learned to do across these seven chapters — see the story, hold it from the outside, find the tension, locate the gift, trace the source, name the narrator, author what comes next — this is yours for life. Any pattern, any fear. Catch the story. Author the next chapter.",
         lore: {
           title: "The thin place",
           body: "The Celts knew about thin places, locations and moments where the membrane between the ordinary and the sacred grows permeable. A genuine ending is always a thin place. The old form has dissolved. The new one forming. You are standing in the gap, the silence from which new worlds emerge. Every creation myth begins here. Before the dreaming, there was the silence. You are in the silence now. What you speak from here will shape what assembles around you next."
