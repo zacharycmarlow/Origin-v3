@@ -129,6 +129,8 @@ export async function pullAll(): Promise<PullResult> {
       readings.cumulative !== null;
 
     // Write server data to localStorage — server is authoritative.
+    // Clear ALL local keys first so stale data from a prior account or prior
+    // session can never bleed into the newly signed-in account's view.
     setTileIdx(state.tileIdx ?? 0);
 
     const STORAGE = "origin.v1";
@@ -139,6 +141,26 @@ export async function pullAll(): Promise<PullResult> {
     save("streamEntries", entries.stream);
     save("bodyEntries", entries.body);
 
+    // Always replace readings keys entirely — write empty objects/null when
+    // server has nothing, so leftover readings from another account are wiped.
+    try {
+      localStorage.setItem(
+        "origin.readings",
+        JSON.stringify(readings.readings ?? {}),
+      );
+      localStorage.setItem(
+        "origin.codex",
+        JSON.stringify([]), // codex is regenerated from sage readings on demand
+      );
+      if (readings.cumulative) {
+        localStorage.setItem("origin.cumulative", JSON.stringify(readings.cumulative));
+      } else {
+        localStorage.removeItem("origin.cumulative");
+      }
+    } catch { /* noop */ }
+
+    // Re-populate in-memory reading store so saveMorpho/Sage/Horizon helpers
+    // don't merge on top of stale data in subsequent calls this session.
     if (readings.readings) {
       for (const [chIdxStr, r] of Object.entries(readings.readings)) {
         const chIdx = parseInt(chIdxStr, 10);
@@ -146,9 +168,6 @@ export async function pullAll(): Promise<PullResult> {
         if (r.sage) saveSage(chIdx, r.sage as SageReading);
         if (r.horizon) saveHorizon(chIdx, r.horizon as HorizonReading);
       }
-    }
-    if (readings.cumulative) {
-      saveCumulative(readings.cumulative);
     }
 
     try {
@@ -200,9 +219,11 @@ export async function pushAll(keepalive = false): Promise<void> {
 /**
  * Restore a previously captured local snapshot to localStorage, then push
  * to the server. Called when a user confirms "save journey" migration.
+ * Restores ALL stores including readings and cumulative so no journey data is lost.
  */
 export async function pushSnapshot(snapshot: LocalSnapshot): Promise<void> {
-  // Restore snapshot to localStorage so pushAll pushes the correct data
+  // Restore every store from the snapshot — including readings and cumulative —
+  // so the full pre-sign-in guest journey is preserved and pushed.
   setTileIdx(snapshot.tileIdx);
   const STORAGE = "origin.v1";
   try { localStorage.setItem(STORAGE, JSON.stringify(snapshot.responses)); } catch { /* noop */ }
@@ -210,9 +231,13 @@ export async function pushSnapshot(snapshot: LocalSnapshot): Promise<void> {
   save("bodyEntries", snapshot.body);
   try {
     localStorage.setItem("origin.archive.unlocked", JSON.stringify(snapshot.archive));
+    localStorage.setItem("origin.readings", JSON.stringify(snapshot.readings ?? {}));
+    if (snapshot.cumulative) {
+      localStorage.setItem("origin.cumulative", JSON.stringify(snapshot.cumulative));
+    } else {
+      localStorage.removeItem("origin.cumulative");
+    }
   } catch { /* noop */ }
-  // Readings are nested in the main blob via save(); re-apply from snapshot
-  // by pushing directly — no need to re-persist them separately since pushAll reads fresh
   await pushAll();
 }
 
