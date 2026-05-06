@@ -1,4 +1,4 @@
-import type { Request, Response, NextFunction } from "express";
+import type { RequestHandler } from "express";
 import { getAuth } from "@clerk/express";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
@@ -25,11 +25,7 @@ async function getOrCreateUser(clerkId: string): Promise<string> {
   return id;
 }
 
-export async function requireAuth(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): Promise<void> {
+export const requireAuth: RequestHandler = async (req, res, next) => {
   const auth = getAuth(req);
   const clerkId = auth?.userId;
   if (!clerkId) {
@@ -44,4 +40,4 @@ export async function requireAuth(
   } catch (err) {
     next(err);
   }
-}
+};

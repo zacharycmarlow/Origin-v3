@@ -593,12 +593,18 @@ export default function App() {
   const sessionHorizonsRef = useRef<Set<number>>(new Set());
   const prevUserIdRef = useRef<string | null>(null);
   const syncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Gate all server writes behind initial pull completing — prevents a fresh
+  // device (tileIdx=0) from overwriting existing server state on sign-in.
+  const hydratedRef = useRef(false);
 
   useEffect(() => { saveTileIdx(tileIdx); }, [tileIdx]);
 
-  // Server sync: push tileIdx whenever it changes (fire-and-forget)
+  // Server sync: push tileIdx only after hydration is complete so a fresh
+  // device login never clobbers existing progress pulled from the server.
   useEffect(() => {
-    if (user) pushTileIdx(tileIdx).catch(() => {});
+    if (user && hydratedRef.current) {
+      pushTileIdx(tileIdx).catch(() => {});
+    }
   }, [tileIdx, user]);
 
   // Auth state transitions: pull on sign-in, push on sign-out
@@ -608,20 +614,24 @@ export default function App() {
     const prevId = prevUserIdRef.current;
 
     if (currentId && currentId !== prevId) {
-      // User just signed in — pull from server, offer migration if local data exists
+      // User just signed in — pull server state first, THEN allow writes
+      hydratedRef.current = false;
       pullAll().then(() => {
+        hydratedRef.current = true;
         setHasCumulative(!!getCumulative());
         if (hasLocalData() && prevId === null) {
           setShowMigrationPrompt(true);
         }
       });
-      // Periodic background push every 30s
+      // Periodic background push — starts 30s after sign-in, by which time
+      // hydration will always have completed.
       if (syncIntervalRef.current) clearInterval(syncIntervalRef.current);
       syncIntervalRef.current = setInterval(() => {
-        pushAll().catch(() => {});
+        if (hydratedRef.current) pushAll().catch(() => {});
       }, 30_000);
     } else if (!currentId && prevId) {
-      // User just signed out — stop sync
+      // User just signed out — stop sync and reset hydration flag
+      hydratedRef.current = false;
       if (syncIntervalRef.current) {
         clearInterval(syncIntervalRef.current);
         syncIntervalRef.current = null;

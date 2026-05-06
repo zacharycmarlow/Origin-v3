@@ -6,7 +6,7 @@ import { z } from "zod";
 
 const router: IRouter = Router();
 
-router.use(requireAuth as any);
+router.use(requireAuth);
 
 /* ─── Journey State: tileIdx + scene responses ─── */
 
