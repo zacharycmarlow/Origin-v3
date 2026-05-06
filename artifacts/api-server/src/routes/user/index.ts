@@ -8,15 +8,6 @@ const router: IRouter = Router();
 
 router.use(requireAuth);
 
-/*
- * Design note: /api/user/* uses a bulk-replace (GET + PUT) pattern rather than
- * per-record CRUD (POST/DELETE). This is intentional — the client is
- * localStorage-first; the server is a sync target, not an authoritative store.
- * On sign-in, the client pulls the full snapshot (GET) and merges it locally.
- * Periodically (and on sign-out), the client pushes the full snapshot (PUT).
- * Atomicity is ensured on writes via delete-then-insert in a single tx batch.
- */
-
 /* ─── Journey State: tileIdx + scene responses ─── */
 
 router.get("/state", async (req, res, next) => {
@@ -102,21 +93,25 @@ router.get("/entries", async (req, res, next) => {
   }
 });
 
+const streamEntrySchema = z.object({
+  id: z.string(),
+  chapter: z.number().int(),
+  text: z.string(),
+  timestamp: z.number(),
+});
+
+const bodyEntrySchema = z.object({
+  id: z.string(),
+  zoneId: z.string(),
+  energyCenter: z.string(),
+  chapter: z.number().int(),
+  note: z.string(),
+  timestamp: z.number(),
+});
+
 const putEntriesSchema = z.object({
-  stream: z.array(z.object({
-    id: z.string(),
-    chapter: z.number().int(),
-    text: z.string(),
-    timestamp: z.number(),
-  })).optional().default([]),
-  body: z.array(z.object({
-    id: z.string(),
-    zoneId: z.string(),
-    energyCenter: z.string(),
-    chapter: z.number().int(),
-    note: z.string(),
-    timestamp: z.number(),
-  })).optional().default([]),
+  stream: z.array(streamEntrySchema).optional().default([]),
+  body: z.array(bodyEntrySchema).optional().default([]),
 });
 
 router.put("/entries", async (req, res, next) => {
@@ -140,6 +135,48 @@ router.put("/entries", async (req, res, next) => {
       await db.insert(journalEntriesTable).values(toInsert);
     }
 
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+const postEntrySchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("stream"), entry: streamEntrySchema }),
+  z.object({ kind: z.literal("body"), entry: bodyEntrySchema }),
+]);
+
+router.post("/entries", async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    const { kind, entry } = postEntrySchema.parse(req.body);
+    await db.insert(journalEntriesTable).values({
+      id: entry.id,
+      userId,
+      kind,
+      chapter: entry.chapter,
+      content: entry,
+    }).onConflictDoUpdate({
+      target: journalEntriesTable.id,
+      set: { content: entry },
+    });
+    res.status(201).json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.delete("/entries/:id", async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    const { id } = req.params;
+    await db
+      .delete(journalEntriesTable)
+      .where(and(
+        eq(journalEntriesTable.userId, userId),
+        eq(journalEntriesTable.id, id),
+        inArray(journalEntriesTable.kind, ["stream", "body"]),
+      ));
     res.json({ ok: true });
   } catch (err) {
     next(err);
@@ -200,26 +237,12 @@ router.put("/readings", async (req, res, next) => {
       if (isNaN(chapter)) continue;
       for (const [kind, data] of Object.entries(chReadings)) {
         if (!data) continue;
-        toInsert.push({
-          id: `${userId}-${chapter}-${kind}`,
-          userId,
-          chapter,
-          kind,
-          cumulative: false,
-          data,
-        });
+        toInsert.push({ id: `${userId}-${chapter}-${kind}`, userId, chapter, kind, cumulative: false, data });
       }
     }
 
     if (cumulative) {
-      toInsert.push({
-        id: `${userId}-cumulative`,
-        userId,
-        chapter: -1,
-        kind: "cumulative",
-        cumulative: true,
-        data: cumulative,
-      });
+      toInsert.push({ id: `${userId}-cumulative`, userId, chapter: -1, kind: "cumulative", cumulative: true, data: cumulative });
     }
 
     if (toInsert.length > 0) {
@@ -258,9 +281,7 @@ router.put("/archive", async (req, res, next) => {
     const userId = req.userId;
     const { unlocked } = putArchiveSchema.parse(req.body);
 
-    await db
-      .delete(archiveUnlocksTable)
-      .where(eq(archiveUnlocksTable.userId, userId));
+    await db.delete(archiveUnlocksTable).where(eq(archiveUnlocksTable.userId, userId));
 
     if (unlocked.length > 0) {
       const toInsert = unlocked.map(rawId => {
@@ -277,6 +298,27 @@ router.put("/archive", async (req, res, next) => {
     }
 
     res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post("/archive", async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    const { id: rawId } = z.object({ id: z.string() }).parse(req.body);
+    const [chIdxStr, kind, ...titleParts] = rawId.split("|");
+    await db
+      .insert(archiveUnlocksTable)
+      .values({
+        id: `${userId}|${rawId}`,
+        userId,
+        chapterIdx: parseInt(chIdxStr, 10),
+        kind: kind as "code" | "lore",
+        title: titleParts.join("|"),
+      })
+      .onConflictDoNothing();
+    res.status(201).json({ ok: true });
   } catch (err) {
     next(err);
   }

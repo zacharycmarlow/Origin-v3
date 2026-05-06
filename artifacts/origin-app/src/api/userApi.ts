@@ -11,13 +11,7 @@ import type {
 
 const API = "/api/user";
 
-// keepalive=true is used on beforeunload so the browser queues the request
-// even if the page is being unloaded (spec: keepalive requests survive page close).
-async function apiFetch<T>(
-  path: string,
-  init: RequestInit = {},
-  keepalive = false,
-): Promise<T> {
+async function apiFetch<T>(path: string, init: RequestInit = {}, keepalive = false): Promise<T> {
   const res = await fetch(`${API}${path}`, {
     ...init,
     credentials: "include",
@@ -26,12 +20,12 @@ async function apiFetch<T>(
   });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    throw new Error(`API ${path} failed (${res.status}): ${text}`);
+    throw new Error(`API ${path} ${res.status}: ${text}`);
   }
   return res.json() as Promise<T>;
 }
 
-/* ─── Local snapshot helpers ─────────────────────────────── */
+/* ─── Snapshot helpers ─── */
 
 export interface LocalSnapshot {
   tileIdx: number;
@@ -43,7 +37,6 @@ export interface LocalSnapshot {
   archive: string[];
 }
 
-/** Capture the complete current localStorage state before a destructive pull. */
 export function captureLocalSnapshot(): LocalSnapshot {
   return {
     tileIdx: getTileIdx(),
@@ -56,59 +49,30 @@ export function captureLocalSnapshot(): LocalSnapshot {
   };
 }
 
-/**
- * Returns true if the user has any substantive local journey data.
- * Checks ALL persistence keys — not just the main blob — so stream/body/
- * readings/archive are included.
- */
 export function hasSubstantialLocalData(): boolean {
-  const snap = captureLocalSnapshot();
+  const s = captureLocalSnapshot();
   return (
-    snap.tileIdx > 0 ||
-    Object.keys(snap.responses).length > 0 ||
-    snap.stream.length > 0 ||
-    snap.body.length > 0 ||
-    snap.archive.length > 0 ||
-    Object.keys(snap.readings).length > 0 ||
-    snap.cumulative !== null
+    s.tileIdx > 0 ||
+    Object.keys(s.responses).length > 0 ||
+    s.stream.length > 0 ||
+    s.body.length > 0 ||
+    s.archive.length > 0 ||
+    Object.keys(s.readings).length > 0 ||
+    s.cumulative !== null
   );
 }
 
-/* ─── Pull (server → localStorage, server authoritative) ─── */
+/* ─── Pull ─── */
 
-interface ServerState {
-  tileIdx: number;
-  responses: Record<string, unknown>;
-}
+interface ServerState { tileIdx: number; responses: Record<string, unknown> }
+interface ServerEntries { stream: StreamEntry[]; body: BodyEntry[] }
+interface ServerReadings { readings: Record<number, ChapterReading>; cumulative: CumulativeReading | null }
+interface ServerArchive { unlocked: string[] }
 
-interface ServerEntries {
-  stream: StreamEntry[];
-  body: BodyEntry[];
-}
+export interface PullResult { success: boolean; serverHasData: boolean }
 
-interface ServerReadings {
-  readings: Record<number, ChapterReading>;
-  cumulative: CumulativeReading | null;
-}
-
-interface ServerArchive {
-  unlocked: string[];
-}
-
-export interface PullResult {
-  success: boolean;
-  /** True if the server returned any substantive journey data. */
-  serverHasData: boolean;
-}
-
-/**
- * Pull the server's journey snapshot and write it to localStorage.
- * Server is authoritative — local state is REPLACED, not merged.
- * This guarantees "sign in on any device → restore exact server progress."
- *
- * The caller is responsible for capturing a local snapshot BEFORE calling
- * this if it needs to offer a migration prompt.
- */
+// Server is authoritative: writes all keys to localStorage, clearing stale data
+// from prior accounts (important for account switches on shared browsers).
 export async function pullAll(): Promise<PullResult> {
   try {
     const [state, entries, readings, archive] = await Promise.all([
@@ -118,64 +82,35 @@ export async function pullAll(): Promise<PullResult> {
       apiFetch<ServerArchive>("/archive"),
     ]);
 
-    // Determine whether server holds any meaningful data
     const serverHasData =
       (state.tileIdx ?? 0) > 0 ||
       Object.keys(state.responses ?? {}).length > 0 ||
       entries.stream.length > 0 ||
       entries.body.length > 0 ||
-      (readings.readings && Object.keys(readings.readings).length > 0) ||
+      Object.keys(readings.readings ?? {}).length > 0 ||
       archive.unlocked.length > 0 ||
       readings.cumulative !== null;
 
-    // Write server data to localStorage — server is authoritative.
-    // Clear ALL local keys first so stale data from a prior account or prior
-    // session can never bleed into the newly signed-in account's view.
     setTileIdx(state.tileIdx ?? 0);
-
-    const STORAGE = "origin.v1";
-    try {
-      localStorage.setItem(STORAGE, JSON.stringify(state.responses ?? {}));
-    } catch { /* noop */ }
-
+    localStorage.setItem("origin.v1", JSON.stringify(state.responses ?? {}));
     save("streamEntries", entries.stream);
     save("bodyEntries", entries.body);
-
-    // Always replace readings keys entirely — write empty objects/null when
-    // server has nothing, so leftover readings from another account are wiped.
-    try {
-      localStorage.setItem(
-        "origin.readings",
-        JSON.stringify(readings.readings ?? {}),
-      );
-      localStorage.setItem(
-        "origin.codex",
-        JSON.stringify([]), // codex is regenerated from sage readings on demand
-      );
-      if (readings.cumulative) {
-        localStorage.setItem("origin.cumulative", JSON.stringify(readings.cumulative));
-      } else {
-        localStorage.removeItem("origin.cumulative");
-      }
-    } catch { /* noop */ }
-
-    // Re-populate in-memory reading store so saveMorpho/Sage/Horizon helpers
-    // don't merge on top of stale data in subsequent calls this session.
-    if (readings.readings) {
-      for (const [chIdxStr, r] of Object.entries(readings.readings)) {
-        const chIdx = parseInt(chIdxStr, 10);
-        if (r.morpho) saveMorpho(chIdx, r.morpho as MorphoReading);
-        if (r.sage) saveSage(chIdx, r.sage as SageReading);
-        if (r.horizon) saveHorizon(chIdx, r.horizon as HorizonReading);
-      }
+    // Replace readings keys entirely so stale per-account data is never left behind.
+    localStorage.setItem("origin.readings", JSON.stringify(readings.readings ?? {}));
+    localStorage.setItem("origin.codex", JSON.stringify([]));
+    if (readings.cumulative) {
+      localStorage.setItem("origin.cumulative", JSON.stringify(readings.cumulative));
+    } else {
+      localStorage.removeItem("origin.cumulative");
     }
-
-    try {
-      localStorage.setItem(
-        "origin.archive.unlocked",
-        JSON.stringify(archive.unlocked),
-      );
-    } catch { /* noop */ }
+    // Re-apply readings through storage helpers so in-memory state is consistent.
+    for (const [k, r] of Object.entries(readings.readings ?? {})) {
+      const ch = parseInt(k, 10);
+      if (r.morpho) saveMorpho(ch, r.morpho as MorphoReading);
+      if (r.sage) saveSage(ch, r.sage as SageReading);
+      if (r.horizon) saveHorizon(ch, r.horizon as HorizonReading);
+    }
+    localStorage.setItem("origin.archive.unlocked", JSON.stringify(archive.unlocked));
 
     return { success: true, serverHasData };
   } catch {
@@ -183,79 +118,53 @@ export async function pullAll(): Promise<PullResult> {
   }
 }
 
-/* ─── Push (localStorage → server) ─────────────────────── */
+/* ─── Push ─── */
 
-/**
- * Push the current localStorage state to the server.
- * keepalive=true is passed on beforeunload to survive page unload.
- */
 export async function pushAll(keepalive = false): Promise<void> {
   try {
-    const responses = load();
-    const tileIdx = getTileIdx();
-    const streamEntries = getStreamEntries();
-    const bodyEntries = getBodyEntries();
-    const readings = getAllReadings();
-    const archive = [...getUnlockedArchive()];
-    const cumulative = getCumulative();
-
     await Promise.all([
-      apiFetch("/state", { method: "PUT", body: JSON.stringify({ tileIdx, responses }) }, keepalive),
+      apiFetch("/state", {
+        method: "PUT",
+        body: JSON.stringify({ tileIdx: getTileIdx(), responses: load() }),
+      }, keepalive),
       apiFetch("/entries", {
         method: "PUT",
-        body: JSON.stringify({ stream: streamEntries, body: bodyEntries }),
+        body: JSON.stringify({ stream: getStreamEntries(), body: getBodyEntries() }),
       }, keepalive),
       apiFetch("/readings", {
         method: "PUT",
-        body: JSON.stringify({ readings, cumulative }),
+        body: JSON.stringify({ readings: getAllReadings(), cumulative: getCumulative() }),
       }, keepalive),
-      apiFetch("/archive", { method: "PUT", body: JSON.stringify({ unlocked: archive }) }, keepalive),
+      apiFetch("/archive", {
+        method: "PUT",
+        body: JSON.stringify({ unlocked: [...getUnlockedArchive()] }),
+      }, keepalive),
     ]);
-  } catch {
-    /* silent — localStorage is source of truth for guests; server is best-effort */
-  }
+  } catch { /* localStorage is source of truth; server sync is best-effort */ }
 }
 
-/**
- * Restore a previously captured local snapshot to localStorage, then push
- * to the server. Called when a user confirms "save journey" migration.
- * Restores ALL stores including readings and cumulative so no journey data is lost.
- */
+// Restore snapshot to localStorage (including readings/cumulative) then push.
+// Used when a user confirms "save journey" migration on first sign-in.
 export async function pushSnapshot(snapshot: LocalSnapshot): Promise<void> {
-  // Restore every store from the snapshot — including readings and cumulative —
-  // so the full pre-sign-in guest journey is preserved and pushed.
   setTileIdx(snapshot.tileIdx);
-  const STORAGE = "origin.v1";
-  try { localStorage.setItem(STORAGE, JSON.stringify(snapshot.responses)); } catch { /* noop */ }
+  localStorage.setItem("origin.v1", JSON.stringify(snapshot.responses));
   save("streamEntries", snapshot.stream);
   save("bodyEntries", snapshot.body);
-  try {
-    localStorage.setItem("origin.archive.unlocked", JSON.stringify(snapshot.archive));
-    localStorage.setItem("origin.readings", JSON.stringify(snapshot.readings ?? {}));
-    if (snapshot.cumulative) {
-      localStorage.setItem("origin.cumulative", JSON.stringify(snapshot.cumulative));
-    } else {
-      localStorage.removeItem("origin.cumulative");
-    }
-  } catch { /* noop */ }
+  localStorage.setItem("origin.archive.unlocked", JSON.stringify(snapshot.archive));
+  localStorage.setItem("origin.readings", JSON.stringify(snapshot.readings ?? {}));
+  if (snapshot.cumulative) {
+    localStorage.setItem("origin.cumulative", JSON.stringify(snapshot.cumulative));
+  } else {
+    localStorage.removeItem("origin.cumulative");
+  }
   await pushAll();
 }
 
 export async function pushTileIdx(tileIdx: number): Promise<void> {
   try {
-    const responses = load();
     await apiFetch("/state", {
       method: "PUT",
-      body: JSON.stringify({ tileIdx, responses }),
+      body: JSON.stringify({ tileIdx, responses: load() }),
     });
-  } catch { /* silent */ }
-}
-
-export async function hasServerData(): Promise<boolean> {
-  try {
-    const state = await apiFetch<ServerState>("/state");
-    return state.tileIdx > 0 || Object.keys(state.responses).length > 0;
-  } catch {
-    return false;
-  }
+  } catch { /* best-effort */ }
 }
