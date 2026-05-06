@@ -18,6 +18,7 @@ import JournalOverlay from './components/JournalOverlay';
 import BodyOverlay from './components/BodyOverlay';
 import StreamOverlay from './components/StreamOverlay';
 import HorizonOverlay from './components/HorizonOverlay';
+import SharingConsent from './components/SharingConsent';
 import { ButterflyIcon, CompassIcon } from './components/MorphoCompassIcons';
 
 /* ─── Types ──────────────────────────────────────────── */
@@ -588,6 +589,9 @@ export default function App() {
   const [cumulativeError, setCumulativeError] = useState<string | null>(null);
   const [journalInitialTab, setJournalInitialTab] = useState<'reading' | 'spine' | 'body' | 'stream' | 'archive' | undefined>(undefined);
   const [showMigrationPrompt, setShowMigrationPrompt] = useState(false);
+  const [sharingShown, setSharingShown] = useState<boolean>(() =>
+    !!localStorage.getItem('origin.sharing.skipped') || !!localStorage.getItem('origin.sharing.done')
+  );
   const sessionHorizonsRef = useRef<Set<number>>(new Set());
   const prevUserIdRef = useRef<string | null>(null);
   const syncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -746,6 +750,8 @@ export default function App() {
   }, [tileIdx, tiles, chapters, currentTile]);
 
   const isOutside = currentTile?.kind === 'prelude' || currentTile?.kind === 'epilogue';
+  const allChaptersComplete = chapters.every(ch => isChapterComplete(ch));
+  const showSharing = currentTile?.kind === 'epilogue' && allChaptersComplete && !sharingShown;
   const palette = chapters[currentCh].palette;
 
   const rootStyle = {
@@ -922,6 +928,12 @@ export default function App() {
           cycles={horizon.cycles}
           onComplete={onHorizonComplete}
           onCancel={() => setHorizon(null)}
+        />
+      )}
+      {showSharing && (
+        <SharingConsent
+          onDone={() => setSharingShown(true)}
+          onSkip={() => setSharingShown(true)}
         />
       )}
     </div>
