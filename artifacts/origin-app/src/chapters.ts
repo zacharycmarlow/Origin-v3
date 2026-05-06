@@ -81,7 +81,7 @@ const CHAPTERS: Chapter[] = [
       shadow: "#8a5a24",
       dark: false
     },
-    invocation: "Every great story begins before the hero knows they are in one. Before the call comes, before the quest takes shape, there is the ordinary world. The life that made you. The accumulation of everything that happened and everything that was done to you and done for you, every accident and inevitability that conspired across years and generations to produce the exact person sitting here, right now, at this exact threshold. Your whole life up to this moment is the prologue to a story not yet started. And the prologue has to be told before anything can be planted in it. A story that never properly ends becomes a loop, a pattern repeating itself until someone has the courage to write its last page and mean it. That someone is you. That moment is now.",
+    invocation: "Every great story begins before the hero knows they are in one. Before the call comes, before the quest takes shape, there is the ordinary world. The life that made you. The accumulation of everything that happened and everything that was done to you and done for you, every accident and inevitability that conspired across years and generations to produce the exact person sitting here, right now, at this exact threshold.\n\nYour whole life up to this moment is the prologue to a story not yet started. And the prologue has to be told before anything can be planted in it.\n\nA story that never properly ends becomes a loop, a pattern repeating itself until someone has the courage to write its last page and mean it. That someone is you. That moment is now.",
     code: {
       title: "The Code",
       essence: "The observer quiets the default — there is an awareness behind the thinking that is not the thinking itself.",
@@ -145,7 +145,7 @@ const CHAPTERS: Chapter[] = [
       shadow: "#a03040",
       dark: true
     },
-    invocation: "Every great story runs on tension. The tension is what makes you lean forward, what builds the character, tests them, reveals what they are made of. The most compelling characters in any story are always the ones who have been through the most. The more conflict, the more interesting. The more resolution, the better the story gets. You already know what the tension in your story is. It shows up in the patterns that keep repeating, the places where progress stalls, the voice that fires before you can choose a different response. This chapter asks you to see it the way a storyteller sees it: with honesty, with craft, with the understanding that this is exactly what the story needed. We are looking for the high score.",
+    invocation: "Every great story runs on tension. The tension is what makes you lean forward, what builds the character, tests them, reveals what they are made of. The most compelling characters in any story are always the ones who have been through the most. The more conflict, the more interesting. The more resolution, the better the story gets.\n\nYou already know what the tension in your story is. It shows up in the patterns that keep repeating, the places where progress stalls, the voice that fires before you can choose a different response.\n\nThis chapter asks you to see it the way a storyteller sees it: with honesty, with craft, with the understanding that this is exactly what the story needed. We are looking for the high score.",
     code: {
       title: "The Code",
       essence: "The body keeps the score — and we are looking for the high score.",
@@ -176,13 +176,14 @@ const CHAPTERS: Chapter[] = [
         body: `The pattern has a shape. Different circumstances, same dynamic. Different relationships, same tension getting activated. And the voices — installed before you could argue with them, running so deep they sound like your own thinking. When your brain is being mean to you, it is doing what it learned from whoever was mean to you first. Write the voices — the exact words. "You are not enough." "Be realistic." Even the ones that make you flinch.`,
         key: "p2_voices",
         after: [
-          { kind: "note", text: `Every surge of self-doubt, every old wound that flares up, is hard-won intelligence about what it feels like to be shaped by forces you didn't choose. Your intimate knowledge of that territory becomes your qualification to guide someone else through it.` }
+          { kind: "note", text: `Every surge of self-doubt, every old wound that flares up, is hard-won intelligence about what it feels like to be shaped by forces you didn't choose. Your intimate knowledge of that territory becomes your qualification to guide someone else through it.` },
+          { kind: "note", text: `And the patterns did not only shape you. They moved through you into the world. The adaptation that kept the character safe also produced behavior — ways of relating, ways of leaving, ways of shutting down, ways of taking up too much space or not enough. People were affected. Relationships bent under the weight of patterns nobody asked for but everyone absorbed. The loops in your story did not stay inside your story.` }
         ]
       },
       {
         kind: "prompt",
         title: "Trace the Loop",
-        body: `Pick one pattern that keeps cycling. Trace it back to where it started. Whose voice is it? What happens in the body when you hear it? The moment you can see the loop as a loop, something shifts permanently. The loop can still run — but once you have seen the pattern for what it is, it can never fully pass as reality again.`,
+        body: `What voices have been running this character? What loops keep producing the same outcomes? And what has it cost — not just the character, but the people around them? Write the consequences the patterns produced in the lives of others.\n\nThe moment you can see the loop as a loop, something shifts permanently. Once you have seen the pattern for what it is, it can never fully pass as reality again.`,
         key: "p2_stuck_story",
         rows: 6,
         after: [
@@ -218,7 +219,7 @@ const CHAPTERS: Chapter[] = [
       shadow: "#186030",
       dark: true
     },
-    invocation: "Life is a gift. You are the gift. Everything you have experienced — the suffering and the beauty, the breaking and the building, the entire improbable chain of events that produced the exact person reading this right now — is meaningful, and you are here for a reason. That might sound like something printed on a greeting card, but sit with it for a moment and let it actually land, because the implications are staggering: if everything that happened to you happened for you, then nothing was wasted. The pain had a purpose. The confusion was preparation. The years you thought you were lost were the years you were being trained for something you couldn't see yet. The purpose of life is to find your gift. The meaning of life is to give it away.",
+    invocation: "Life is a gift. You are the gift. Everything you have experienced — the suffering and the beauty, the breaking and the building, the entire improbable chain of events that produced the exact person reading this right now — is meaningful, and you are here for a reason.\n\nThat might sound like something printed on a greeting card, but sit with it for a moment and let it actually land, because the implications are staggering: if everything that happened to you happened for you, then nothing was wasted. The pain had a purpose. The confusion was preparation. The years you thought you were lost were the years you were being trained for something you couldn't see yet.\n\nThe purpose of life is to find your gift. The meaning of life is to give it away. That second part is not an afterthought. The gift incomplete is a gift that rots. The genius that exists only for itself is a genius that circles. Everything you excavated in the Tension — the territory you know from the inside, the specific texture of the suffering, the exact way the voices whisper — that intimate knowledge is the material your gift is made from. The person on the other side of your wound is waiting for someone who has been there. Your intimate knowledge of that territory is not just a credential — it is the gift itself.",
     code: {
       title: "The Code",
       essence: "Memory reconsolidates with the meaning held during recall — hold the worst chapter inside a different question and the brain rewrites how it is stored.",
@@ -232,7 +233,7 @@ const CHAPTERS: Chapter[] = [
       {
         kind: "prompt",
         title: "The Genius",
-        body: "What arrived in you as naturally as breathing — capacities, sensitivities, ways of seeing that feel received rather than earned? The thing you cannot stop doing, the thing that eats hours without you noticing because you are so far inside it that the clock stops mattering? Maybe it is something you have been told is impractical or unrealistic or too much, which is usually a sign you are getting warm. What is this character abundant in?",
+        body: "What arrived in you as naturally as breathing — capacities, sensitivities, ways of seeing that feel received rather than earned? The thing you cannot stop doing, the thing that eats hours without you noticing because you are so far inside it that the clock stops mattering? Maybe it is something you have been told is impractical or unrealistic or too much, which is usually a sign you are getting warm.\n\nWhat is this character abundant in? What genius survived everything? And who else lives in the territory this character knows from the inside — who would recognize themselves in this character's story?",
         key: "p3_abundance",
         rows: 6
       },
@@ -263,8 +264,8 @@ const CHAPTERS: Chapter[] = [
       {
         kind: "threshold",
         label: "The Reason",
-        body: "Whether there is some divine intelligence orchestrating the whole thing, or whether the patterns you have traced are the beautiful inevitability of cause and effect rippling through time, that is a question each person answers in their own heart. But this is beyond question: your life is meaningful, even if the meaning is something you create rather than discover, because the creation of meaning is the most powerful act a human being can perform. If nothing was wasted, what would this character do with what they carry? What becomes possible now?",
-        prompt: { key: "p3_center", placeholder: "They would…", rows: 8 }
+        body: "Whether there is some divine intelligence orchestrating the whole thing, or whether the patterns you have traced are the beautiful inevitability of cause and effect rippling through time, that is a question each person answers in their own heart. But here is what is beyond question: your life is meaningful, even if the meaning is something you create rather than discover, because the creation of meaning is the most powerful act a human being can perform. And meaning that stays private is meaning half-lived. The gift finds its form when it moves through you toward someone else.",
+        prompt: { key: "p3_center", placeholder: "If nothing was wasted, what would this character do with what they carry? Whose life changes because this character stopped dimming their genius? What becomes possible — not just for them, but for the people who encounter them when they are finally living as the author?", rows: 8 }
       }
     ]
   },
@@ -281,7 +282,7 @@ const CHAPTERS: Chapter[] = [
       shadow: "#204080",
       dark: true
     },
-    invocation: "When people ask where are you from, they almost never mean it the way the question deserves to be answered. Underneath the reflex, there is a real question reaching for something much bigger. The forces that shaped your life did not begin with you. Your parents were shaped by theirs, who were shaped by theirs, all the way back to patterns so old they feel less like history and more like gravity. And the thread does not stop at your family line, or your culture, or even your species. Every cell in your body is made of stardust, atoms forged in the cores of stars that exploded billions of years ago so that, eventually, impossibly, something could open its eyes and wonder where it came from. The longing you carry for belonging, for meaning, for connection to something larger than your individual life — that longing is the original operating system remembering what it was designed for.",
+    invocation: "When people ask where are you from, they almost never mean it the way the question deserves to be answered. Underneath the reflex, there is a real question reaching for something much bigger. The forces that shaped your life did not begin with you. Your parents were shaped by theirs, who were shaped by theirs, all the way back to patterns so old they feel less like history and more like gravity.\n\nAnd the thread does not stop at your family line, or your culture, or even your species. Every cell in your body is made of stardust, atoms forged in the cores of stars that exploded billions of years ago so that, eventually, impossibly, something could open its eyes and wonder where it came from.\n\nThe longing you carry for belonging, for meaning, for connection to something larger than your individual life — that longing is the original operating system remembering what it was designed for.",
     code: {
       title: "The Code",
       essence: "The faculty that built every cathedral and carried every pilgrimage is in you — and it can consecrate your own existence the moment you turn it there.",
@@ -335,7 +336,7 @@ const CHAPTERS: Chapter[] = [
       shadow: "#2c2010",
       dark: true
     },
-    invocation: "Everything you have excavated across four chapters — the character, the tension, the gift, the source — you built as separate threads. They weren't. The voices from the Tension were this voice's scripts. The character from the Prologue was this voice's creation. The wall between you and the source was this voice's construction. The meaning the Gift shifted, this voice was holding it in place. One loom. One fabric. There is a voice in your head that has never stopped talking. It replays what happened, rehearses what might, maintains the running account of who you are and what you are worth, so automatically you have probably never noticed you were listening. You mistook it for thinking. You mistook it for yourself. From this chapter forward, begin speaking in the present tense. You are no longer describing what happened. You are authoring what is.",
+    invocation: "Everything you have excavated across four chapters — the character, the tension, the gift, the source — you built as separate threads. They weren't. The voices from the Tension were this voice's scripts. The character from the Prologue was this voice's creation. The wall between you and the source was this voice's construction. The meaning the Gift shifted, this voice was holding it in place. One loom. One fabric.\n\nThere is a voice in your head that has never stopped talking. It replays what happened, rehearses what might, maintains the running account of who you are and what you are worth, so automatically you have probably never noticed you were listening. You mistook it for thinking. You mistook it for yourself.\n\nFrom this chapter forward, begin speaking in the present tense. You are no longer describing what happened. You are authoring what is.",
     code: {
       title: "The Code",
       essence: "The default mode network authors your consciousness — constructing the reality you live inside, and calling it fact.",
@@ -393,7 +394,7 @@ const CHAPTERS: Chapter[] = [
       shadow: "#0a4832",
       dark: false
     },
-    invocation: "Nothing is more powerful than a dream. Reality itself is a collectively accepted dream we have agreed to call normal, and everything humanity has ever built or destroyed began as a vision in someone's mind that refused to stay contained there. Dreams sent us to the moon, raised cathedrals that took centuries to complete, toppled empires and birthed new ones from the rubble. Do you remember when you could imagine? Before anyone taught you to be realistic, before the word practical entered your vocabulary like a closing door, there was a time when you could walk into a field and build a civilization in the grass, be somewhere else so completely your body responded as though it was real. That was the dreaming power, the most natural thing about you. The Narrator put it on a leash and used it to worry, to catastrophize, to build worst-case futures with breathtaking clarity. Every hour of anxiety you have ever felt was the dreaming power running in reverse. The worrier is already a masterful dreamer. The question is which direction the dreaming is pointed.",
+    invocation: "Nothing is more powerful than a dream. Reality itself is a collectively accepted dream we have agreed to call normal, and everything humanity has ever built or destroyed began as a vision in someone's mind that refused to stay contained there. Dreams sent us to the moon, raised cathedrals that took centuries to complete, toppled empires and birthed new ones from the rubble.\n\nDo you remember when you could imagine? Before anyone taught you to be realistic, before the word practical entered your vocabulary like a closing door, there was a time when you could walk into a field and build a civilization in the grass, be somewhere else so completely your body responded as though it was real. That was the dreaming power, the most natural thing about you. The Narrator put it on a leash and used it to worry, to catastrophize, to build worst-case futures with breathtaking clarity. Every hour of anxiety you have ever felt was the dreaming power running in reverse. The worrier is already a masterful dreamer. The question is which direction the dreaming is pointed.\n\nAnd here is what every dreamer learns eventually: the dream that lasts is never about the dreamer. The dreams that changed the world were dreamed by people who saw something larger than their own comfort and couldn't look away. The dream growing in you right now grew from everything you went through — the wound, the gift, the source — and it carries the shape of all of it. It has other people in it. It was always going to.",
     code: {
       title: "The Code",
       essence: "The brain cannot distinguish a vividly imagined event from a real one. What you rehearse, the body builds the capacity for.",
@@ -417,7 +418,7 @@ const CHAPTERS: Chapter[] = [
       {
         kind: "prompt",
         title: "The Vision",
-        body: "Whose dream have you been living in? Every reality you have moved through was imagined into existence by someone. The career paths available to you are stories people agreed to call real. The rules about what is possible for someone like you were written by people who had reasons to write them that way. What has been dreaming through you underneath it all — the thing that keeps coming back no matter how many times the Narrator shuts it down? Say it aloud before you write it. Without editing for plausibility. Think magically.",
+        body: "Whose dream have you been living in? Every reality you have moved through was imagined into existence by someone. The career paths available to you are stories people agreed to call real. The rules about what is possible for someone like you were written by people who had reasons to write them that way. What has been dreaming through you underneath it all — the thing that keeps coming back no matter how many times the Narrator shuts it down? Say it aloud before you write it. Without editing for plausibility.\n\nAnd let it include the world. The dream that stays inside the dreamer becomes a fantasy. The dream that reaches toward other people, toward something that matters beyond the individual life, becomes a calling. You do not have to know how. You do not have to be strategic about it. Just let the dream be as large as it actually is.",
         key: "p6_whose",
         rows: 8,
         after: [
@@ -434,7 +435,7 @@ const CHAPTERS: Chapter[] = [
       {
         kind: "threshold",
         label: "The Canvas",
-        body: "Write the dream as vividly as you would write reality. The character you are becoming. The morning they wake up to. The work. The relationships. The way they carry themselves. The things they build. The people who are changed by what they carry. Write it with enough specificity and conviction that someone reading it would believe it already exists.",
+        body: "Write the dream as vividly as you would write reality. The character you are becoming. The morning they wake up to. The work they do. The people whose lives are changed by what this character carries. Write it with enough specificity that someone reading it would know what this person does, who they do it for, and why they are the one doing it.",
         prompt: { key: "p6_vision", placeholder: "In the world I am dreaming…", rows: 14, big: true }
       }
     ]
@@ -452,7 +453,7 @@ const CHAPTERS: Chapter[] = [
       shadow: "#6a5030",
       dark: false
     },
-    invocation: "You are standing at the end of a chapter, maybe the longest one. The story that brought you here succeeded. It did its job. It carried you through everything it needed to, and now it is finished. You can feel the completeness even if part of you wants to stay in the familiar pattern because at least it is known. The stuckness you have been feeling is the ache of something finished that has not been given permission to end. A story that never properly ends becomes a loop, a pattern repeating itself until someone has the courage to write its last page and mean it. That someone is you. That moment is now.",
+    invocation: "You are standing at the end of a chapter, maybe the longest one. The story that brought you here succeeded. It did its job. It carried you through everything it needed to, and now it is finished. You can feel the completeness even if part of you wants to stay in the familiar pattern because at least it is known.\n\nThe stuckness you have been feeling is the ache of something finished that has not been given permission to end. A story that never properly ends becomes a loop, a pattern repeating itself until someone has the courage to write its last page and mean it.\n\nThat someone is you. That moment is now.",
     code: {
       title: "The Code",
       essence: "The witness makes it irreversible — a story spoken aloud to another nervous system becomes real in a way no thought can.",

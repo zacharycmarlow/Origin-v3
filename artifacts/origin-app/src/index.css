@@ -2576,3 +2576,53 @@ input, textarea, select { font-family: inherit; color: inherit; }
   letter-spacing: .12em; text-transform: uppercase; opacity: .55;
   margin-bottom: 8px;
 }
+
+/* ─── Opener invocation multi-paragraph ───────────────────── */
+.opener-invocation-para {
+  margin-bottom: 1.4em;
+  text-wrap: pretty;
+}
+.opener-invocation-para:last-child { margin-bottom: 0; }
+
+/* ─── Scene body multi-paragraph ─────────────────────────── */
+.scene-body--multi p { margin-bottom: 1.1em; }
+.scene-body--multi p:last-child { margin-bottom: 0; }
+
+/* ─── Epilogue visual treatments ─────────────────────────── */
+.epilogue-honest {
+  max-width: 560px; margin: 22px auto 28px;
+  padding: 20px 24px;
+  background: color-mix(in srgb, var(--shadow) 8%, transparent);
+  border-left: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  border-radius: 0 3px 3px 0;
+}
+.epilogue-honest-label {
+  font-family: var(--font-title);
+  text-transform: uppercase;
+  font-size: 10.5px; letter-spacing: .38em;
+  color: var(--accent); opacity: .75;
+  margin-bottom: 12px;
+}
+.epilogue-honest-body {
+  font-family: var(--font-body);
+  font-size: 16px; line-height: 1.72;
+  color: var(--ink); opacity: .82;
+  text-wrap: pretty;
+}
+.epilogue-fire {
+  max-width: 560px; margin: 24px auto 20px;
+  padding: 22px 0;
+  border-top: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  font-family: var(--font-title);
+  font-size: 20px; line-height: 1.7; font-style: italic;
+  color: var(--ink); opacity: .88;
+  text-wrap: pretty;
+}
+.epilogue-tagline {
+  font-family: var(--font-title) !important;
+  font-style: italic;
+  font-size: 22px !important;
+  opacity: .65 !important;
+  margin-top: 8px;
+}

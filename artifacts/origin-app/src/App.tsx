@@ -151,7 +151,13 @@ function PreludeTileView({ onEnter }: { onEnter: () => void }) {
           You are already authoring reality. The question is whether you're doing it on purpose.
         </p>
         <p className="prelude-body dim">
-          These seven chapters are about hearing the voice that has been writing you, seeing the story it has been telling, and taking the pen back. The posture you practice here is meaning-making: holding every experience in the question "what was this preparing me for?" rather than "why did this happen to me?"
+          These seven chapters are about hearing the voice that has been writing you, seeing the story it has been telling, and taking the pen back.
+        </p>
+        <p className="prelude-body">
+          The stories you've been living inside shaped more than your inner world. They shaped how you move through rooms, what you build, who you attract, what you tolerate, what you offer, what you withhold. A story lived long enough becomes indistinguishable from the person living it. These seven chapters work at the level where you and your story meet — where the narrative becomes the identity becomes the life becomes the narrative. By the end, you will not just have a new story. You will be living inside one.
+        </p>
+        <p className="prelude-body dim">
+          The posture you practice here is meaning-making: holding every experience in the question "what was this preparing me for?" rather than "why did this happen to me?"
         </p>
         <div className="prelude-before">
           <div className="before-head">before we begin</div>
@@ -199,13 +205,35 @@ function EpilogueTileView({ onRestart, onCumulative, hasCumulative, generating }
         <div className="prelude-eyebrow">what comes next</div>
         <h1 className="prelude-title">CHAPTER ONE</h1>
         <div className="prelude-sub">everything you uncovered is chapter one</div>
+
         <p className="prelude-body">
-          You have walked the Origin. Seven chapters. Seven codes. Seven thresholds crossed. The old story honored, felt, and closed. The end. Which is to say, the beginning.
+          You have walked the Origin. Seven chapters. Seven codes. Seven thresholds crossed. The old story honored, felt, and closed.
+        </p>
+
+        <div className="epilogue-honest">
+          <div className="epilogue-honest-label">a word of honesty</div>
+          <p className="epilogue-honest-body">
+            The power you just accessed — the capacity to see your life as sacred, to author the narrative that generates your identity, to dream with the kind of conviction that recruits biology — this power is real. And it is powerful enough to be dangerous. People who mythologize their own lives without a container can spiral. The distance between sacred purpose and delusion is shorter than it appears from the outside. Psychosis, inflation, narcissism, messianic thinking — these are not the opposite of what you just did. They are what happens when you do this work without community, without accountability, without a tradition or a teacher or a circle that can reflect you back to yourself when the story begins to serve the ego rather than the life. The work needs a container. That container is other people.
+          </p>
+        </div>
+
+        <p className="prelude-body">
+          The Origin opened a door. You have been working at the level of identity — the narrative layer where who you believe yourself to be is constructed and reconstructed. Every chapter moved something at that level. The character shifted. The meaning shifted. The body shifted. The source was named. The narrator was caught. The dream was spoken. And now you are living inside a different story than the one you walked in with.
         </p>
         <p className="prelude-body">
-          The power you just accessed — the capacity to make meaning from suffering, to see your life as sacred, to author your own consciousness and the reality you inhabit — is real.
+          But a story lived only for yourself is a story with a ceiling. The wound that shaped you shaped your understanding of a specific territory. The gift that survived is your qualification to be useful in that territory. The source you named is what gives the work its weight. The dream you authored has other people in it — because every dream that grows from real suffering and real genius and real belonging naturally reaches beyond the one who carries it.
         </p>
-        <p className="prelude-body dim">The future we dream is one story away.</p>
+        <p className="prelude-body dim">
+          The Metamyth Journey is where the personal story meets the larger one. Where the identity you authored becomes the foundation for something that reaches further than your own life. Where the wounds become your methodology, the gift becomes your offering, the source becomes your ground, and the dream becomes something others can enter and help build.
+        </p>
+
+        <div className="epilogue-fire">
+          <p>
+            You are part of the great story — the one that started around the first fires, when the first storytellers gathered the first listeners and spoke the first worlds into being. It continued through every grandmother who passed wisdom forward, every elder who painted pictures in young minds, every ordinary person who refused to let the light go out. It is still being told, right now, through you.
+          </p>
+        </div>
+
+        <p className="prelude-body epilogue-tagline">The future we dream is one story away.</p>
 
         <div className="epilogue-actions">
           <button
@@ -230,6 +258,7 @@ function EpilogueTileView({ onRestart, onCumulative, hasCumulative, generating }
 }
 
 function OpenerTileView({ chapter, idx, total }: { chapter: Chapter; idx: number; total: number }) {
+  const paragraphs = chapter.invocation.split('\n\n');
   return (
     <div className="tile tile-opener">
       <div className="tile-inner">
@@ -241,7 +270,11 @@ function OpenerTileView({ chapter, idx, total }: { chapter: Chapter; idx: number
         <div className="opener-roman">{chapter.roman}</div>
         <h1 className="opener-title">{chapter.title}</h1>
         <div className="opener-sub">{chapter.subtitle}</div>
-        <blockquote className="opener-invocation">{chapter.invocation}</blockquote>
+        <blockquote className="opener-invocation">
+          {paragraphs.map((para, i) => (
+            <p key={i} className="opener-invocation-para">{para}</p>
+          ))}
+        </blockquote>
       </div>
     </div>
   );

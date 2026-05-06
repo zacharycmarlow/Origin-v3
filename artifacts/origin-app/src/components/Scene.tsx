@@ -20,7 +20,15 @@ export default function Scene({ scene }: Props) {
     <div className="scene">
       {scene.title && <h3 className="scene-title">{scene.title}</h3>}
       {scene.label && <div className="scene-label">{scene.label}</div>}
-      {scene.body && <p className="scene-body">{scene.body}</p>}
+      {scene.body && (
+        scene.body.includes('\n\n') ? (
+          <div className="scene-body scene-body--multi">
+            {scene.body.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
+          </div>
+        ) : (
+          <p className="scene-body">{scene.body}</p>
+        )
+      )}
 
       {(scene.kind === 'arrive') && scene.breath && (
         <BreathPacer label={scene.breath.label} cycles={scene.breath.cycles} />
