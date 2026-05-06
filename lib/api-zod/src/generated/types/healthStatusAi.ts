@@ -5,14 +5,6 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-export type HealthStatusDb =
-  (typeof HealthStatusDb)[keyof typeof HealthStatusDb];
-
-export const HealthStatusDb = {
-  connected: "connected",
-  unconfigured: "unconfigured",
-  error: "error",
-} as const;
 
 export type HealthStatusAi =
   (typeof HealthStatusAi)[keyof typeof HealthStatusAi];
@@ -21,9 +13,3 @@ export const HealthStatusAi = {
   configured: "configured",
   missing: "missing",
 } as const;
-
-export interface HealthStatus {
-  ok: boolean;
-  db: HealthStatusDb;
-  ai: HealthStatusAi;
-}

@@ -12,5 +12,7 @@ import * as zod from "zod";
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
-  status: zod.string(),
+  ok: zod.boolean(),
+  db: zod.enum(["connected", "unconfigured", "error"]),
+  ai: zod.enum(["configured", "missing"]),
 });

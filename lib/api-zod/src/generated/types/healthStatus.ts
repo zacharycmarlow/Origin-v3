@@ -5,7 +5,11 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { HealthStatusAi } from "./healthStatusAi";
+import type { HealthStatusDb } from "./healthStatusDb";
 
 export interface HealthStatus {
-  status: string;
+  ok: boolean;
+  db: HealthStatusDb;
+  ai: HealthStatusAi;
 }

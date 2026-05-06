@@ -29,8 +29,16 @@ components:
     HealthStatus:
       type: object
       properties:
-        status:
+        ok:
+          type: boolean
+        db:
           type: string
+          enum: [connected, unconfigured, error]
+        ai:
+          type: string
+          enum: [configured, missing]
       required:
-        - status
+        - ok
+        - db
+        - ai
 
