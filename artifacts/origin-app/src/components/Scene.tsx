@@ -54,6 +54,74 @@ function useSceneReveal(scene: SceneType) {
   };
 }
 
+function Chevron({ dir }: { dir: 'down' | 'up' }) {
+  return (
+    <svg width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true">
+      <polyline
+        points={dir === 'down' ? '1,1 5,5 9,1' : '1,5 5,1 9,5'}
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ExpandableCode({ title, body }: { title: string; body: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={'inline-code-card' + (open ? ' inline-code-card--open' : '')}>
+      <div className="inline-code-head">
+        <span className="inline-code-label">Code</span>
+        <span className="inline-code-num" aria-hidden="true">◇</span>
+      </div>
+      <div className="inline-code-essence">{title}</div>
+      {open && (
+        <div className="inline-code-body">
+          {body.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
+        </div>
+      )}
+      <button
+        type="button"
+        className="inline-code-toggle"
+        onClick={(e) => { e.stopPropagation(); setOpen(o => !o); }}
+        aria-expanded={open}
+      >
+        <Chevron dir={open ? 'up' : 'down'} />
+        <span>{open ? 'collapse' : 'open the code'}</span>
+      </button>
+    </div>
+  );
+}
+
+function ExpandableLore({ title, body }: { title: string; body: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={'inline-lore-card' + (open ? ' inline-lore-card--open' : '')}>
+      <div className="inline-lore-head">
+        <span className="inline-lore-label">Lore</span>
+        <span className="inline-lore-num" aria-hidden="true">❋</span>
+      </div>
+      <div className="inline-lore-essence">{title}</div>
+      {open && (
+        <div className="inline-lore-body">
+          {body.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
+        </div>
+      )}
+      <button
+        type="button"
+        className="inline-lore-toggle"
+        onClick={(e) => { e.stopPropagation(); setOpen(o => !o); }}
+        aria-expanded={open}
+      >
+        <Chevron dir={open ? 'up' : 'down'} />
+        <span>{open ? 'collapse' : 'enter the lore'}</span>
+      </button>
+    </div>
+  );
+}
+
 export default function Scene({ scene }: Props) {
   const { phase, advance } = useSceneReveal(scene);
 
@@ -84,15 +152,7 @@ export default function Scene({ scene }: Props) {
           )
         )}
 
-        {scene.code && (
-          <div className="scene-code">
-            <div className="scene-code-head">
-              <span className="scene-code-label">Code</span>
-              <span className="scene-code-title">{scene.code.title}</span>
-            </div>
-            {scene.code.body.split('\n\n').map((para, i) => <p key={i} className="scene-code-body">{para}</p>)}
-          </div>
-        )}
+        {scene.code && <ExpandableCode title={scene.code.title} body={scene.code.body} />}
 
         {scene.middle && (
           scene.middle.includes('\n\n') ? (
@@ -104,15 +164,7 @@ export default function Scene({ scene }: Props) {
           )
         )}
 
-        {scene.lore && (
-          <div className="scene-lore">
-            <div className="scene-lore-head">
-              <span className="scene-lore-label">Lore</span>
-              <span className="scene-lore-title">{scene.lore.title}</span>
-            </div>
-            {scene.lore.body.split('\n\n').map((para, i) => <p key={i} className="scene-lore-body">{para}</p>)}
-          </div>
-        )}
+        {scene.lore && <ExpandableLore title={scene.lore.title} body={scene.lore.body} />}
 
         {scene.closing && <p className="scene-closing">{scene.closing}</p>}
 
