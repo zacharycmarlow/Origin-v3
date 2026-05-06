@@ -614,12 +614,17 @@ export default function App() {
     const prevId = prevUserIdRef.current;
 
     if (currentId && currentId !== prevId) {
-      // User just signed in — pull server state first, THEN allow writes
+      // User just signed in — snapshot guest state BEFORE pull merges server
+      // data, so migration prompt fires only for genuine pre-auth local journeys.
+      const hadLocalData = hasLocalData();
       hydratedRef.current = false;
       pullAll().then(() => {
         hydratedRef.current = true;
+        // Hydrate all in-memory state from storage after server data is merged
+        // so a new device immediately shows the user's last position.
+        setTileIdxState(getTileIdx());
         setHasCumulative(!!getCumulative());
-        if (hasLocalData() && prevId === null) {
+        if (hadLocalData && prevId === null) {
           setShowMigrationPrompt(true);
         }
       });

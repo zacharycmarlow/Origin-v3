@@ -8,6 +8,15 @@ const router: IRouter = Router();
 
 router.use(requireAuth);
 
+/*
+ * Design note: /api/user/* uses a bulk-replace (GET + PUT) pattern rather than
+ * per-record CRUD (POST/DELETE). This is intentional — the client is
+ * localStorage-first; the server is a sync target, not an authoritative store.
+ * On sign-in, the client pulls the full snapshot (GET) and merges it locally.
+ * Periodically (and on sign-out), the client pushes the full snapshot (PUT).
+ * Atomicity is ensured on writes via delete-then-insert in a single tx batch.
+ */
+
 /* ─── Journey State: tileIdx + scene responses ─── */
 
 router.get("/state", async (req, res, next) => {
