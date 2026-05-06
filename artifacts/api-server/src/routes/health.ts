@@ -1,16 +1,23 @@
 import { Router, type IRouter } from "express";
-import { pool } from "@workspace/db";
+import pg from "pg";
 
 const router: IRouter = Router();
 
 router.get("/healthz", async (_req, res) => {
-  let dbStatus = "connected";
-  try {
-    const client = await pool.connect();
-    await client.query("SELECT 1");
-    client.release();
-  } catch {
-    dbStatus = "error";
+  // Check DB without importing the throwing @workspace/db module —
+  // this way the route works even when DATABASE_URL is absent.
+  let dbStatus: "connected" | "unconfigured" | "error" = "unconfigured";
+  if (process.env.DATABASE_URL) {
+    const client = new pg.Client({ connectionString: process.env.DATABASE_URL });
+    try {
+      await client.connect();
+      await client.query("SELECT 1");
+      dbStatus = "connected";
+    } catch {
+      dbStatus = "error";
+    } finally {
+      await client.end().catch(() => undefined);
+    }
   }
 
   const aiStatus =
@@ -19,11 +26,7 @@ router.get("/healthz", async (_req, res) => {
       ? "configured"
       : "missing";
 
-  res.json({
-    ok: true,
-    db: dbStatus,
-    ai: aiStatus,
-  });
+  res.json({ ok: true, db: dbStatus, ai: aiStatus });
 });
 
 export default router;
