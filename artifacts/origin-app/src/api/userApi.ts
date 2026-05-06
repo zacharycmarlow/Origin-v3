@@ -31,7 +31,50 @@ async function apiFetch<T>(
   return res.json() as Promise<T>;
 }
 
-/* ─── Pull (server → localStorage) ─────────────────────── */
+/* ─── Local snapshot helpers ─────────────────────────────── */
+
+export interface LocalSnapshot {
+  tileIdx: number;
+  responses: Record<string, unknown>;
+  stream: StreamEntry[];
+  body: BodyEntry[];
+  readings: Record<number, ChapterReading>;
+  cumulative: CumulativeReading | null;
+  archive: string[];
+}
+
+/** Capture the complete current localStorage state before a destructive pull. */
+export function captureLocalSnapshot(): LocalSnapshot {
+  return {
+    tileIdx: getTileIdx(),
+    responses: load(),
+    stream: getStreamEntries(),
+    body: getBodyEntries(),
+    readings: getAllReadings(),
+    cumulative: getCumulative(),
+    archive: [...getUnlockedArchive()],
+  };
+}
+
+/**
+ * Returns true if the user has any substantive local journey data.
+ * Checks ALL persistence keys — not just the main blob — so stream/body/
+ * readings/archive are included.
+ */
+export function hasSubstantialLocalData(): boolean {
+  const snap = captureLocalSnapshot();
+  return (
+    snap.tileIdx > 0 ||
+    Object.keys(snap.responses).length > 0 ||
+    snap.stream.length > 0 ||
+    snap.body.length > 0 ||
+    snap.archive.length > 0 ||
+    Object.keys(snap.readings).length > 0 ||
+    snap.cumulative !== null
+  );
+}
+
+/* ─── Pull (server → localStorage, server authoritative) ─── */
 
 interface ServerState {
   tileIdx: number;
@@ -52,7 +95,21 @@ interface ServerArchive {
   unlocked: string[];
 }
 
-export async function pullAll(): Promise<boolean> {
+export interface PullResult {
+  success: boolean;
+  /** True if the server returned any substantive journey data. */
+  serverHasData: boolean;
+}
+
+/**
+ * Pull the server's journey snapshot and write it to localStorage.
+ * Server is authoritative — local state is REPLACED, not merged.
+ * This guarantees "sign in on any device → restore exact server progress."
+ *
+ * The caller is responsible for capturing a local snapshot BEFORE calling
+ * this if it needs to offer a migration prompt.
+ */
+export async function pullAll(): Promise<PullResult> {
   try {
     const [state, entries, readings, archive] = await Promise.all([
       apiFetch<ServerState>("/state"),
@@ -61,30 +118,29 @@ export async function pullAll(): Promise<boolean> {
       apiFetch<ServerArchive>("/archive"),
     ]);
 
-    const localTile = getTileIdx();
-    const serverTile = state.tileIdx ?? 0;
-    const maxTile = Math.max(localTile, serverTile);
-    setTileIdx(maxTile);
+    // Determine whether server holds any meaningful data
+    const serverHasData =
+      (state.tileIdx ?? 0) > 0 ||
+      Object.keys(state.responses ?? {}).length > 0 ||
+      entries.stream.length > 0 ||
+      entries.body.length > 0 ||
+      (readings.readings && Object.keys(readings.readings).length > 0) ||
+      archive.unlocked.length > 0 ||
+      readings.cumulative !== null;
 
-    const localResponses = load();
-    const merged = { ...state.responses, ...localResponses };
+    // Write server data to localStorage — server is authoritative.
+    setTileIdx(state.tileIdx ?? 0);
+
     const STORAGE = "origin.v1";
-    try { localStorage.setItem(STORAGE, JSON.stringify(merged)); } catch { /* noop */ }
+    try {
+      localStorage.setItem(STORAGE, JSON.stringify(state.responses ?? {}));
+    } catch { /* noop */ }
 
-    if (entries.stream.length > 0) {
-      const localStream = getStreamEntries();
-      const allStream = mergeById([...entries.stream, ...localStream]);
-      save("streamEntries", allStream);
-    }
-    if (entries.body.length > 0) {
-      const localBody = getBodyEntries();
-      const allBody = mergeById([...entries.body, ...localBody]);
-      save("bodyEntries", allBody);
-    }
+    save("streamEntries", entries.stream);
+    save("bodyEntries", entries.body);
 
     if (readings.readings) {
-      const serverReadings = readings.readings;
-      for (const [chIdxStr, r] of Object.entries(serverReadings)) {
+      for (const [chIdxStr, r] of Object.entries(readings.readings)) {
         const chIdx = parseInt(chIdxStr, 10);
         if (r.morpho) saveMorpho(chIdx, r.morpho as MorphoReading);
         if (r.sage) saveSage(chIdx, r.sage as SageReading);
@@ -95,27 +151,25 @@ export async function pullAll(): Promise<boolean> {
       saveCumulative(readings.cumulative);
     }
 
-    if (archive.unlocked.length > 0) {
-      const existing = getUnlockedArchive();
-      for (const id of archive.unlocked) existing.add(id);
-      try { localStorage.setItem("origin.archive.unlocked", JSON.stringify([...existing])); } catch { /* noop */ }
-    }
+    try {
+      localStorage.setItem(
+        "origin.archive.unlocked",
+        JSON.stringify(archive.unlocked),
+      );
+    } catch { /* noop */ }
 
-    return true;
+    return { success: true, serverHasData };
   } catch {
-    return false;
+    return { success: false, serverHasData: false };
   }
-}
-
-function mergeById<T extends { id: string }>(items: T[]): T[] {
-  const map = new Map<string, T>();
-  for (const item of items) map.set(item.id, item);
-  return [...map.values()];
 }
 
 /* ─── Push (localStorage → server) ─────────────────────── */
 
-// keepalive=true is passed on beforeunload to survive page unload.
+/**
+ * Push the current localStorage state to the server.
+ * keepalive=true is passed on beforeunload to survive page unload.
+ */
 export async function pushAll(keepalive = false): Promise<void> {
   try {
     const responses = load();
@@ -141,6 +195,25 @@ export async function pushAll(keepalive = false): Promise<void> {
   } catch {
     /* silent — localStorage is source of truth for guests; server is best-effort */
   }
+}
+
+/**
+ * Restore a previously captured local snapshot to localStorage, then push
+ * to the server. Called when a user confirms "save journey" migration.
+ */
+export async function pushSnapshot(snapshot: LocalSnapshot): Promise<void> {
+  // Restore snapshot to localStorage so pushAll pushes the correct data
+  setTileIdx(snapshot.tileIdx);
+  const STORAGE = "origin.v1";
+  try { localStorage.setItem(STORAGE, JSON.stringify(snapshot.responses)); } catch { /* noop */ }
+  save("streamEntries", snapshot.stream);
+  save("bodyEntries", snapshot.body);
+  try {
+    localStorage.setItem("origin.archive.unlocked", JSON.stringify(snapshot.archive));
+  } catch { /* noop */ }
+  // Readings are nested in the main blob via save(); re-apply from snapshot
+  // by pushing directly — no need to re-persist them separately since pushAll reads fresh
+  await pushAll();
 }
 
 export async function pushTileIdx(tileIdx: number): Promise<void> {

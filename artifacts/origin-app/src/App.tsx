@@ -7,7 +7,11 @@ import {
   extractChapterBeats, load,
 } from './storage';
 import { fetchMorpho, fetchSage } from './api/readings';
-import { pullAll, pushAll, pushTileIdx } from './api/userApi';
+import {
+  pullAll, pushAll, pushTileIdx, pushSnapshot,
+  captureLocalSnapshot, hasSubstantialLocalData,
+  type LocalSnapshot,
+} from './api/userApi';
 import AuthBar from './components/AuthBar';
 import SceneComponent from './components/Scene';
 import JournalOverlay from './components/JournalOverlay';
@@ -570,12 +574,6 @@ function Deck({ tiles, tileIdx, advance, chapters, onEnter, onRestart,
   );
 }
 
-function hasLocalData(): boolean {
-  try {
-    const d = load();
-    return Object.keys(d).length > 0 || getTileIdx() > 0;
-  } catch { return false; }
-}
 
 export default function App() {
   const chapters = CHAPTERS;
@@ -593,18 +591,18 @@ export default function App() {
   const sessionHorizonsRef = useRef<Set<number>>(new Set());
   const prevUserIdRef = useRef<string | null>(null);
   const syncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  // Gate all server writes behind initial pull completing — prevents a fresh
-  // device (tileIdx=0) from overwriting existing server state on sign-in.
+  // Gate all server writes behind a successful initial pull on sign-in.
+  // Stays false if pull fails, preventing stale local state from reaching server.
   const hydratedRef = useRef(false);
-  // When migration prompt is showing, all automatic pushes are suppressed until
-  // the user explicitly confirms "save journey" (handleMigrate). This prevents
-  // local data from being written to the server before the user decides.
+  // Suppresses all automatic pushes while the migration prompt is shown.
+  // Only cleared when user explicitly clicks "save journey" (handleMigrate).
   const migrationPendingRef = useRef(false);
+  // Holds the pre-pull local snapshot so migration can push the right data.
+  const localSnapshotRef = useRef<LocalSnapshot | null>(null);
 
   useEffect(() => { saveTileIdx(tileIdx); }, [tileIdx]);
 
-  // Server sync: push tileIdx only after hydration is complete and no migration
-  // decision is pending. A fresh-device login never clobbers existing progress.
+  // Push tileIdx only after hydration + migration decision — never clobbers server.
   useEffect(() => {
     if (user && hydratedRef.current && !migrationPendingRef.current) {
       pushTileIdx(tileIdx).catch(() => {});
@@ -618,27 +616,37 @@ export default function App() {
     const prevId = prevUserIdRef.current;
 
     if (currentId && currentId !== prevId) {
-      // User just signed in — snapshot guest state BEFORE pull merges server
-      // data, so migration prompt fires only for genuine pre-auth local journeys.
-      const hadLocalData = hasLocalData();
       hydratedRef.current = false;
       migrationPendingRef.current = false;
-      pullAll().then((success) => {
-        // Only activate write paths if pull succeeded; if pull failed (network
-        // error, server 500), keep hydration false so we never push stale state.
+      localSnapshotRef.current = null;
+
+      // Capture complete local state BEFORE pull overwrites localStorage.
+      // Used to offer migration if this is a first-ever sign-in with guest data.
+      const hadLocalData = hasSubstantialLocalData();
+      if (hadLocalData) localSnapshotRef.current = captureLocalSnapshot();
+
+      // pullAll() is server-authoritative: it overwrites localStorage with
+      // server data. On a new device, this instantly restores exact progress.
+      pullAll().then(({ success, serverHasData }) => {
+        // If pull fails, keep hydration false — never push stale state.
         if (!success) return;
         hydratedRef.current = true;
-        // Hydrate all in-memory state from storage after server data is merged
-        // so a new device immediately shows the user's last position.
+        // Hydrate React state from (now server-populated) localStorage.
         setTileIdxState(getTileIdx());
         setHasCumulative(!!getCumulative());
-        if (hadLocalData && prevId === null) {
-          // Show migration prompt; gate all automatic pushes until user decides
+        // Show migration prompt only when first sign-in AND local had data AND
+        // server was empty. Server-has-data means they've signed in before —
+        // no migration needed; server progress was already restored.
+        if (hadLocalData && !serverHasData && prevId === null) {
           migrationPendingRef.current = true;
           setShowMigrationPrompt(true);
+        } else {
+          // No migration scenario — discard any captured snapshot.
+          localSnapshotRef.current = null;
         }
       });
-      // Periodic background push — gated by hydration and migration pending refs.
+
+      // Periodic push gated by hydration + migration refs.
       if (syncIntervalRef.current) clearInterval(syncIntervalRef.current);
       syncIntervalRef.current = setInterval(() => {
         if (hydratedRef.current && !migrationPendingRef.current) {
@@ -646,13 +654,14 @@ export default function App() {
         }
       }, 30_000);
     } else if (!currentId && prevId) {
-      // User just signed out — flush data to server (if hydrated and no pending
-      // migration choice), then stop sync.
+      // Sign-out: flush current state if hydrated and no migration pending,
+      // then tear down sync.
       if (hydratedRef.current && !migrationPendingRef.current) {
         pushAll().catch(() => {});
       }
       hydratedRef.current = false;
       migrationPendingRef.current = false;
+      localSnapshotRef.current = null;
       if (syncIntervalRef.current) {
         clearInterval(syncIntervalRef.current);
         syncIntervalRef.current = null;
@@ -662,10 +671,8 @@ export default function App() {
     prevUserIdRef.current = currentId;
   }, [user, authLoaded]);
 
-  // Flush to server whenever the tab is hidden (tab switch, app close, etc.)
-  // and on beforeunload. keepalive=true lets beforeunload fetches survive page unload.
-  // Both are suppressed while migration is pending — no silent server writes
-  // before the user decides what to do with their guest journey.
+  // Flush on tab hide and page unload — both gated by hydration + migration refs.
+  // keepalive=true lets beforeunload fetches survive page unload.
   useEffect(() => {
     const flush = (keepalive = false) => {
       if (user && hydratedRef.current && !migrationPendingRef.current) {
@@ -690,10 +697,20 @@ export default function App() {
   }, []);
 
   const handleMigrate = useCallback(() => {
-    // User confirmed "save journey" — clear migration gate and push immediately
+    // User confirmed "save journey": clear migration gate, restore snapshot to
+    // localStorage (overwriting empty server-pulled state), then push to server.
     migrationPendingRef.current = false;
     setShowMigrationPrompt(false);
-    pushAll().catch(() => {});
+    const snap = localSnapshotRef.current;
+    localSnapshotRef.current = null;
+    if (snap) {
+      // Restore snapshot first (it was overwritten by server-authoritative pull)
+      pushSnapshot(snap).catch(() => {});
+      // Also hydrate UI to reflect the migrated (local) tile position
+      setTileIdxState(snap.tileIdx);
+    } else {
+      pushAll().catch(() => {});
+    }
   }, []);
 
   const restartToPrelude = () => {
