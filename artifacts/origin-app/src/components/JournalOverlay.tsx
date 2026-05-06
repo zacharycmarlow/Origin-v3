@@ -2,18 +2,22 @@ import { useState, useMemo } from 'react';
 import {
   load,
   getBodyEntries, getStreamEntries, deleteStreamEntry,
-  BodyEntry, StreamEntry
+  getCodex, getCumulative, isChapterComplete,
+  BodyEntry, StreamEntry, CodexEntry, CumulativeReading,
 } from '../storage';
 import { Chapter } from '../chapters';
 import { BodyFigure } from './BodyOverlay';
+import MiniJournal from './MiniJournal';
+import { ButterflyIcon, CompassIcon } from './MorphoCompassIcons';
 
-type Tab = 'spine' | 'body' | 'stream';
+type Tab = 'reading' | 'spine' | 'body' | 'stream' | 'codex';
 
 interface Props {
   onClose: () => void;
   chapters: Chapter[];
   currentCh: number;
   reachedCh: number;
+  initialTab?: Tab;
 }
 
 interface SpineEntry {
@@ -109,13 +113,9 @@ function formatTime(ts: number): string {
     ' · ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
 }
 
-function SpineTab({ chapters, selectedCh, reachedCh }: { chapters: Chapter[]; selectedCh: number | 'all'; reachedCh: number }) {
+function SpineTab({ chapters, selectedCh }: { chapters: Chapter[]; selectedCh: number | 'all' }) {
   const entries = useMemo(() => extractSpineEntries(chapters, selectedCh), [chapters, selectedCh]);
-
-  if (entries.length === 0) {
-    return <div className="jov-empty">Nothing written yet.</div>;
-  }
-
+  if (entries.length === 0) return <div className="jov-empty">Nothing written yet.</div>;
   let lastChIdx = -1;
   return (
     <div className="jov-spine">
@@ -148,22 +148,10 @@ function SpineTab({ chapters, selectedCh, reachedCh }: { chapters: Chapter[]; se
   );
 }
 
-function BodyTab({
-  entries,
-  allEntries,
-  chapters,
-  selectedCh,
-}: {
-  entries: BodyEntry[];
-  allEntries: BodyEntry[];
-  chapters: Chapter[];
-  selectedCh: number | 'all';
+function BodyTab({ entries, allEntries, chapters, selectedCh }: {
+  entries: BodyEntry[]; allEntries: BodyEntry[]; chapters: Chapter[]; selectedCh: number | 'all';
 }) {
-  // Figure is the artifact-at-a-glance: it always shows the full somatic
-  // map across the entire journey, regardless of the chapter filter.
-  // The list below the figure is what changes with the filter.
   const figureEntries = allEntries;
-
   if (allEntries.length === 0) {
     return (
       <div className="jov-empty">
@@ -172,25 +160,15 @@ function BodyTab({
       </div>
     );
   }
-
   const sorted = [...entries].sort((a, b) => b.timestamp - a.timestamp);
   let lastChIdx = -1;
-
   return (
     <div className="jov-body-tab">
       <div className="jov-body-figure-wrap" style={{ color: '#8a6e3a' }}>
-        <BodyFigure
-          entries={figureEntries}
-          chapters={chapters}
-          interactive={false}
-          scale={0.7}
-        />
+        <BodyFigure entries={figureEntries} chapters={chapters} interactive={false} scale={0.7} />
       </div>
-
       {sorted.length === 0 ? (
-        <div className="jov-empty" style={{ paddingTop: 12 }}>
-          No notes for this chapter.
-        </div>
+        <div className="jov-empty" style={{ paddingTop: 12 }}>No notes for this chapter.</div>
       ) : (
         <div className="jov-body-list">
           {sorted.map(entry => {
@@ -218,18 +196,11 @@ function BodyTab({
   );
 }
 
-function StreamTab({
-  entries, chapters, selectedCh, onDelete, deletingId, onCancelDelete
-}: {
-  entries: StreamEntry[];
-  chapters: Chapter[];
-  selectedCh: number | 'all';
-  onDelete: (id: string) => void;
-  deletingId: string | null;
-  onCancelDelete: () => void;
+function StreamTab({ entries, chapters, selectedCh, onDelete, deletingId, onCancelDelete }: {
+  entries: StreamEntry[]; chapters: Chapter[]; selectedCh: number | 'all';
+  onDelete: (id: string) => void; deletingId: string | null; onCancelDelete: () => void;
 }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
-
   if (entries.length === 0) {
     return (
       <div className="jov-empty">
@@ -238,7 +209,6 @@ function StreamTab({
       </div>
     );
   }
-
   let lastChIdx = -1;
   return (
     <div className="jov-stream-list">
@@ -250,7 +220,6 @@ function StreamTab({
         const isExpanded = expanded.has(entry.id);
         const displayText = isLong && !isExpanded ? entry.text.slice(0, 200) + '…' : entry.text;
         const isDeleting = deletingId === entry.id;
-
         return (
           <div key={entry.id}>
             {showHeading && (
@@ -297,18 +266,73 @@ function StreamTab({
   );
 }
 
-export default function JournalOverlay({ onClose, chapters, currentCh, reachedCh }: Props) {
-  const [tab, setTab] = useState<Tab>('spine');
+function CodexTab({ codex, chapters, cumulative }: {
+  codex: CodexEntry[]; chapters: Chapter[]; cumulative: CumulativeReading | null;
+}) {
+  if (codex.length === 0 && !cumulative) {
+    return (
+      <div className="jov-empty">
+        Your codex is empty.<br />
+        <span>Receive a Sage reading inside any completed chapter to begin gathering codes and lore that are yours specifically.</span>
+      </div>
+    );
+  }
+  const sorted = [...codex].sort((a, b) => a.chapter - b.chapter || a.timestamp - b.timestamp);
+  let lastCh = -1;
+  return (
+    <div className="jov-codex-tab">
+      {cumulative && (
+        <div className="jov-codex-cumulative">
+          <div className="jov-codex-cumulative-head">
+            <ButterflyIcon size={18} />
+            <CompassIcon size={18} />
+            <span>The Cumulative Reading</span>
+          </div>
+          <div className="mj-block-label">through-line of the whole arc</div>
+          <div className="mj-block-text">{cumulative.morpho.throughLine}</div>
+          <div className="mj-block-label">subtext</div>
+          <div className="mj-block-text">{cumulative.morpho.subtext}</div>
+          <div className="mj-block-label">resonance</div>
+          <div className="mj-block-text">{cumulative.sage.resonance}</div>
+        </div>
+      )}
+      {sorted.map(entry => {
+        const showHeading = entry.chapter !== lastCh;
+        if (showHeading) lastCh = entry.chapter;
+        const accent = chapters[entry.chapter]?.palette.accent || '#c89838';
+        return (
+          <div key={entry.id}>
+            {showHeading && (
+              <div className="jov-ch-heading" style={{ color: accent }}>
+                {chapters[entry.chapter]?.roman} · {chapters[entry.chapter]?.title}
+              </div>
+            )}
+            <div className={'mj-codex-card mj-codex-' + entry.kind}>
+              <div className="mj-codex-title">{entry.title}</div>
+              <div className="mj-codex-body">{entry.body}</div>
+              <div className="mj-codex-kind">{entry.kind}</div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+export default function JournalOverlay({ onClose, chapters, currentCh, reachedCh, initialTab }: Props) {
+  const chapterComplete = isChapterComplete(chapters[currentCh]);
+  const [tab, setTab] = useState<Tab>(initialTab ?? (chapterComplete ? 'reading' : 'spine'));
   const [selectedCh, setSelectedCh] = useState<number | 'all'>(currentCh);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [streamEntries, setStreamEntries] = useState(() => getStreamEntries());
   const [bodyEntries] = useState(() => getBodyEntries());
+  const codex = useMemo(() => getCodex(), [tab]);
+  const cumulative = useMemo(() => getCumulative(), [tab]);
 
   const filteredBody = useMemo(() =>
     selectedCh === 'all' ? bodyEntries : bodyEntries.filter(e => e.chapter === selectedCh),
     [bodyEntries, selectedCh]
   );
-
   const filteredStream = useMemo(() => {
     const base = selectedCh === 'all' ? streamEntries : streamEntries.filter(e => e.chapter === selectedCh);
     return [...base].sort((a, b) => b.timestamp - a.timestamp);
@@ -324,6 +348,8 @@ export default function JournalOverlay({ onClose, chapters, currentCh, reachedCh
     }
   };
 
+  const readingChIdx = typeof selectedCh === 'number' ? selectedCh : currentCh;
+
   return (
     <div className="jov-backdrop">
       <div className="jov-panel" role="dialog" aria-modal="true" aria-label="Journal">
@@ -337,22 +363,24 @@ export default function JournalOverlay({ onClose, chapters, currentCh, reachedCh
           </button>
         </div>
 
-        <div className="jov-chapters">
-          <button
-            className={'jov-ch-btn' + (selectedCh === 'all' ? ' active' : '')}
-            onClick={() => setSelectedCh('all')}
-          >All</button>
-          {chapters.slice(0, reachedCh + 1).map((ch, ci) => (
+        {tab !== 'codex' && (
+          <div className="jov-chapters">
             <button
-              key={ci}
-              className={'jov-ch-btn' + (selectedCh === ci ? ' active' : '')}
-              onClick={() => setSelectedCh(ci)}
-            >{ch.roman}</button>
-          ))}
-        </div>
+              className={'jov-ch-btn' + (selectedCh === 'all' ? ' active' : '')}
+              onClick={() => setSelectedCh('all')}
+            >All</button>
+            {chapters.slice(0, reachedCh + 1).map((ch, ci) => (
+              <button
+                key={ci}
+                className={'jov-ch-btn' + (selectedCh === ci ? ' active' : '')}
+                onClick={() => setSelectedCh(ci)}
+              >{ch.roman}</button>
+            ))}
+          </div>
+        )}
 
         <div className="jov-tabs">
-          {(['spine', 'body', 'stream'] as Tab[]).map(t => (
+          {(['reading', 'spine', 'body', 'stream', 'codex'] as Tab[]).map(t => (
             <button
               key={t}
               className={'jov-tab' + (tab === t ? ' active' : '')}
@@ -362,29 +390,27 @@ export default function JournalOverlay({ onClose, chapters, currentCh, reachedCh
         </div>
 
         <div className="jov-content">
+          {tab === 'reading' && (
+            <MiniJournal chapters={chapters} selectedCh={readingChIdx} />
+          )}
           {tab === 'spine' && (
-            <SpineTab chapters={chapters} selectedCh={selectedCh} reachedCh={reachedCh} />
+            <SpineTab chapters={chapters} selectedCh={selectedCh} />
           )}
           {tab === 'body' && (
-            <BodyTab
-              entries={filteredBody}
-              allEntries={bodyEntries}
-              chapters={chapters}
-              selectedCh={selectedCh}
-            />
+            <BodyTab entries={filteredBody} allEntries={bodyEntries} chapters={chapters} selectedCh={selectedCh} />
           )}
           {tab === 'stream' && (
             <StreamTab
-              entries={filteredStream}
-              chapters={chapters}
-              selectedCh={selectedCh}
-              onDelete={handleDelete}
-              deletingId={deletingId}
-              onCancelDelete={() => setDeletingId(null)}
+              entries={filteredStream} chapters={chapters} selectedCh={selectedCh}
+              onDelete={handleDelete} deletingId={deletingId} onCancelDelete={() => setDeletingId(null)}
             />
+          )}
+          {tab === 'codex' && (
+            <CodexTab codex={codex} chapters={chapters} cumulative={cumulative} />
           )}
         </div>
       </div>
     </div>
   );
 }
+

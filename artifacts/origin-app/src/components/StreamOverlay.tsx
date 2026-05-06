@@ -12,7 +12,7 @@ interface Props {
 
 const speechAvailable =
   typeof window !== 'undefined' &&
-  !!(window.SpeechRecognition || (window as any).webkitSpeechRecognition);
+  !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
 
 function formatRelative(ts: number): string {
   const diff = Date.now() - ts;
@@ -77,7 +77,7 @@ export default function StreamOverlay({ onClose, chapters, currentCh }: Props) {
       setListening(false);
       return;
     }
-    const SR = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) return;
     const recognition = new SR();
     recognition.continuous = true;

@@ -10,7 +10,7 @@ interface Props {
 
 const speechAvailable =
   typeof window !== 'undefined' &&
-  !!(window.SpeechRecognition || (window as any).webkitSpeechRecognition);
+  !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
 
 export default function Journal({ sceneKey, placeholder, rows = 4, big }: Props) {
   const [val, setVal] = useState<string>(() => {
@@ -35,7 +35,7 @@ export default function Journal({ sceneKey, placeholder, rows = 4, big }: Props)
       return;
     }
 
-    const SR = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     const recognition = new SR();
     recognition.continuous = true;
     recognition.interimResults = true;

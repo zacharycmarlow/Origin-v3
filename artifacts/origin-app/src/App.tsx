@@ -1,10 +1,17 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import CHAPTERS, { Chapter } from './chapters';
-import { getTileIdx, setTileIdx as saveTileIdx, resetAll } from './storage';
+import {
+  getTileIdx, setTileIdx as saveTileIdx, resetAll,
+  isChapterComplete, getReading, getCumulative, saveCumulative,
+  extractChapterBeats,
+} from './storage';
+import { fetchMorpho, fetchSage } from './api/readings';
 import SceneComponent from './components/Scene';
 import JournalOverlay from './components/JournalOverlay';
 import BodyOverlay from './components/BodyOverlay';
 import StreamOverlay from './components/StreamOverlay';
+import HorizonOverlay from './components/HorizonOverlay';
+import { ButterflyIcon, CompassIcon } from './components/MorphoCompassIcons';
 
 /* ─── Types ──────────────────────────────────────────── */
 interface PreludeTile { kind: 'prelude' }
@@ -102,16 +109,24 @@ function Spine({ chapters, current, onJump }: {
     <nav className="spine" aria-label="chapters">
       {chapters.map((c, i) => {
         const state = i === current ? 'active' : i < current ? 'past' : 'future';
+        const complete = isChapterComplete(c);
+        const r = getReading(i);
         return (
           <button
             key={i}
-            className={'spine-node spine-' + state}
+            className={'spine-node spine-' + state + (complete ? ' spine-complete' : '')}
             onClick={() => onJump(i)}
-            title={`${c.roman} · ${c.title}`}
+            title={`${c.roman} · ${c.title}${complete ? ' · complete' : ''}`}
           >
             <span className="spine-dot" />
             <span className="spine-roman">{c.roman}</span>
             <span className="spine-name">{c.title}</span>
+            {(r.morpho || r.sage) && (
+              <span className="spine-reading-glyphs" aria-hidden="true">
+                {r.morpho && <ButterflyIcon size={10} glowing />}
+                {r.sage && <CompassIcon size={10} glowing />}
+              </span>
+            )}
           </button>
         );
       })}
@@ -165,7 +180,12 @@ function PreludeTileView({ onEnter }: { onEnter: () => void }) {
   );
 }
 
-function EpilogueTileView({ onRestart }: { onRestart: () => void }) {
+function EpilogueTileView({ onRestart, onCumulative, hasCumulative, generating }: {
+  onRestart: () => void;
+  onCumulative: () => void;
+  hasCumulative: boolean;
+  generating: boolean;
+}) {
   return (
     <div className="tile tile-epilogue">
       <div className="tile-inner">
@@ -183,12 +203,27 @@ function EpilogueTileView({ onRestart }: { onRestart: () => void }) {
           You have walked the Origin. Seven chapters. Seven codes. Seven thresholds crossed. The old story honored, felt, and closed. The end. Which is to say, the beginning.
         </p>
         <p className="prelude-body">
-          The power you just accessed — the capacity to make meaning from suffering, to see your life as sacred, to author your own consciousness and the reality you inhabit — is real. It is as real as the tension that was using it against you. And it is powerful enough to be dangerous. The Origin opened the door. What it opened onto is too large to navigate alone.
+          The power you just accessed — the capacity to make meaning from suffering, to see your life as sacred, to author your own consciousness and the reality you inhabit — is real.
         </p>
         <p className="prelude-body dim">The future we dream is one story away.</p>
-        <button className="primary-btn" onClick={onRestart}>
-          <span className="label">return to the origin</span>
-        </button>
+
+        <div className="epilogue-actions">
+          <button
+            className="primary-btn"
+            onClick={onCumulative}
+            disabled={generating}
+            title="A reading across the whole arc"
+          >
+            <ButterflyIcon size={18} />
+            <CompassIcon size={18} />
+            <span className="label">
+              {generating ? 'reading the whole arc…' : (hasCumulative ? 'open the cumulative reading' : 'receive the cumulative reading')}
+            </span>
+          </button>
+          <button className="btn-ghost" onClick={onRestart}>
+            <span className="label">return to the origin</span>
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -212,29 +247,18 @@ function OpenerTileView({ chapter, idx, total }: { chapter: Chapter; idx: number
   );
 }
 
-/* ─── Code card manuscript frame ────────────────────────── */
 function CodeCornerSvg() {
-  /* Precision alchemical/astronomical ornament — centered at (26,26).
-     Geometric language only: circles, a 4-point diamond, crosshair ticks.
-     No arms — the CSS border on .code-frame provides the connecting lines. */
   return (
     <svg viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" overflow="visible">
-      {/* Outer ring */}
       <circle cx="26" cy="26" r="15" fill="none" stroke="currentColor" strokeWidth="0.75" strokeOpacity="0.52" />
-      {/* Middle ring */}
       <circle cx="26" cy="26" r="10" fill="none" stroke="currentColor" strokeWidth="0.45" strokeOpacity="0.32" />
-      {/* Inner ring */}
       <circle cx="26" cy="26" r="6" fill="none" stroke="currentColor" strokeWidth="0.4" strokeOpacity="0.25" />
-      {/* 4-point diamond — solid, central emblem */}
       <polygon points="26,19 32,26 26,33 20,26" fill="currentColor" fillOpacity="0.78" />
-      {/* Center void */}
       <circle cx="26" cy="26" r="2.2" fill="none" stroke="currentColor" strokeWidth="0.5" strokeOpacity="0.35" />
-      {/* Cardinal crosshair ticks — short, sharp, extend beyond the outer ring */}
       <line x1="26" y1="9" x2="26" y2="5"  stroke="currentColor" strokeWidth="0.85" strokeOpacity="0.5" strokeLinecap="round" />
       <line x1="26" y1="43" x2="26" y2="47" stroke="currentColor" strokeWidth="0.85" strokeOpacity="0.5" strokeLinecap="round" />
       <line x1="9"  y1="26" x2="5"  y2="26" stroke="currentColor" strokeWidth="0.85" strokeOpacity="0.5" strokeLinecap="round" />
       <line x1="43" y1="26" x2="47" y2="26" stroke="currentColor" strokeWidth="0.85" strokeOpacity="0.5" strokeLinecap="round" />
-      {/* Diagonal register dots at 45° on the outer ring */}
       <circle cx="36.6" cy="15.4" r="1"  fill="currentColor" fillOpacity="0.42" />
       <circle cx="15.4" cy="15.4" r="1"  fill="currentColor" fillOpacity="0.42" />
       <circle cx="36.6" cy="36.6" r="1"  fill="currentColor" fillOpacity="0.42" />
@@ -292,30 +316,18 @@ function CodeTileView({ chapter }: { chapter: Chapter }) {
   );
 }
 
-/* ─── Lore card organic frame ───────────────────────────── */
 function LoreCornerSvg() {
-  /* Botanical eye-of-antiquity ornament — centered at (26,26).
-     Organic language only: almond-eye outline (bezier), iris, leaf tips, curved lash strokes.
-     No straight lines anywhere. The CSS border on .lore-frame provides the connecting lines. */
   return (
     <svg viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" overflow="visible">
-      {/* Outer almond / mandorla — the eye of antiquity */}
-      <path
-        d="M4 26 C4 15 26 4 26 4 C26 4 48 15 48 26 C48 37 26 48 26 48 C26 48 4 37 4 26 Z"
-        fill="none" stroke="currentColor" strokeWidth="0.78" strokeOpacity="0.52"
-      />
-      {/* Inner iris ring */}
+      <path d="M4 26 C4 15 26 4 26 4 C26 4 48 15 48 26 C48 37 26 48 26 48 C26 48 4 37 4 26 Z"
+        fill="none" stroke="currentColor" strokeWidth="0.78" strokeOpacity="0.52" />
       <circle cx="26" cy="26" r="9.5" fill="none" stroke="currentColor" strokeWidth="0.48" strokeOpacity="0.32" />
-      {/* Solid pupil */}
       <circle cx="26" cy="26" r="6" fill="currentColor" fillOpacity="0.68" />
-      {/* Subtle inner glint — off-center */}
       <circle cx="23.5" cy="23.5" r="1.8" fill="currentColor" fillOpacity="0.28" />
-      {/* Leaf tips at the four almond cardinal points — organic, not geometric */}
       <path d="M26 4   C24 7   28 7   26 4"   fill="currentColor" fillOpacity="0.5" />
       <path d="M26 48  C24 45  28 45  26 48"  fill="currentColor" fillOpacity="0.5" />
       <path d="M4  26  C7  24  7  28  4  26"  fill="currentColor" fillOpacity="0.38" />
       <path d="M48 26  C45 24  45 28  48 26"  fill="currentColor" fillOpacity="0.38" />
-      {/* Upper eyelash curves — 3 short organic strokes arcing outward */}
       <path d="M17 13 C15 9  18 8  19 11"  fill="none" stroke="currentColor" strokeWidth="0.55" strokeOpacity="0.38" strokeLinecap="round" />
       <path d="M26 5  C25 1  27 1  28 5"   fill="none" stroke="currentColor" strokeWidth="0.55" strokeOpacity="0.35" strokeLinecap="round" />
       <path d="M35 13 C37 9  34 8  33 11"  fill="none" stroke="currentColor" strokeWidth="0.55" strokeOpacity="0.38" strokeLinecap="round" />
@@ -326,14 +338,11 @@ function LoreCornerSvg() {
 function LoreGlyph() {
   return (
     <svg viewBox="0 0 48 48" width="40" height="40" fill="none" aria-hidden="true">
-      {/* Outer leaf/eye shape */}
       <path d="M 6 24 C 6 14, 24 6, 24 6 C 24 6, 42 14, 42 24 C 42 34, 24 42, 24 42 C 24 42, 6 34, 6 24 Z"
         fill="none" stroke="currentColor" strokeWidth=".7" strokeOpacity=".5" />
-      {/* Inner pupil rings */}
       <circle cx="24" cy="24" r="9" fill="none" stroke="currentColor" strokeWidth=".6" strokeOpacity=".4" />
       <circle cx="24" cy="24" r="4.5" fill="currentColor" fillOpacity=".75" />
       <circle cx="24" cy="24" r="1.8" fill="currentColor" fillOpacity=".35" />
-      {/* Small leaf accents at cardinal points */}
       <path d="M 24 6 C 22 10, 26 10, 24 6" fill="currentColor" fillOpacity=".3" />
       <path d="M 24 42 C 22 38, 26 38, 24 42" fill="currentColor" fillOpacity=".3" />
     </svg>
@@ -413,9 +422,18 @@ function SceneTileView({ scene, sceneIdx, totalScenes, chapterRoman, chapterTitl
   );
 }
 
-function renderTile(tile: Tile, chapters: Chapter[], onEnter: () => void, onRestart: () => void) {
+function renderTile(
+  tile: Tile, chapters: Chapter[],
+  onEnter: () => void, onRestart: () => void,
+  onCumulative: () => void, hasCumulative: boolean, generatingCumulative: boolean,
+) {
   if (tile.kind === 'prelude') return <PreludeTileView onEnter={onEnter} />;
-  if (tile.kind === 'epilogue') return <EpilogueTileView onRestart={onRestart} />;
+  if (tile.kind === 'epilogue') return <EpilogueTileView
+    onRestart={onRestart}
+    onCumulative={onCumulative}
+    hasCumulative={hasCumulative}
+    generating={generatingCumulative}
+  />;
   if (tile.kind === 'opener') return <OpenerTileView chapter={chapters[tile.ch]} idx={tile.ch} total={chapters.length} />;
   if (tile.kind === 'code') return <CodeTileView chapter={chapters[tile.ch]} />;
   if (tile.kind === 'lore') return <LoreTileView chapter={chapters[tile.ch]} />;
@@ -476,13 +494,17 @@ function DeckNav({ tileIdx, total, go, tiles }: {
   );
 }
 
-function Deck({ tiles, tileIdx, setTileIdxState, chapters, onEnter, onRestart }: {
+function Deck({ tiles, tileIdx, advance, chapters, onEnter, onRestart,
+  onCumulative, hasCumulative, generatingCumulative }: {
   tiles: Tile[];
   tileIdx: number;
-  setTileIdxState: (i: number) => void;
+  advance: (i: number) => void;
   chapters: Chapter[];
   onEnter: () => void;
   onRestart: () => void;
+  onCumulative: () => void;
+  hasCumulative: boolean;
+  generatingCumulative: boolean;
 }) {
   const [dir, setDir] = useState(1);
   const [animKey, setAnimKey] = useState(0);
@@ -490,9 +512,9 @@ function Deck({ tiles, tileIdx, setTileIdxState, chapters, onEnter, onRestart }:
   const go = useCallback((nextIdx: number) => {
     if (nextIdx < 0 || nextIdx >= tiles.length) return;
     setDir(nextIdx > tileIdx ? 1 : -1);
-    setTileIdxState(nextIdx);
+    advance(nextIdx);
     setAnimKey(k => k + 1);
-  }, [tileIdx, tiles.length, setTileIdxState]);
+  }, [tileIdx, tiles.length, advance]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -512,7 +534,7 @@ function Deck({ tiles, tileIdx, setTileIdxState, chapters, onEnter, onRestart }:
   return (
     <div className="deck" data-kind={tile?.kind}>
       <div key={animKey} className={'tile-wrap dir-' + (dir > 0 ? 'fwd' : 'back')}>
-        {tile && renderTile(tile, chapters, onEnter, onRestart)}
+        {tile && renderTile(tile, chapters, onEnter, onRestart, onCumulative, hasCumulative, generatingCumulative)}
       </div>
       <DeckNav tileIdx={tileIdx} total={tiles.length} go={go} tiles={tiles} />
     </div>
@@ -525,10 +547,19 @@ export default function App() {
   const [journalOpen, setJournalOpen] = useState(false);
   const [bodyOpen, setBodyOpen] = useState(false);
   const [streamOpen, setStreamOpen] = useState(false);
+  const [horizon, setHorizon] = useState<{ ch: number; nextIdx: number; cycles?: number } | null>(null);
+  const [hasCumulative, setHasCumulative] = useState<boolean>(() => !!getCumulative());
+  const [generatingCumulative, setGeneratingCumulative] = useState(false);
+  const [cumulativeError, setCumulativeError] = useState<string | null>(null);
+  const [journalInitialTab, setJournalInitialTab] = useState<'reading' | 'spine' | 'body' | 'stream' | 'codex' | undefined>(undefined);
+  const sessionHorizonsRef = useRef<Set<number>>(new Set());
 
   useEffect(() => { saveTileIdx(tileIdx); }, [tileIdx]);
 
-  const restartToPrelude = () => setTileIdxState(0);
+  const restartToPrelude = () => {
+    sessionHorizonsRef.current.clear();
+    setTileIdxState(0);
+  };
   const enterBegin = () => setTileIdxState(1);
   const tiles = useMemo(() => buildTiles(chapters), [chapters]);
 
@@ -568,6 +599,87 @@ export default function App() {
     if (i >= 0) setTileIdxState(i);
   };
 
+  // Intercepted advance: triggers Horizon when crossing into next chapter
+  // from a completed one (and we haven't already shown it this session).
+  const advance = useCallback((nextIdx: number) => {
+    if (nextIdx > tileIdx) {
+      const cur = tiles[tileIdx];
+      const nxt = tiles[nextIdx];
+      const fromCh = cur && 'ch' in cur ? (cur as OpenerTile).ch : -1;
+      const enteringNextCh =
+        (nxt?.kind === 'opener' && (nxt as OpenerTile).ch !== fromCh) ||
+        nxt?.kind === 'epilogue';
+      if (
+        fromCh >= 0 &&
+        enteringNextCh &&
+        isChapterComplete(chapters[fromCh]) &&
+        !sessionHorizonsRef.current.has(fromCh)
+      ) {
+        sessionHorizonsRef.current.add(fromCh);
+        const cycles = nxt?.kind === 'epilogue' ? 12 : 6;
+        setHorizon({ ch: fromCh, nextIdx, cycles });
+        return;
+      }
+    }
+    setTileIdxState(nextIdx);
+  }, [tileIdx, tiles, chapters]);
+
+  const onHorizonComplete = () => {
+    if (horizon) {
+      const next = horizon.nextIdx;
+      setHorizon(null);
+      setTileIdxState(next);
+    }
+  };
+
+  const onCumulative = async () => {
+    if (hasCumulative) {
+      setJournalInitialTab('codex');
+      setJournalOpen(true);
+      return;
+    }
+    setCumulativeError(null);
+    setGeneratingCumulative(true);
+    try {
+      const previousChapters = chapters
+        .map((ch, i) => ({ i, ch }))
+        .filter(({ ch }) => isChapterComplete(ch))
+        .map(({ ch, i }) => ({
+          chapterNumber: i + 1,
+          chapterTitle: ch.title,
+          beats: extractChapterBeats(ch),
+          morpho: getReading(i).morpho,
+          sage: getReading(i).sage,
+        }));
+
+      // Use the final chapter's beats as the "current" payload for cumulative.
+      const finalCh = chapters.length - 1;
+      const morpho = await fetchMorpho({
+        chapterNumber: finalCh + 1,
+        chapterTitle: chapters[finalCh].title,
+        beats: extractChapterBeats(chapters[finalCh]),
+        previousChapters: previousChapters.slice(0, -1),
+        cumulative: true,
+      });
+      const sage = await fetchSage({
+        chapterNumber: finalCh + 1,
+        chapterTitle: chapters[finalCh].title,
+        beats: extractChapterBeats(chapters[finalCh]),
+        morpho,
+        previousChapters: previousChapters.slice(0, -1),
+        cumulative: true,
+      });
+      saveCumulative({ morpho, sage, generatedAt: Date.now() });
+      setHasCumulative(true);
+      setJournalInitialTab('codex');
+      setJournalOpen(true);
+    } catch (e) {
+      setCumulativeError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setGeneratingCumulative(false);
+    }
+  };
+
   const territory = currentTile?.kind === 'scene'
     ? chapters[(currentTile as SceneTileData).ch].scenes[(currentTile as SceneTileData).sc].kind
     : currentTile?.kind || 'prelude';
@@ -596,7 +708,7 @@ export default function App() {
           )}
           <button
             className="btn-ghost small reset-btn"
-            onClick={() => { if (confirm('Reset your entire journey? This cannot be undone.')) { resetAll(); setTileIdxState(0); } }}
+            onClick={() => { if (confirm('Reset your entire journey? This cannot be undone.')) { resetAll(); sessionHorizonsRef.current.clear(); setTileIdxState(0); } }}
             title="Reset journey"
           >
             <span className="label">reset</span>
@@ -608,34 +720,32 @@ export default function App() {
         <Deck
           tiles={tiles}
           tileIdx={tileIdx}
-          setTileIdxState={setTileIdxState}
+          advance={advance}
           chapters={chapters}
           onEnter={enterBegin}
           onRestart={restartToPrelude}
+          onCumulative={onCumulative}
+          hasCumulative={hasCumulative}
+          generatingCumulative={generatingCumulative}
         />
       </main>
 
+      {cumulativeError && (
+        <div className="cumulative-error" role="alert">
+          {cumulativeError}
+          <button className="btn-ghost small" onClick={() => setCumulativeError(null)}>dismiss</button>
+        </div>
+      )}
+
       <div className="floating-toolbar">
-        <button
-          className="toolbar-btn stream-btn"
-          onClick={() => setStreamOpen(true)}
-          aria-label="Open stream"
-          title="Stream"
-        >
-          {/* Three flowing ripples — water/breath glyph */}
+        <button className="toolbar-btn stream-btn" onClick={() => setStreamOpen(true)} aria-label="Open stream" title="Stream">
           <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
             <path d="M4 9 Q8 6 14 9 T24 9" stroke="#C4A265" strokeWidth="1.2" strokeLinecap="round" fill="none" />
             <path d="M4 14 Q8 11 14 14 T24 14" stroke="#C4A265" strokeWidth="1.2" strokeLinecap="round" fill="none" opacity="0.85" />
             <path d="M4 19 Q8 16 14 19 T24 19" stroke="#C4A265" strokeWidth="1.2" strokeLinecap="round" fill="none" opacity="0.7" />
           </svg>
         </button>
-        <button
-          className="toolbar-btn body-btn"
-          onClick={() => setBodyOpen(true)}
-          aria-label="Open body"
-          title="Body"
-        >
-          {/* Minimal human silhouette icon — head + shoulders + torso line art */}
+        <button className="toolbar-btn body-btn" onClick={() => setBodyOpen(true)} aria-label="Open body" title="Body">
           <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
             <circle cx="14" cy="7" r="3.2" fill="none" stroke="#C4A265" strokeWidth="1.2" />
             <path d="M7 17 Q9 13 14 12.5 Q19 13 21 17" fill="none" stroke="#C4A265" strokeWidth="1.2" />
@@ -644,12 +754,7 @@ export default function App() {
             <path d="M14 13 L14 20" stroke="#C4A265" strokeWidth="0.8" strokeOpacity=".55" strokeDasharray="1 2" />
           </svg>
         </button>
-        <button
-          className="toolbar-btn journal-btn"
-          onClick={() => setJournalOpen(true)}
-          aria-label="Open journal"
-          title="Journal"
-        >
+        <button className="toolbar-btn journal-btn" onClick={() => setJournalOpen(true)} aria-label="Open journal" title="Journal">
           <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
             <rect x="5" y="4" width="16" height="20" rx="1.5" fill="none" stroke="#C4A265" strokeWidth="1.4" />
             <path d="M5 7.5h16" stroke="#C4A265" strokeWidth="1" strokeOpacity=".5" />
@@ -661,27 +766,27 @@ export default function App() {
       </div>
 
       {streamOpen && (
-        <StreamOverlay
-          onClose={() => setStreamOpen(false)}
-          chapters={chapters}
-          currentCh={currentCh}
-        />
+        <StreamOverlay onClose={() => setStreamOpen(false)} chapters={chapters} currentCh={currentCh} />
       )}
-
       {bodyOpen && (
-        <BodyOverlay
-          onClose={() => setBodyOpen(false)}
-          chapters={chapters}
-          currentCh={currentCh}
-        />
+        <BodyOverlay onClose={() => setBodyOpen(false)} chapters={chapters} currentCh={currentCh} />
       )}
-
       {journalOpen && (
         <JournalOverlay
-          onClose={() => setJournalOpen(false)}
+          onClose={() => { setJournalOpen(false); setJournalInitialTab(undefined); }}
           chapters={chapters}
           currentCh={currentCh}
           reachedCh={reachedCh}
+          initialTab={journalInitialTab}
+        />
+      )}
+      {horizon && (
+        <HorizonOverlay
+          chapter={chapters[horizon.ch]}
+          chapterIdx={horizon.ch}
+          cycles={horizon.cycles}
+          onComplete={onHorizonComplete}
+          onCancel={() => setHorizon(null)}
         />
       )}
     </div>

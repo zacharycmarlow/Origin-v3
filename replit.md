@@ -16,6 +16,18 @@ Warm handmade paper manuscript aesthetic:
 - Pherome font from `/public/fonts/Pherome-Regular.otf` for display headings
 - Cormorant SC / EB Garamond / JetBrains Mono for supporting type
 
+### AI Reading System (Instruction 7)
+Sonnet/Haiku readings via `@workspace/integrations-anthropic-ai`:
+- **Morpho** (butterfly, teal) — marginal notes, through-line, subtext per chapter (Sonnet)
+- **Sage** (compass, gold) — resonance + personalized codes & lore (Sonnet)
+- **Horizon** (coherence breath) — 5s-in/5s-out × 6 cycles between completed chapters; integration whisper from Haiku, word-by-word reveal, hold-to-cross 2s
+- **Cumulative** (after all 7 chapters) — Morpho+Sage with `cumulative: true` flag, surfaced in Codex tab + epilogue
+- Server: `artifacts/api-server/src/routes/readings/{index.ts, prompts.ts}` — POST `/api/readings/{morpho|sage|horizon}`, Zod-validated, JSON-fenced parsing. System prompts inlined as TS constants.
+- Client: `src/api/readings.ts` (fetch wrappers) + `src/components/{MiniJournal, HorizonOverlay, MorphoCompassIcons}.tsx`
+- Storage: `getReading`, `saveMorpho/Sage/Horizon`, `getCodex` (auto-populated from Sage), `getCumulative`, `extractChapterBeats`, `isChapterComplete` in `src/storage.ts`. Readings live in localStorage keys `origin.readings`, `origin.codex`, `origin.cumulative`.
+- App.tsx wraps tile navigation in `advance()` interceptor that triggers HorizonOverlay when crossing forward from a complete chapter (12 cycles when entering epilogue). `sessionHorizonsRef` prevents repeats. Spine shows butterfly/compass glyphs when readings exist.
+- Journal tab order: `reading | spine | body | stream | codex`. Reading is the default tab when current chapter is complete.
+
 ### Architecture
 - `src/App.tsx` — shell with Spine nav, Deck navigator, 5 tile types (Prelude/Opener/Code/Scene/Epilogue)
 - `src/chapters.ts` — all 7 chapters' content with TypeScript types
