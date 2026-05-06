@@ -2903,3 +2903,147 @@ input, textarea, select { font-family: inherit; color: inherit; }
   pointer-events: none;
 }
 
+
+/* ── Scene subtitle (Embodiment · / Character · / Meaning · / Author ·) ── */
+.scene-subtitle {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--ink) 65%, transparent);
+  margin: -4px 0 18px;
+  opacity: .8;
+}
+
+/* ── Inline scene CODE block ── */
+.scene-code {
+  position: relative;
+  margin: 28px 0 22px; padding: 22px 24px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 28%, transparent);
+  max-width: 640px;
+}
+.scene-code-head {
+  display: flex; align-items: baseline; gap: 14px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.scene-code-label {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 10px; letter-spacing: .3em; text-transform: uppercase;
+  color: var(--accent);
+}
+.scene-code-title {
+  font-family: var(--font-title);
+  font-size: 15px; font-style: italic;
+  color: color-mix(in srgb, var(--ink) 90%, transparent);
+}
+.scene-code-body {
+  font-family: var(--font-body);
+  font-size: 16px; line-height: 1.7;
+  color: color-mix(in srgb, var(--ink) 88%, transparent);
+  margin: 0 0 .9em;
+}
+.scene-code-body:last-child { margin-bottom: 0; }
+
+/* ── Optional middle paragraph between code and lore ── */
+.scene-middle {
+  font-family: var(--font-body);
+  font-size: 19px; line-height: 1.75;
+  color: var(--ink); opacity: .92;
+  margin: 22px 0; max-width: 640px;
+  text-wrap: pretty;
+}
+.scene-middle p { margin: 0 0 1.05em; }
+.scene-middle p:last-child { margin-bottom: 0; }
+
+/* ── Inline scene LORE block ── */
+.scene-lore {
+  position: relative;
+  margin: 26px 0 22px; padding: 22px 24px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 32%, transparent);
+  max-width: 640px;
+}
+.scene-lore-head {
+  display: flex; align-items: baseline; gap: 14px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.scene-lore-label {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 10px; letter-spacing: .3em; text-transform: uppercase;
+  color: var(--accent);
+}
+.scene-lore-title {
+  font-family: var(--font-title);
+  font-size: 15px; font-style: italic;
+  color: color-mix(in srgb, var(--ink) 90%, transparent);
+}
+.scene-lore-body {
+  font-family: var(--font-body);
+  font-size: 16px; line-height: 1.75;
+  color: color-mix(in srgb, var(--ink) 88%, transparent);
+  margin: 0 0 .9em;
+}
+.scene-lore-body:last-child { margin-bottom: 0; }
+
+/* ── Closing question / instruction (between lore and practice) ── */
+.scene-closing {
+  font-family: var(--font-title);
+  font-size: 19px; font-style: italic; line-height: 1.6;
+  color: var(--ink); opacity: .95;
+  margin: 24px 0 8px; max-width: 640px;
+  padding-left: 14px;
+  border-left: 2px solid color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+/* Dark territory tweaks */
+.tile-scene[class*="tile-kind-"] .scene-code,
+.tile-scene[class*="tile-kind-"] .scene-lore {
+  backdrop-filter: blur(2px);
+}
+
+/* ── Prelude TOC ── */
+.prelude-toc {
+  margin: 32px 0 28px;
+  padding: 22px 24px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--ink) 3%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.toc-head {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 10px; letter-spacing: .3em; text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.toc-list {
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.toc-list li {
+  font-family: var(--font-body);
+  font-size: 15px; line-height: 1.55;
+  color: color-mix(in srgb, var(--ink) 86%, transparent);
+  display: flex; gap: 14px; align-items: baseline;
+}
+.toc-roman {
+  font-family: var(--font-title);
+  font-style: italic;
+  color: var(--accent);
+  min-width: 28px;
+  text-align: right;
+  font-size: 14px;
+  letter-spacing: .08em;
+}
+
+@media (max-width: 640px) {
+  .scene-code, .scene-lore { padding: 18px 18px; }
+  .scene-code-body, .scene-lore-body { font-size: 15px; }
+  .scene-closing { font-size: 17px; }
+}

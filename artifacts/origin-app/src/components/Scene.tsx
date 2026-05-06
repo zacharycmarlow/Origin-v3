@@ -71,6 +71,7 @@ export default function Scene({ scene }: Props) {
       {/* ── Context: always visible, materialises on mount ── */}
       <div className="scene-context scene-materialize">
         {scene.title && <h3 className="scene-title">{scene.title}</h3>}
+        {scene.subtitle && <div className="scene-subtitle">{scene.subtitle}</div>}
         {scene.label && <div className="scene-label">{scene.label}</div>}
 
         {scene.body && (
@@ -83,10 +84,39 @@ export default function Scene({ scene }: Props) {
           )
         )}
 
-        {(scene.kind === 'arrive') && scene.breath && (
-          <BreathPacer label={scene.breath.label} cycles={scene.breath.cycles} />
+        {scene.code && (
+          <div className="scene-code">
+            <div className="scene-code-head">
+              <span className="scene-code-label">Code</span>
+              <span className="scene-code-title">{scene.code.title}</span>
+            </div>
+            {scene.code.body.split('\n\n').map((para, i) => <p key={i} className="scene-code-body">{para}</p>)}
+          </div>
         )}
-        {scene.kind === 'breath' && scene.breath && (
+
+        {scene.middle && (
+          scene.middle.includes('\n\n') ? (
+            <div className="scene-middle">
+              {scene.middle.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
+            </div>
+          ) : (
+            <p className="scene-middle">{scene.middle}</p>
+          )
+        )}
+
+        {scene.lore && (
+          <div className="scene-lore">
+            <div className="scene-lore-head">
+              <span className="scene-lore-label">Lore</span>
+              <span className="scene-lore-title">{scene.lore.title}</span>
+            </div>
+            {scene.lore.body.split('\n\n').map((para, i) => <p key={i} className="scene-lore-body">{para}</p>)}
+          </div>
+        )}
+
+        {scene.closing && <p className="scene-closing">{scene.closing}</p>}
+
+        {(scene.kind === 'arrive' || scene.kind === 'breath' || scene.kind === 'prompt') && scene.breath && (
           <BreathPacer label={scene.breath.label} cycles={scene.breath.cycles} />
         )}
         {scene.kind === 'reflection' && <div className="reflection-mark">◦</div>}

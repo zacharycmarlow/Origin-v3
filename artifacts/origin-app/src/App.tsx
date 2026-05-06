@@ -17,18 +17,14 @@ import { ButterflyIcon, CompassIcon } from './components/MorphoCompassIcons';
 interface PreludeTile { kind: 'prelude' }
 interface EpilogueTile { kind: 'epilogue' }
 interface OpenerTile { kind: 'opener'; ch: number }
-interface CodeTile { kind: 'code'; ch: number }
-interface LoreTile { kind: 'lore'; ch: number }
 interface SceneTileData { kind: 'scene'; ch: number; sc: number }
-type Tile = PreludeTile | EpilogueTile | OpenerTile | CodeTile | LoreTile | SceneTileData;
+type Tile = PreludeTile | EpilogueTile | OpenerTile | SceneTileData;
 
 function buildTiles(chapters: Chapter[]): Tile[] {
   const tiles: Tile[] = [];
   tiles.push({ kind: 'prelude' });
   chapters.forEach((ch, ci) => {
     tiles.push({ kind: 'opener', ch: ci });
-    tiles.push({ kind: 'code', ch: ci });
-    tiles.push({ kind: 'lore', ch: ci });
     ch.scenes.forEach((_, si) => {
       tiles.push({ kind: 'scene', ch: ci, sc: si });
     });
@@ -52,20 +48,6 @@ function CompassGlyph({ size = 120 }: { size?: number }) {
           x2={60 + Math.cos(rad) * r2} y2={60 + Math.sin(rad) * r2}
           stroke="currentColor" strokeWidth=".4" />;
       })}
-    </svg>
-  );
-}
-
-function CodeGlyph() {
-  return (
-    <svg viewBox="0 0 48 48" width="48" height="48" aria-hidden="true">
-      <circle cx="24" cy="24" r="22" fill="none" stroke="currentColor" strokeWidth=".5" />
-      <circle cx="24" cy="24" r="14" fill="none" stroke="currentColor" strokeWidth=".5" />
-      <circle cx="24" cy="24" r="5" fill="none" stroke="currentColor" strokeWidth=".8" />
-      <line x1="24" y1="2" x2="24" y2="10" stroke="currentColor" strokeWidth=".5" />
-      <line x1="24" y1="38" x2="24" y2="46" stroke="currentColor" strokeWidth=".5" />
-      <line x1="2" y1="24" x2="10" y2="24" stroke="currentColor" strokeWidth=".5" />
-      <line x1="38" y1="24" x2="46" y2="24" stroke="currentColor" strokeWidth=".5" />
     </svg>
   );
 }
@@ -145,38 +127,47 @@ function PreludeTileView({ onEnter }: { onEnter: () => void }) {
         <h1 className="prelude-title">THE ORIGIN</h1>
         <div className="prelude-sub">seven chapters · seven codes · seven thresholds</div>
         <p className="prelude-body">
-          The world is made of stories. Your brain is generating one right now about who you are and what's real, so continuously and so seamlessly that you have probably never noticed it happening. The same circuits fire whether you're living something or remembering it. The story running in your head is building the reality you inhabit from the inside.
+          The world is made of stories. Inside your head, your brain is generating one right now about who you are and what's real and what's possible, so continuously and so seamlessly that you have probably never noticed it happening. The same neural circuits fire whether you're living something or remembering it, planning something or imagining it. To your nervous system, the story you tell is the world you live in.
         </p>
         <p className="prelude-body">
-          You are already authoring reality. The question is whether you're doing it on purpose.
-        </p>
-        <p className="prelude-body dim">
-          These seven chapters are about hearing the voice that has been writing you, seeing the story it has been telling, and taking the pen back.
+          And the story is rarely yours. It was written by people you didn't choose, in conditions you didn't design, and most of it was installed before you had the language to question it. By the time you become old enough to wonder why your life feels the way it does, the story is already producing your reality from underneath, generating the thoughts you call yours, the choices you call free, the limits you call real.
         </p>
         <p className="prelude-body">
-          The stories you've been living inside shaped more than your inner world. They shaped how you move through rooms, what you build, who you attract, what you tolerate, what you offer, what you withhold. A story lived long enough becomes indistinguishable from the person living it. These seven chapters work at the level where you and your story meet — where the narrative becomes the identity becomes the life becomes the narrative. By the end, you will not just have a new story. You will be living inside one.
+          The people who change their lives, change their stories. The people who change the world, change the story everyone is living inside.
         </p>
         <p className="prelude-body dim">
-          The posture you practice here is meaning-making: holding every experience in the question "what was this preparing me for?" rather than "why did this happen to me?"
+          This is a guide for becoming the author of yours. Seven chapters that walk the oldest pattern human beings have ever walked: the descent into what made you, the discovery of what survived it, and the return as someone who can wield it. The character. The tension. The gift. The source. The narrator. The dream. The ending. By the end you will not just have a new story. You will be living inside one. And from inside an authored life, the same machinery that has been running you, the brain's narrative system, becomes the instrument you use to author what comes next. Reality is story shaped. Stories change. So can we.
         </p>
         <div className="prelude-before">
-          <div className="before-head">before we begin</div>
+          <div className="before-head">before we begin · how to use this</div>
           <div className="before-row">
             <div className="before-num">I</div>
-            <div className="before-text">stay with what surfaces — a raw emotion, fully felt, moves through the body in about ninety seconds.</div>
+            <div className="before-text">tell this in the past tense — speaking your life as something that already happened shifts you from inside the story to outside it, from a person reliving the pain to the narrator of a character's journey.</div>
           </div>
           <div className="before-row">
             <div className="before-num">II</div>
-            <div className="before-text">tell this in the past tense — speaking your life as something that already happened shifts you from inside the story to outside it.</div>
+            <div className="before-text">speak aloud when you can — the story lives in the voice and the breath.</div>
           </div>
           <div className="before-row">
             <div className="before-num">III</div>
-            <div className="before-text">speak aloud when you can — the story lives in the voice and the breath.</div>
+            <div className="before-text">stay with what surfaces — a raw emotion, fully felt, moves through the body in about ninety seconds. longer than that, and a story is holding it in place.</div>
           </div>
           <div className="before-row">
             <div className="before-num">IV</div>
             <div className="before-text">the only adversary is shame — when it shows up wearing a new mask, that is proof you are approaching something real.</div>
           </div>
+        </div>
+        <div className="prelude-toc">
+          <div className="toc-head">the seven chapters</div>
+          <ol className="toc-list">
+            <li><span className="toc-roman">I</span> The Prologue · Everything you have lived is the opening chapter of a story only you can tell.</li>
+            <li><span className="toc-roman">II</span> The Tension · The more tension in your story, the more powerful the resolution.</li>
+            <li><span className="toc-roman">III</span> The Gift · Make what happened to you happen for you.</li>
+            <li><span className="toc-roman">IV</span> The Source · The mind that built every god can make your life sacred.</li>
+            <li><span className="toc-roman">V</span> The Narrator · Your entire reality is a story, and the one telling it is the one you mistook for yourself.</li>
+            <li><span className="toc-roman">VI</span> The Dream · Remember the power to dream worlds into being.</li>
+            <li><span className="toc-roman">VII</span> The Ending · A story told aloud to another nervous system becomes real in a way no thought can.</li>
+          </ol>
         </div>
         <button className="primary-btn" onClick={onEnter}>
           <span className="label">begin</span>
@@ -293,156 +284,6 @@ function OpenerTileView({ chapter, idx, total }: { chapter: Chapter; idx: number
   );
 }
 
-function CodeCornerSvg() {
-  return (
-    <svg viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" overflow="visible">
-      <circle cx="26" cy="26" r="15" fill="none" stroke="currentColor" strokeWidth="0.75" strokeOpacity="0.52" />
-      <circle cx="26" cy="26" r="10" fill="none" stroke="currentColor" strokeWidth="0.45" strokeOpacity="0.32" />
-      <circle cx="26" cy="26" r="6" fill="none" stroke="currentColor" strokeWidth="0.4" strokeOpacity="0.25" />
-      <polygon points="26,19 32,26 26,33 20,26" fill="currentColor" fillOpacity="0.78" />
-      <circle cx="26" cy="26" r="2.2" fill="none" stroke="currentColor" strokeWidth="0.5" strokeOpacity="0.35" />
-      <line x1="26" y1="9" x2="26" y2="5"  stroke="currentColor" strokeWidth="0.85" strokeOpacity="0.5" strokeLinecap="round" />
-      <line x1="26" y1="43" x2="26" y2="47" stroke="currentColor" strokeWidth="0.85" strokeOpacity="0.5" strokeLinecap="round" />
-      <line x1="9"  y1="26" x2="5"  y2="26" stroke="currentColor" strokeWidth="0.85" strokeOpacity="0.5" strokeLinecap="round" />
-      <line x1="43" y1="26" x2="47" y2="26" stroke="currentColor" strokeWidth="0.85" strokeOpacity="0.5" strokeLinecap="round" />
-      <circle cx="36.6" cy="15.4" r="1"  fill="currentColor" fillOpacity="0.42" />
-      <circle cx="15.4" cy="15.4" r="1"  fill="currentColor" fillOpacity="0.42" />
-      <circle cx="36.6" cy="36.6" r="1"  fill="currentColor" fillOpacity="0.42" />
-      <circle cx="15.4" cy="36.6" r="1"  fill="currentColor" fillOpacity="0.42" />
-    </svg>
-  );
-}
-
-function CodeFrame() {
-  return (
-    <div className="code-frame" aria-hidden="true">
-      <span className="code-corner code-corner--tl"><CodeCornerSvg /></span>
-      <span className="code-corner code-corner--tr"><CodeCornerSvg /></span>
-      <span className="code-corner code-corner--bl"><CodeCornerSvg /></span>
-      <span className="code-corner code-corner--br"><CodeCornerSvg /></span>
-    </div>
-  );
-}
-
-function CodeTileView({ chapter }: { chapter: Chapter }) {
-  const [expanded, setExpanded] = useState(false);
-  return (
-    <div className="tile tile-code">
-      <div className="tile-inner">
-        <div className={'code-card' + (expanded ? ' code-card--expanded' : '')}>
-          <CodeFrame />
-          <div className="code-head">
-            <div className="code-mark"><CodeGlyph /></div>
-            <div className="code-label">{chapter.code.title}</div>
-            <div className="code-num">ch · {chapter.roman}</div>
-          </div>
-          <div className="code-essence">{chapter.code.essence}</div>
-          {expanded && (
-            <div className="code-expanded">
-              <div className="code-body code-body--detail">{chapter.code.body}</div>
-              <button className="code-collapse" onClick={() => setExpanded(false)}>
-                <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
-                  <polyline points="1,5 5,1 9,5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                collapse
-              </button>
-            </div>
-          )}
-          {!expanded && (
-            <button className="code-explore" onClick={() => setExpanded(true)}>
-              <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
-                <polyline points="1,1 5,5 9,1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              explore
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function LoreCornerSvg() {
-  return (
-    <svg viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" overflow="visible">
-      <path d="M4 26 C4 15 26 4 26 4 C26 4 48 15 48 26 C48 37 26 48 26 48 C26 48 4 37 4 26 Z"
-        fill="none" stroke="currentColor" strokeWidth="0.78" strokeOpacity="0.52" />
-      <circle cx="26" cy="26" r="9.5" fill="none" stroke="currentColor" strokeWidth="0.48" strokeOpacity="0.32" />
-      <circle cx="26" cy="26" r="6" fill="currentColor" fillOpacity="0.68" />
-      <circle cx="23.5" cy="23.5" r="1.8" fill="currentColor" fillOpacity="0.28" />
-      <path d="M26 4   C24 7   28 7   26 4"   fill="currentColor" fillOpacity="0.5" />
-      <path d="M26 48  C24 45  28 45  26 48"  fill="currentColor" fillOpacity="0.5" />
-      <path d="M4  26  C7  24  7  28  4  26"  fill="currentColor" fillOpacity="0.38" />
-      <path d="M48 26  C45 24  45 28  48 26"  fill="currentColor" fillOpacity="0.38" />
-      <path d="M17 13 C15 9  18 8  19 11"  fill="none" stroke="currentColor" strokeWidth="0.55" strokeOpacity="0.38" strokeLinecap="round" />
-      <path d="M26 5  C25 1  27 1  28 5"   fill="none" stroke="currentColor" strokeWidth="0.55" strokeOpacity="0.35" strokeLinecap="round" />
-      <path d="M35 13 C37 9  34 8  33 11"  fill="none" stroke="currentColor" strokeWidth="0.55" strokeOpacity="0.38" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function LoreGlyph() {
-  return (
-    <svg viewBox="0 0 48 48" width="40" height="40" fill="none" aria-hidden="true">
-      <path d="M 6 24 C 6 14, 24 6, 24 6 C 24 6, 42 14, 42 24 C 42 34, 24 42, 24 42 C 24 42, 6 34, 6 24 Z"
-        fill="none" stroke="currentColor" strokeWidth=".7" strokeOpacity=".5" />
-      <circle cx="24" cy="24" r="9" fill="none" stroke="currentColor" strokeWidth=".6" strokeOpacity=".4" />
-      <circle cx="24" cy="24" r="4.5" fill="currentColor" fillOpacity=".75" />
-      <circle cx="24" cy="24" r="1.8" fill="currentColor" fillOpacity=".35" />
-      <path d="M 24 6 C 22 10, 26 10, 24 6" fill="currentColor" fillOpacity=".3" />
-      <path d="M 24 42 C 22 38, 26 38, 24 42" fill="currentColor" fillOpacity=".3" />
-    </svg>
-  );
-}
-
-function LoreFrame() {
-  return (
-    <div className="lore-frame" aria-hidden="true">
-      <span className="lore-corner lore-corner--tl"><LoreCornerSvg /></span>
-      <span className="lore-corner lore-corner--tr"><LoreCornerSvg /></span>
-      <span className="lore-corner lore-corner--bl"><LoreCornerSvg /></span>
-      <span className="lore-corner lore-corner--br"><LoreCornerSvg /></span>
-    </div>
-  );
-}
-
-function LoreTileView({ chapter }: { chapter: Chapter }) {
-  const [expanded, setExpanded] = useState(false);
-  return (
-    <div className="tile tile-lore">
-      <div className="tile-inner">
-        <div className={'lore-card' + (expanded ? ' lore-card--expanded' : '')}>
-          <LoreFrame />
-          <div className="lore-head">
-            <div className="lore-mark"><LoreGlyph /></div>
-            <div className="lore-label">The Lore</div>
-            <div className="lore-num">ch · {chapter.roman}</div>
-          </div>
-          <div className="lore-essence">{chapter.lore.essence}</div>
-          {expanded && (
-            <div className="lore-expanded">
-              <div className="lore-body">{chapter.lore.expandedContent}</div>
-              <button className="lore-collapse" onClick={() => setExpanded(false)}>
-                <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
-                  <polyline points="1,5 5,1 9,5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                collapse
-              </button>
-            </div>
-          )}
-          {!expanded && (
-            <button className="lore-explore" onClick={() => setExpanded(true)}>
-              <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
-                <polyline points="1,1 5,5 9,1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              explore
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function SceneTileView({ scene, sceneIdx, totalScenes, chapterRoman, chapterTitle }: {
   scene: Chapter['scenes'][number];
@@ -481,8 +322,6 @@ function renderTile(
     generating={generatingCumulative}
   />;
   if (tile.kind === 'opener') return <OpenerTileView chapter={chapters[tile.ch]} idx={tile.ch} total={chapters.length} />;
-  if (tile.kind === 'code') return <CodeTileView chapter={chapters[tile.ch]} />;
-  if (tile.kind === 'lore') return <LoreTileView chapter={chapters[tile.ch]} />;
   if (tile.kind === 'scene') {
     const ch = chapters[tile.ch];
     return (
@@ -566,9 +405,7 @@ function DeckNav({ tileIdx, total, go, tiles, onOpenTray }: {
   let label = 'continue';
   if (!next) label = 'complete';
   else if (tile?.kind === 'prelude') label = 'enter chapter I';
-  else if (tile?.kind === 'opener') label = 'receive the code';
-  else if (tile?.kind === 'code') label = 'explore the lore';
-  else if (tile?.kind === 'lore') label = 'begin';
+  else if (tile?.kind === 'opener') label = 'begin';
   else if (next.kind === 'opener') label = 'cross the threshold';
   else if (next.kind === 'epilogue') label = 'complete the origin';
 
@@ -784,12 +621,18 @@ export default function App() {
   const enterBegin = () => setTileIdxState(1);
   const tiles = useMemo(() => buildTiles(chapters), [chapters]);
 
+  // Clamp persisted tile index against the current deck (the deck graph
+  // changed when chapter-level code/lore tiles were removed, so an old
+  // saved index could land out of range or on the wrong tile).
+  useEffect(() => {
+    if (tileIdx < 0) setTileIdxState(0);
+    else if (tileIdx >= tiles.length) setTileIdxState(tiles.length - 1);
+  }, [tileIdx, tiles.length]);
+
   const currentTile = tiles[tileIdx];
 
   let currentCh = 0;
   if (currentTile?.kind === 'opener') currentCh = (currentTile as OpenerTile).ch;
-  else if (currentTile?.kind === 'code') currentCh = (currentTile as CodeTile).ch;
-  else if (currentTile?.kind === 'lore') currentCh = (currentTile as LoreTile).ch;
   else if (currentTile?.kind === 'scene') currentCh = (currentTile as SceneTileData).ch;
   else if (currentTile?.kind === 'epilogue') currentCh = chapters.length - 1;
 
