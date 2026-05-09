@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useUser } from '@clerk/react';
+import { useLocation } from 'wouter';
 import { getAllReadings, getCumulative, getBodyEntries, getStreamEntries, load } from '../storage';
 
 type Mode = 'readings' | 'full';
@@ -11,6 +12,7 @@ interface Props {
 
 export default function SharingConsent({ onDone, onSkip }: Props) {
   const { user } = useUser();
+  const [, navigate] = useLocation();
   const [mode, setMode] = useState<Mode>('readings');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -78,16 +80,27 @@ export default function SharingConsent({ onDone, onSkip }: Props) {
           <p className="sharing-consent-body">
             Your journey has been shared. Thank you for trusting us with your work.
           </p>
-          {!user && (
-            <p className="sharing-consent-body sharing-consent-guest-note">
-              Create an account to preserve your journey across devices and revisit it any time.
-            </p>
+          {!user ? (
+            <div className="sharing-guest-cta">
+              <p className="sharing-consent-body sharing-consent-guest-note">
+                Create an account to preserve your journey across devices and return to it any time.
+              </p>
+              <div className="sharing-guest-actions">
+                <button className="primary-btn" onClick={() => navigate('/sign-up')}>
+                  <span className="label">create an account</span>
+                </button>
+                <button className="btn-ghost" onClick={onDone}>
+                  <span className="label">continue as guest</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="sharing-consent-actions">
+              <button className="primary-btn" onClick={onDone}>
+                <span className="label">continue</span>
+              </button>
+            </div>
           )}
-          <div className="sharing-consent-actions">
-            <button className="primary-btn" onClick={onDone}>
-              <span className="label">continue</span>
-            </button>
-          </div>
         </div>
       </div>
     );

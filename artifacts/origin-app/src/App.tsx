@@ -20,6 +20,7 @@ import StreamOverlay from './components/StreamOverlay';
 import HorizonOverlay from './components/HorizonOverlay';
 import SharingConsent from './components/SharingConsent';
 import ReadingStage from './components/ReadingStage';
+import InstrumentIntro from './components/InstrumentIntro';
 import { ButterflyIcon, CompassIcon } from './components/MorphoCompassIcons';
 
 /* ─── Types ──────────────────────────────────────────── */
@@ -344,7 +345,7 @@ function renderTile(
   return null;
 }
 
-function DeckNav({ tileIdx, total, go, tiles, onStream, onBody, onJournal }: {
+function DeckNav({ tileIdx, total, go, tiles, onStream, onBody, onJournal, hasMorpho }: {
   tileIdx: number;
   total: number;
   go: (i: number) => void;
@@ -352,6 +353,7 @@ function DeckNav({ tileIdx, total, go, tiles, onStream, onBody, onJournal }: {
   onStream: () => void;
   onBody: () => void;
   onJournal: () => void;
+  hasMorpho: boolean;
 }) {
   const tile = tiles[tileIdx];
   const next = tiles[tileIdx + 1];
@@ -377,7 +379,7 @@ function DeckNav({ tileIdx, total, go, tiles, onStream, onBody, onJournal }: {
             <div className="nav-track-fill" style={{ width: ((tileIdx + 1) / total) * 100 + '%' }} />
           </div>
         </div>
-        <div className="nav-tools" role="group" aria-label="Tools">
+        <div className="nav-tools" role="group" aria-label="Journey instruments">
           <button className="nav-tool" onClick={onStream} aria-label="Stream of consciousness">
             <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
               <path d="M5 10 Q9 7 16 10 T27 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none" />
@@ -395,12 +397,14 @@ function DeckNav({ tileIdx, total, go, tiles, onStream, onBody, onJournal }: {
             </svg>
             <span className="nav-tool-label">body</span>
           </button>
-          <button className="nav-tool" onClick={onJournal} aria-label="Open journal">
-            <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
-              <rect x="6" y="4" width="18" height="24" rx="2" fill="none" stroke="currentColor" strokeWidth="1.6" />
-              <path d="M6 13.5h18M6 18h12M6 22h9" stroke="currentColor" strokeWidth="1.2" strokeOpacity=".55" />
-            </svg>
-            <span className="nav-tool-label">journal</span>
+          <button
+            className={`nav-tool nav-tool-readings${hasMorpho ? ' nav-tool--has-reading' : ''}`}
+            onClick={onJournal}
+            aria-label={hasMorpho ? 'Open Morpho readings and journal' : 'Open journal'}
+            style={hasMorpho ? { color: '#4ff0d6' } : undefined}
+          >
+            <ButterflyIcon size={22} glowing={hasMorpho} />
+            <span className="nav-tool-label">readings</span>
           </button>
         </div>
       </div>
@@ -416,7 +420,7 @@ function DeckNav({ tileIdx, total, go, tiles, onStream, onBody, onJournal }: {
 }
 
 function Deck({ tiles, tileIdx, advance, chapters, onEnter, onRestart,
-  onCumulative, hasCumulative, generatingCumulative, onStream, onBody, onJournal }: {
+  onCumulative, hasCumulative, generatingCumulative, onStream, onBody, onJournal, hasMorpho }: {
   tiles: Tile[];
   tileIdx: number;
   advance: (i: number) => void;
@@ -429,6 +433,7 @@ function Deck({ tiles, tileIdx, advance, chapters, onEnter, onRestart,
   onStream: () => void;
   onBody: () => void;
   onJournal: () => void;
+  hasMorpho: boolean;
 }) {
   const [dir, setDir] = useState(1);
   const [animKey, setAnimKey] = useState(0);
@@ -576,7 +581,7 @@ function Deck({ tiles, tileIdx, advance, chapters, onEnter, onRestart,
       <div key={animKey} ref={tileWrapRef} className={'tile-wrap dir-' + (dir > 0 ? 'fwd' : 'back')}>
         {tile && renderTile(tile, chapters, onEnter, onRestart, onCumulative, hasCumulative, generatingCumulative)}
       </div>
-      <DeckNav tileIdx={tileIdx} total={tiles.length} go={go} tiles={tiles} onStream={onStream} onBody={onBody} onJournal={onJournal} />
+      <DeckNav tileIdx={tileIdx} total={tiles.length} go={go} tiles={tiles} onStream={onStream} onBody={onBody} onJournal={onJournal} hasMorpho={hasMorpho} />
     </div>
   );
 }
@@ -600,6 +605,7 @@ export default function App() {
   const [sharingShown, setSharingShown] = useState<boolean>(() =>
     !!localStorage.getItem('origin.sharing.skipped') || !!localStorage.getItem('origin.sharing.done')
   );
+  const [introTarget, setIntroTarget] = useState<number | null>(null);
   const sessionHorizonsRef = useRef<Set<number>>(new Set());
   const prevUserIdRef = useRef<string | null>(null);
   const syncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -729,6 +735,7 @@ export default function App() {
     sessionHorizonsRef.current.clear();
     sessionReadingsRef.current.clear();
     setReadingStage(null);
+    setIntroTarget(null);
     setTileIdxState(0);
   };
   const enterBegin = () => setTileIdxState(1);
@@ -763,6 +770,7 @@ export default function App() {
   const allChaptersComplete = chapters.every(ch => isChapterComplete(ch));
   const showSharing = currentTile?.kind === 'epilogue' && allChaptersComplete && !sharingShown;
   const palette = chapters[currentCh].palette;
+  const hasMorpho = !!getReading(currentCh).morpho;
 
   const rootStyle = {
     '--bg': palette.bg,
@@ -778,10 +786,20 @@ export default function App() {
     if (i >= 0) setTileIdxState(i);
   };
 
-  // Intercepted advance: triggers ReadingStage → then Horizon when crossing into next chapter
-  // from a completed one (and we haven't already shown them this session).
+  // Intercepted advance: triggers InstrumentIntro (first time, ch1 scene0→scene1),
+  // then ReadingStage → then Horizon when crossing into next chapter from a completed one.
   const advance = useCallback((nextIdx: number) => {
     if (nextIdx > tileIdx) {
+      // First-use: show Morpho/Sage/instruments introduction between the first two scenes
+      if (!localStorage.getItem('origin.intro.seen')) {
+        const cur = tiles[tileIdx];
+        if (cur?.kind === 'scene' && (cur as SceneTileData).ch === 0 && (cur as SceneTileData).sc === 0) {
+          setIntroTarget(nextIdx);
+          return;
+        }
+      }
+
+      // Chapter-crossing: show ReadingStage before entering next chapter
       const cur = tiles[tileIdx];
       const nxt = tiles[nextIdx];
       const fromCh = cur && 'ch' in cur ? (cur as OpenerTile).ch : -1;
@@ -920,6 +938,7 @@ export default function App() {
           onStream={() => setStreamOpen(true)}
           onBody={() => setBodyOpen(true)}
           onJournal={() => setJournalOpen(true)}
+          hasMorpho={hasMorpho}
         />
       </main>
 
@@ -971,6 +990,15 @@ export default function App() {
         <SharingConsent
           onDone={() => setSharingShown(true)}
           onSkip={() => setSharingShown(true)}
+        />
+      )}
+      {introTarget !== null && (
+        <InstrumentIntro
+          nextIdx={introTarget}
+          onDismiss={(nextIdx) => {
+            setIntroTarget(null);
+            setTileIdxState(nextIdx);
+          }}
         />
       )}
     </div>
