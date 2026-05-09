@@ -1,8 +1,9 @@
 import { Router, type IRouter } from "express";
 import { z } from "zod";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { getAuth } from "@clerk/express";
-import { db, submissionsTable } from "@workspace/db";
+import { db, submissionsTable, usersTable } from "@workspace/db";
+import { eq } from "drizzle-orm";
 
 const router: IRouter = Router();
 
@@ -11,12 +12,28 @@ const submissionSchema = z.object({
   payload: z.record(z.unknown()),
 });
 
+async function resolveInternalUserId(clerkId: string): Promise<string> {
+  const id = randomUUID();
+  await db
+    .insert(usersTable)
+    .values({ id, clerkId, email: "" })
+    .onConflictDoNothing({ target: usersTable.clerkId });
+  const rows = await db
+    .select({ id: usersTable.id })
+    .from(usersTable)
+    .where(eq(usersTable.clerkId, clerkId))
+    .limit(1);
+  return rows[0].id;
+}
+
 router.post("/", async (req, res, next) => {
   try {
     const { mode, payload } = submissionSchema.parse(req.body);
 
     const auth = getAuth(req);
-    const userId = auth.userId ?? null;
+    const clerkId = auth.userId ?? null;
+
+    const userId = clerkId ? await resolveInternalUserId(clerkId) : null;
 
     const rawIp =
       req.headers["x-forwarded-for"]?.toString().split(",")[0]?.trim() ||
@@ -31,7 +48,7 @@ router.post("/", async (req, res, next) => {
     await db.insert(submissionsTable).values({
       id,
       userId,
-      clerkId: userId,
+      clerkId,
       payload: { mode, ...payload },
       ipHash,
     });
@@ -43,7 +60,7 @@ router.post("/", async (req, res, next) => {
       fetch(webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, mode, userId }),
+        body: JSON.stringify({ id, mode, userId, clerkId }),
         signal: controller.signal,
       })
         .catch((err: unknown) => {
@@ -51,7 +68,7 @@ router.post("/", async (req, res, next) => {
         })
         .finally(() => clearTimeout(timeout));
     } else {
-      req.log.info({ id, mode, userId }, "New submission received (no webhook configured)");
+      req.log.info({ id, mode, userId, clerkId }, "New submission received (no webhook configured)");
     }
 
     res.json({ ok: true });
