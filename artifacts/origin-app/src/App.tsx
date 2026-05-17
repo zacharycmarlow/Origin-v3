@@ -605,6 +605,7 @@ export default function App() {
   const [sharingShown, setSharingShown] = useState<boolean>(() =>
     !!localStorage.getItem('origin.sharing.skipped') || !!localStorage.getItem('origin.sharing.done')
   );
+  const [epilogueReady, setEpilogueReady] = useState(false);
   const [introTarget, setIntroTarget] = useState<number | null>(null);
   const sessionHorizonsRef = useRef<Set<number>>(new Set());
   const prevUserIdRef = useRef<string | null>(null);
@@ -766,9 +767,20 @@ export default function App() {
     return max;
   }, [tileIdx, tiles, chapters, currentTile]);
 
+  // Gate the SharingConsent so it doesn't interrupt the epilogue entrance animation.
+  // Fire once 2.5s after first landing on the epilogue tile.
+  useEffect(() => {
+    if (currentTile?.kind !== 'epilogue') {
+      setEpilogueReady(false);
+      return;
+    }
+    const t = setTimeout(() => setEpilogueReady(true), 2500);
+    return () => clearTimeout(t);
+  }, [currentTile?.kind]);
+
   const isOutside = currentTile?.kind === 'prelude' || currentTile?.kind === 'epilogue';
   const allChaptersComplete = chapters.every(ch => isChapterComplete(ch));
-  const showSharing = currentTile?.kind === 'epilogue' && allChaptersComplete && !sharingShown;
+  const showSharing = currentTile?.kind === 'epilogue' && epilogueReady && allChaptersComplete && !sharingShown;
   const palette = chapters[currentCh].palette;
   const hasMorpho = !!getReading(currentCh).morpho;
 
