@@ -21,6 +21,7 @@ import HorizonOverlay from './components/HorizonOverlay';
 import SharingConsent from './components/SharingConsent';
 import ReadingStage from './components/ReadingStage';
 import InstrumentIntro from './components/InstrumentIntro';
+import MetamythInvite from './components/MetamythInvite';
 import { ButterflyIcon, CompassIcon } from './components/MorphoCompassIcons';
 
 /* ─── Types ──────────────────────────────────────────── */
@@ -183,11 +184,12 @@ function PreludeTileView({ onEnter }: { onEnter: () => void }) {
   );
 }
 
-function EpilogueTileView({ onRestart, onCumulative, hasCumulative, generating }: {
+function EpilogueTileView({ onRestart, onCumulative, hasCumulative, generating, sharingShown }: {
   onRestart: () => void;
   onCumulative: () => void;
   hasCumulative: boolean;
   generating: boolean;
+  sharingShown: boolean;
 }) {
   return (
     <div className="tile tile-epilogue">
@@ -249,6 +251,8 @@ function EpilogueTileView({ onRestart, onCumulative, hasCumulative, generating }
             <span className="label">return to the origin</span>
           </button>
         </div>
+
+        {sharingShown && <MetamythInvite />}
       </div>
     </div>
   );
@@ -320,6 +324,7 @@ function renderTile(
   tile: Tile, chapters: Chapter[],
   onEnter: () => void, onRestart: () => void,
   onCumulative: () => void, hasCumulative: boolean, generatingCumulative: boolean,
+  sharingShown: boolean,
 ) {
   if (tile.kind === 'prelude') return <PreludeTileView onEnter={onEnter} />;
   if (tile.kind === 'epilogue') return <EpilogueTileView
@@ -327,6 +332,7 @@ function renderTile(
     onCumulative={onCumulative}
     hasCumulative={hasCumulative}
     generating={generatingCumulative}
+    sharingShown={sharingShown}
   />;
   if (tile.kind === 'opener') return <OpenerTileView chapter={chapters[tile.ch]} idx={tile.ch} total={chapters.length} />;
   if (tile.kind === 'scene') {
@@ -420,7 +426,7 @@ function DeckNav({ tileIdx, total, go, tiles, onStream, onBody, onJournal, hasMo
 }
 
 function Deck({ tiles, tileIdx, advance, chapters, onEnter, onRestart,
-  onCumulative, hasCumulative, generatingCumulative, onStream, onBody, onJournal, hasMorpho }: {
+  onCumulative, hasCumulative, generatingCumulative, onStream, onBody, onJournal, hasMorpho, sharingShown }: {
   tiles: Tile[];
   tileIdx: number;
   advance: (i: number) => void;
@@ -434,6 +440,7 @@ function Deck({ tiles, tileIdx, advance, chapters, onEnter, onRestart,
   onBody: () => void;
   onJournal: () => void;
   hasMorpho: boolean;
+  sharingShown: boolean;
 }) {
   const [dir, setDir] = useState(1);
   const [animKey, setAnimKey] = useState(0);
@@ -579,7 +586,7 @@ function Deck({ tiles, tileIdx, advance, chapters, onEnter, onRestart,
       onTouchEnd={onTouchEnd}
     >
       <div key={animKey} ref={tileWrapRef} className={'tile-wrap dir-' + (dir > 0 ? 'fwd' : 'back')}>
-        {tile && renderTile(tile, chapters, onEnter, onRestart, onCumulative, hasCumulative, generatingCumulative)}
+        {tile && renderTile(tile, chapters, onEnter, onRestart, onCumulative, hasCumulative, generatingCumulative, sharingShown)}
       </div>
       <DeckNav tileIdx={tileIdx} total={tiles.length} go={go} tiles={tiles} onStream={onStream} onBody={onBody} onJournal={onJournal} hasMorpho={hasMorpho} />
     </div>
@@ -951,6 +958,7 @@ export default function App() {
           onBody={() => setBodyOpen(true)}
           onJournal={() => setJournalOpen(true)}
           hasMorpho={hasMorpho}
+          sharingShown={sharingShown}
         />
       </main>
 
