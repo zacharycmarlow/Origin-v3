@@ -205,7 +205,7 @@ function UnlockableInline({
         aria-expanded={open}
       >
         <Chevron dir={open ? 'up' : 'down'} />
-        <span>{open ? 'collapse' : (unlocked ? `re-${verb}` : verb)}</span>
+        <span>{open ? 'collapse' : verb}</span>
       </button>
     </div>
   );

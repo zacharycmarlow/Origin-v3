@@ -815,11 +815,11 @@ input, textarea, select { font-family: inherit; color: inherit; }
   color: #c4a265;
   flex-shrink: 0;
 }
-/* Lore corners breathe — vine paths pulse with staggered delay */
-.lore-corner svg path { animation: vine-breathe 6s ease-in-out infinite; }
-.lore-corner:nth-child(2) svg path { animation-delay: 1.5s; }
-.lore-corner:nth-child(3) svg path { animation-delay: 3s; }
-.lore-corner:nth-child(4) svg path { animation-delay: 4.5s; }
+/* Lore corners breathe — vine paths only (first path = vine curve) */
+.lore-corner svg path:first-child { animation: vine-breathe 6s ease-in-out infinite; }
+.lore-corner:nth-child(2) svg path:first-child { animation-delay: 1.5s; }
+.lore-corner:nth-child(3) svg path:first-child { animation-delay: 3s; }
+.lore-corner:nth-child(4) svg path:first-child { animation-delay: 4.5s; }
 
 @media (max-width: 900px) {
   .lore-card { padding: 42px 30px 36px; }
