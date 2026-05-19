@@ -26,14 +26,16 @@ import { ButterflyIcon, CompassIcon } from './components/MorphoCompassIcons';
 
 /* ─── Types ──────────────────────────────────────────── */
 interface PreludeTile { kind: 'prelude' }
+interface PreludeTwoTile { kind: 'prelude2' }
 interface EpilogueTile { kind: 'epilogue' }
 interface OpenerTile { kind: 'opener'; ch: number }
 interface SceneTileData { kind: 'scene'; ch: number; sc: number }
-type Tile = PreludeTile | EpilogueTile | OpenerTile | SceneTileData;
+type Tile = PreludeTile | PreludeTwoTile | EpilogueTile | OpenerTile | SceneTileData;
 
 function buildTiles(chapters: Chapter[]): Tile[] {
   const tiles: Tile[] = [];
   tiles.push({ kind: 'prelude' });
+  tiles.push({ kind: 'prelude2' });
   chapters.forEach((ch, ci) => {
     tiles.push({ kind: 'opener', ch: ci });
     ch.scenes.forEach((_, si) => {
@@ -140,8 +142,52 @@ function PreludeTileView({ onEnter }: { onEnter: () => void }) {
           The world is made of stories. The one running in your head right now — about who you are, what's real, what's possible — has been producing your reality since before you had the language to question it. This is a guide for becoming the author of yours.
         </p>
         <button className="primary-btn" onClick={onEnter}>
-          <span className="label">begin</span>
+          <span className="label">continue</span>
         </button>
+      </div>
+    </div>
+  );
+}
+
+function PreludeTwoTileView() {
+  return (
+    <div className="tile tile-prelude">
+      <div className="tile-inner">
+        <div className="before-head">your instruments</div>
+        <p className="prelude-body dim" style={{ marginTop: '12px', marginBottom: '28px', fontSize: '15px' }}>
+          Three tools appear at the bottom of every scene. Here is what they do.
+        </p>
+        <div className="prelude-before">
+          <div className="before-row">
+            <svg className="before-icon-svg" width="24" height="24" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+              <path d="M5 10 Q9 7 16 10 T27 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+              <path d="M5 16 Q9 13 16 16 T27 16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" opacity=".75" />
+              <path d="M5 22 Q9 19 16 22 T27 22" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" opacity=".5" />
+            </svg>
+            <div className="before-text">
+              <span className="before-tool-name">Stream</span> — Write without stopping. Your unfiltered mind on the page, no editing allowed.
+            </div>
+          </div>
+          <div className="before-row">
+            <svg className="before-icon-svg" width="24" height="24" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+              <circle cx="16" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.6" />
+              <path d="M8 19 Q10 15 16 14.5 Q22 15 24 19" stroke="currentColor" strokeWidth="1.6" />
+              <path d="M10 19 L10 27" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+              <path d="M22 19 L22 27" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            </svg>
+            <div className="before-text">
+              <span className="before-tool-name">Body</span> — Mark where something lands in you physically. A compass for what the body already knows.
+            </div>
+          </div>
+          <div className="before-row">
+            <span className="before-icon-svg" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ButterflyIcon size={24} />
+            </span>
+            <div className="before-text">
+              <span className="before-tool-name">Journal</span> — Your readings from the guides, your writing, and the thread of your whole journey.
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -290,6 +336,7 @@ function renderTile(
   sharingShown: boolean,
 ) {
   if (tile.kind === 'prelude') return <PreludeTileView onEnter={onEnter} />;
+  if (tile.kind === 'prelude2') return <PreludeTwoTileView />;
   if (tile.kind === 'epilogue') return <EpilogueTileView
     onRestart={onRestart}
     onCumulative={onCumulative}
@@ -361,7 +408,8 @@ function DeckNav({ tileIdx, total, go, tiles }: {
   const next = tiles[tileIdx + 1];
   let label = 'continue';
   if (!next) label = 'complete';
-  else if (tile?.kind === 'prelude') label = 'enter chapter I';
+  else if (tile?.kind === 'prelude') label = 'continue';
+  else if (tile?.kind === 'prelude2') label = 'enter chapter I';
   else if (tile?.kind === 'opener') label = 'begin';
   else if (next.kind === 'opener') label = 'cross the threshold';
   else if (next.kind === 'epilogue') label = 'complete the origin';
@@ -756,7 +804,7 @@ export default function App() {
     return () => clearTimeout(t);
   }, [currentTile?.kind]);
 
-  const isOutside = currentTile?.kind === 'prelude' || currentTile?.kind === 'epilogue';
+  const isOutside = currentTile?.kind === 'prelude' || currentTile?.kind === 'prelude2' || currentTile?.kind === 'epilogue';
   const allChaptersComplete = chapters.every(ch => isChapterComplete(ch));
   const showSharing = currentTile?.kind === 'epilogue' && epilogueReady && allChaptersComplete && !sharingShown;
   const palette = chapters[currentCh].palette;

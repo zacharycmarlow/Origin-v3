@@ -104,7 +104,7 @@ export default function Journal({ sceneKey, placeholder, rows = 4, big }: Props)
         )}
       </div>
       <div className="journal-meta">
-        <span>{val ? `saved · ${wordCount} words` : 'private to you'}</span>
+        {val ? <span>{`saved · ${wordCount} words`}</span> : null}
       </div>
     </div>
   );
