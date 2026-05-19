@@ -132,50 +132,13 @@ function PreludeTileView({ onEnter }: { onEnter: () => void }) {
     <div className="tile tile-prelude">
       <div className="tile-inner">
         <div className="prelude-glyph">
-          <CompassGlyph size={120} />
+          <CompassGlyph size={100} />
         </div>
-        <div className="prelude-eyebrow">a guide for becoming the author of your reality</div>
+        <div className="prelude-eyebrow">seven chapters · seven thresholds</div>
         <h1 className="prelude-title">THE ORIGIN</h1>
-        <div className="prelude-sub">seven chapters · seven codes · seven thresholds</div>
         <p className="prelude-body">
-          The world is made of stories. Inside your head, your brain is generating one right now about who you are and what's real and what's possible, so continuously and so seamlessly that you have probably never noticed it happening. The same neural circuits fire whether you're living something or remembering it, planning something or imagining it. To your nervous system, the story you tell is the world you live in.
+          The world is made of stories. The one running in your head right now — about who you are, what's real, what's possible — has been producing your reality since before you had the language to question it. This is a guide for becoming the author of yours.
         </p>
-        <p className="prelude-body">
-          And the story is rarely yours. It was written by people you didn't choose, in conditions you didn't design, and most of it was installed before you had the language to question it. By the time you become old enough to wonder why your life feels the way it does, the story is already producing your reality from underneath, generating the thoughts you call yours, the choices you call free, the limits you call real.
-        </p>
-        <p className="prelude-body">
-          The people who change their lives, change their stories. The people who change the world, change the story everyone is living inside.
-        </p>
-        <p className="prelude-body dim">
-          This is a guide for becoming the author of yours. Seven chapters that walk the oldest pattern human beings have ever walked: the descent into what made you, the discovery of what survived it, and the return as someone who can wield it. The character. The tension. The gift. The source. The narrator. The dream. The ending. By the end you will not just have a new story. You will be living inside one. And from inside an authored life, the same machinery that has been running you, the brain's narrative system, becomes the instrument you use to author what comes next. Reality is story shaped. Stories change. So can we.
-        </p>
-        <div className="prelude-before">
-          <div className="before-head">before we begin · how to use this</div>
-          <div className="before-row">
-            <div className="before-num">I</div>
-            <div className="before-text">tell this in the past tense — speaking your life as something that already happened shifts you from inside the story to outside it, from a person reliving the pain to the narrator of a character's journey.</div>
-          </div>
-          <div className="before-row">
-            <div className="before-num">II</div>
-            <div className="before-text">speak aloud when you can — the story lives in the voice and the breath.</div>
-          </div>
-          <div className="before-row">
-            <div className="before-num">III</div>
-            <div className="before-text">stay with what surfaces — a raw emotion, fully felt, moves through the body in about ninety seconds. longer than that, and a story is holding it in place.</div>
-          </div>
-        </div>
-        <div className="prelude-toc">
-          <div className="toc-head">the seven chapters</div>
-          <ol className="toc-list">
-            <li><span className="toc-roman">I</span> The Prologue · Everything you have lived is the opening chapter of a story only you can tell.</li>
-            <li><span className="toc-roman">II</span> The Tension · The more tension in your story, the more powerful the resolution.</li>
-            <li><span className="toc-roman">III</span> The Gift · Make what happened to you happen for you.</li>
-            <li><span className="toc-roman">IV</span> The Source · The mind that built every god can make your life sacred.</li>
-            <li><span className="toc-roman">V</span> The Narrator · Your entire reality is a story, and the one telling it is the one you mistook for yourself.</li>
-            <li><span className="toc-roman">VI</span> The Dream · Remember the power to dream worlds into being.</li>
-            <li><span className="toc-roman">VII</span> The Ending · A story told aloud to another nervous system becomes real in a way no thought can.</li>
-          </ol>
-        </div>
         <button className="primary-btn" onClick={onEnter}>
           <span className="label">begin</span>
         </button>
@@ -351,15 +314,48 @@ function renderTile(
   return null;
 }
 
-function DeckNav({ tileIdx, total, go, tiles, onStream, onBody, onJournal, hasMorpho }: {
-  tileIdx: number;
-  total: number;
-  go: (i: number) => void;
-  tiles: Tile[];
+function InstrumentBar({ onStream, onBody, onJournal, hasMorpho }: {
   onStream: () => void;
   onBody: () => void;
   onJournal: () => void;
   hasMorpho: boolean;
+}) {
+  return (
+    <div className="instrument-bar">
+      <button className="instr-btn" onClick={onStream} aria-label="Stream of consciousness">
+        <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
+          <path d="M5 10 Q9 7 16 10 T27 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          <path d="M5 16 Q9 13 16 16 T27 16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" opacity=".75" />
+          <path d="M5 22 Q9 19 16 22 T27 22" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" opacity=".5" />
+        </svg>
+        <span className="instr-label">stream</span>
+      </button>
+      <button className="instr-btn" onClick={onBody} aria-label="Body check-in">
+        <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
+          <circle cx="16" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.6" />
+          <path d="M8 19 Q10 15 16 14.5 Q22 15 24 19" stroke="currentColor" strokeWidth="1.6" />
+          <path d="M10 19 L10 27" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+          <path d="M22 19 L22 27" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+        </svg>
+        <span className="instr-label">body</span>
+      </button>
+      <button
+        className={`instr-btn${hasMorpho ? ' instr-btn--lit' : ''}`}
+        onClick={onJournal}
+        aria-label={hasMorpho ? 'Open readings and journal' : 'Open journal'}
+      >
+        <ButterflyIcon size={24} glowing={hasMorpho} />
+        <span className="instr-label">journal</span>
+      </button>
+    </div>
+  );
+}
+
+function DeckNav({ tileIdx, total, go, tiles }: {
+  tileIdx: number;
+  total: number;
+  go: (i: number) => void;
+  tiles: Tile[];
 }) {
   const tile = tiles[tileIdx];
   const next = tiles[tileIdx + 1];
@@ -384,34 +380,6 @@ function DeckNav({ tileIdx, total, go, tiles, onStream, onBody, onJournal, hasMo
           <div className="nav-track">
             <div className="nav-track-fill" style={{ width: ((tileIdx + 1) / total) * 100 + '%' }} />
           </div>
-        </div>
-        <div className="nav-tools" role="group" aria-label="Journey instruments">
-          <button className="nav-tool" onClick={onStream} aria-label="Stream of consciousness">
-            <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
-              <path d="M5 10 Q9 7 16 10 T27 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none" />
-              <path d="M5 16 Q9 13 16 16 T27 16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none" opacity=".75" />
-              <path d="M5 22 Q9 19 16 22 T27 22" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none" opacity=".5" />
-            </svg>
-            <span className="nav-tool-label">stream</span>
-          </button>
-          <button className="nav-tool" onClick={onBody} aria-label="Where does this live in your body">
-            <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
-              <circle cx="16" cy="8" r="3.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
-              <path d="M8 19 Q10 15 16 14.5 Q22 15 24 19" fill="none" stroke="currentColor" strokeWidth="1.6" />
-              <path d="M10 19 L10 27" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-              <path d="M22 19 L22 27" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-            </svg>
-            <span className="nav-tool-label">body</span>
-          </button>
-          <button
-            className={`nav-tool nav-tool-readings${hasMorpho ? ' nav-tool--has-reading' : ''}`}
-            onClick={onJournal}
-            aria-label={hasMorpho ? 'Open Morpho readings and journal' : 'Open journal'}
-            style={hasMorpho ? { color: '#4ff0d6' } : undefined}
-          >
-            <ButterflyIcon size={22} glowing={hasMorpho} />
-            <span className="nav-tool-label">readings</span>
-          </button>
         </div>
       </div>
       <button className="nav-btn nav-fwd primary" onClick={() => go(tileIdx + 1)} disabled={tileIdx === total - 1}>
@@ -588,7 +556,10 @@ function Deck({ tiles, tileIdx, advance, chapters, onEnter, onRestart,
       <div key={animKey} ref={tileWrapRef} className={'tile-wrap dir-' + (dir > 0 ? 'fwd' : 'back')}>
         {tile && renderTile(tile, chapters, onEnter, onRestart, onCumulative, hasCumulative, generatingCumulative, sharingShown)}
       </div>
-      <DeckNav tileIdx={tileIdx} total={tiles.length} go={go} tiles={tiles} onStream={onStream} onBody={onBody} onJournal={onJournal} hasMorpho={hasMorpho} />
+      {!(tile?.kind === 'prelude' || tile?.kind === 'epilogue') && (
+        <InstrumentBar onStream={onStream} onBody={onBody} onJournal={onJournal} hasMorpho={hasMorpho} />
+      )}
+      <DeckNav tileIdx={tileIdx} total={tiles.length} go={go} tiles={tiles} />
     </div>
   );
 }

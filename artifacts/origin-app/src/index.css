@@ -394,11 +394,11 @@ input, textarea, select { font-family: inherit; color: inherit; }
 @keyframes rotate-slow { to { transform: rotate(360deg); } }
 
 .prelude-eyebrow {
-  font-family: var(--font-title);
+  font-family: var(--font-body);
   text-transform: uppercase;
-  font-size: 12px; letter-spacing: .4em;
+  font-size: 11px; letter-spacing: .28em;
   color: var(--teal-ink);
-  opacity: .85; margin-bottom: 22px;
+  opacity: .75; margin-bottom: 20px;
 }
 .prelude-title {
   font-family: var(--font-title);
@@ -420,17 +420,17 @@ input, textarea, select { font-family: inherit; color: inherit; }
   text-transform: uppercase;
 }
 .prelude-sub {
-  font-family: var(--font-title);
+  font-family: var(--font-body);
   text-transform: uppercase;
-  font-size: 12px; letter-spacing: .36em;
-  color: var(--teal-ink); opacity: .85;
-  margin-bottom: 36px;
+  font-size: 11px; letter-spacing: .26em;
+  color: var(--teal-ink); opacity: .75;
+  margin-bottom: 32px;
 }
 .prelude-body {
-  max-width: 520px; margin: 0 auto 18px;
+  max-width: 480px; margin: 0 auto 32px;
   font-family: var(--font-body);
-  font-size: 20px; line-height: 1.7;
-  color: var(--ink); opacity: .92;
+  font-size: 18px; line-height: 1.75;
+  color: var(--ink); opacity: .82;
   text-wrap: pretty;
 }
 .prelude-body.dim { opacity: .65; font-style: italic; }
@@ -3265,60 +3265,61 @@ input, textarea, select { font-family: inherit; color: inherit; }
 }
 
 /* ============================================================
-   NAV TOOLS — always-visible Stream / Body / Journal buttons
-   (replaces the hidden 3-dot tray handle)
+   INSTRUMENT BAR — Stream / Body / Journal, above DeckNav
 ============================================================ */
-.nav-tools {
+.instrument-bar {
   display: flex;
-  gap: 6px;
-  align-items: center;
   justify-content: center;
-  margin-top: 6px;
+  align-items: center;
+  gap: 0;
+  padding: 4px 40px 2px 240px;
+  flex-shrink: 0;
 }
-.nav-tool {
+@media (max-width: 1100px) { .instrument-bar { padding-left: 90px; } }
+@media (max-width: 900px)  { .instrument-bar { padding: 4px 22px 2px 60px; } }
+@media (max-width: 600px)  { .instrument-bar { padding: 4px 18px 2px; } }
+
+.instr-btn {
   all: unset;
+  cursor: pointer;
   display: inline-flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  padding: 6px 11px 5px;
-  background: rgba(255, 250, 235, 0.04);
-  border: 1px solid rgba(196, 162, 101, 0.22);
-  border-radius: 10px;
-  color: rgba(245, 232, 200, 0.72);
-  cursor: pointer;
-  transition: background 200ms ease, border-color 200ms ease, color 200ms ease, transform 160ms ease;
+  gap: 4px;
+  padding: 8px 26px;
+  color: var(--ink);
+  opacity: 0.42;
+  border-radius: 12px;
+  transition: opacity 0.22s ease, color 0.22s ease, transform 0.14s ease, filter 0.22s ease;
   -webkit-tap-highlight-color: transparent;
 }
-.nav-tool:hover {
-  background: rgba(196, 162, 101, 0.10);
-  border-color: rgba(196, 162, 101, 0.45);
-  color: #f5e8c8;
+.instr-btn:hover {
+  opacity: 0.9;
+  color: var(--teal-ink);
   transform: translateY(-1px);
 }
-.nav-tool:active { transform: translateY(0); }
-.nav-tool-label {
-  font-family: 'Cormorant SC', serif;
-  font-size: 10px;
-  letter-spacing: 0.06em;
-  opacity: 0.72;
-  white-space: nowrap;
+.instr-btn:active { transform: translateY(0); opacity: 0.7; }
+
+.instr-btn--lit {
+  opacity: 0.85;
+  color: var(--teal-core);
 }
-.nav-tool--has-reading {
-  border-color: rgba(79, 240, 214, 0.32);
-  background: rgba(79, 240, 214, 0.05);
-}
-.nav-tool--has-reading:hover {
-  border-color: rgba(79, 240, 214, 0.55);
-  background: rgba(79, 240, 214, 0.10);
-}
-.nav-tool--has-reading .nav-tool-label {
-  color: #4ff0d6;
-  opacity: 0.9;
+.instr-btn--lit:hover {
+  opacity: 1;
+  color: var(--teal-core);
+  filter: drop-shadow(0 0 6px rgba(79, 240, 214, 0.45));
 }
 
-/* Hide the legacy bottom tray (kept in CSS but unused). */
-.bottom-tray, .tray-backdrop, .nav-tray-handle { display: none !important; }
+.instr-label {
+  font-family: var(--font-body);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Hide the legacy nav-tools and bottom tray (kept in CSS but unused). */
+.nav-tools, .bottom-tray, .tray-backdrop, .nav-tray-handle { display: none !important; }
 
 /* ============================================================
    INLINE CODE / LORE — unlock state + flash
@@ -4379,10 +4380,17 @@ input, textarea, select { font-family: inherit; color: inherit; }
 }
 
 .intro-glyph {
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 .intro-glyph--teal { color: #4ff0d6; }
 .intro-glyph--gold { color: #c89838; }
+.intro-glyph--ink  { color: var(--ink, #3a2c1a); opacity: 0.7; }
+
+.intro-instr-pair {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
 
 .intro-eyebrow {
   font-family: 'JetBrains Mono', monospace;
@@ -4478,17 +4486,13 @@ input, textarea, select { font-family: inherit; color: inherit; }
   text-align: center;
 }
 
-/* Footer: dots + CTA */
+/* Footer: dots + hint */
 .intro-footer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  padding: 20px 28px max(28px, env(safe-area-inset-bottom, 28px));
+  gap: 14px;
+  margin-top: 32px;
 }
 
 .intro-dots {
@@ -4507,6 +4511,15 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .intro-dot--active {
   opacity: 0.62;
   transform: scale(1.25);
+}
+
+.intro-tap-hint {
+  font-family: var(--font-body);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink, #3a2c1a);
+  opacity: 0.3;
 }
 
 .intro-btn {

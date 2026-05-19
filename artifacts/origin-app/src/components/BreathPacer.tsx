@@ -3,12 +3,11 @@ import { useState, useEffect } from 'react';
 type Phase = 'idle' | 'in' | 'out' | 'done';
 
 interface Props {
-  label?: string;
   cycles?: number;
   onDone?: () => void;
 }
 
-export default function BreathPacer({ label, cycles = 3, onDone }: Props) {
+export default function BreathPacer({ cycles = 3, onDone }: Props) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [cycle, setCycle] = useState(0);
   const [running, setRunning] = useState(false);
@@ -45,7 +44,7 @@ export default function BreathPacer({ label, cycles = 3, onDone }: Props) {
           {phase === 'done' && '∎'}
         </div>
       </div>
-      {label && <div className="breath-label">{label}</div>}
+      <div className="breath-label">breathe in the new · let out the old</div>
       <div className="breath-controls">
         {!running && phase !== 'done' && (
           <button className="btn-ghost" onClick={() => { setCycle(0); setPhase('idle'); setRunning(true); }}>

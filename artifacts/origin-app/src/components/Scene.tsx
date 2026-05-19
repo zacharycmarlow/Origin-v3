@@ -193,8 +193,8 @@ export default function Scene({ scene, chapterIdx }: Props) {
 
         {scene.closing && <p className="scene-closing">{scene.closing}</p>}
 
-        {(scene.kind === 'arrive' || scene.kind === 'breath' || scene.kind === 'prompt') && scene.breath && (
-          <BreathPacer label={scene.breath.label} cycles={scene.breath.cycles} />
+        {scene.kind === 'breath' && scene.breath && (
+          <BreathPacer cycles={scene.breath.cycles} />
         )}
         {scene.kind === 'reflection' && <div className="reflection-mark">◦</div>}
         {scene.kind === 'outside' && (
@@ -268,11 +268,6 @@ export default function Scene({ scene, chapterIdx }: Props) {
           {scene.after.filter(line => line.kind !== 'shame').map((line, i) => (
             <p key={i} className={'after-line after-' + (line.kind || 'note')}>{line.text}</p>
           ))}
-        </div>
-      )}
-      {showAfter && scene.breathAfter && (
-        <div className="scene-breath-after scene-after--reveal">
-          <BreathPacer label={scene.breathAfter.label} cycles={scene.breathAfter.cycles} />
         </div>
       )}
     </div>
