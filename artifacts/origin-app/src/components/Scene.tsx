@@ -92,7 +92,7 @@ function UnlockableInline({
   const klass = kind === 'code' ? 'inline-code' : 'inline-lore';
   const sigil = kind === 'code' ? '◇' : '❋';
   const label = kind === 'code' ? 'Code' : 'Lore';
-  const verb = kind === 'code' ? 'open the code' : 'enter the lore';
+  const verb = kind === 'code' ? 'open' : 'enter';
 
   return (
     <div
@@ -120,11 +120,6 @@ function UnlockableInline({
       {open && (
         <div className={`${klass}-body`}>
           {body.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
-          {unlocked && (
-            <p className={`${klass}-archive-hint`}>
-              The full passage on this {kind} is now in your Archive — open the Journal to read it.
-            </p>
-          )}
         </div>
       )}
       <button
