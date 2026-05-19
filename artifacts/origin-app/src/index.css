@@ -3481,7 +3481,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
 /* ============================================================
    ARCHIVE TAB inside Journal
 ============================================================ */
-.jov-archive-tab { padding: 4px 0 36px; }
+.jov-codex-tab { padding: 4px 0 36px; }
 
 .jov-archive-meter {
   display: flex;
@@ -4204,7 +4204,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
    ARCHIVE TAB REORGANIZATION
    ============================================================ */
 
-.jov-archive-tab { padding: 2px 0 36px; display: flex; flex-direction: column; gap: 0; }
+.jov-codex-tab { padding: 2px 0 36px; display: flex; flex-direction: column; gap: 0; }
 
 /* ── 1. Cumulative Reading card ─────────────────────────── */
 .arc-cumulative {
@@ -4374,7 +4374,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
 }
 
 /* ── 3. Archive accordion ────────────────────────────────── */
-.arc-archive-section { margin-bottom: 8px; }
+.arc-codex-archive-section { margin-bottom: 8px; }
 
 .arc-accordion {
   border: 1px solid rgba(196, 162, 101, 0.18);

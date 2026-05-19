@@ -104,10 +104,12 @@ function ReadingsTab({ chapters, currentCh, reachedCh, cumulative }: {
   const [cumulativeOpen, setCumulativeOpen] = useState(true);
   const [expandedChs, setExpandedChs] = useState<Set<number>>(new Set([currentCh]));
 
+  // Only show chapters that have at least one reading (morpho or sage)
   const chapterList = useMemo(() => {
     const result = [];
     for (let ci = reachedCh; ci >= 0; ci--) {
-      result.push(ci);
+      const r = getReading(ci);
+      if (r.morpho || r.sage) result.push(ci);
     }
     return result;
   }, [reachedCh]);
@@ -489,7 +491,7 @@ function CodexTab({ chapters, codex, cumulative }: {
   );
 
   return (
-    <div className="jov-archive-tab">
+    <div className="jov-codex-tab">
 
       {/* Cumulative Reading */}
       {cumulative && (
@@ -564,7 +566,7 @@ function CodexTab({ chapters, codex, cumulative }: {
       )}
 
       {/* The Archive */}
-      <section className="arc-archive-section">
+      <section className="arc-codex-archive-section">
         <div className="arc-section-head">
           <span className="arc-section-title">The Archive</span>
           <span className="arc-section-sub">
