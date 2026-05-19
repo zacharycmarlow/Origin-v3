@@ -3,10 +3,10 @@ import {
   getBodyEntries, getStreamEntries, deleteStreamEntry, deleteBodyEntry,
   getCodex, getCumulative, getReading, getUnlockedArchive,
   BodyEntry, StreamEntry, CodexEntry, CumulativeReading,
+  MorphoReading, SageReading,
 } from '../storage';
 import { Chapter } from '../chapters';
 import { BodyFigure } from './BodyOverlay';
-import MiniJournal from './MiniJournal';
 import { ButterflyIcon, CompassIcon } from './MorphoCompassIcons';
 import { ARCHIVE, ArchiveEntry } from '../archive';
 
@@ -32,6 +32,67 @@ const ChevronIcon = ({ open }: { open: boolean }) => (
     <polyline points="2,4 6,8 10,4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
   </svg>
 );
+
+/* ── Reading-only detail (no user writing) ─────────────────── */
+function ChapterReadingDetail({ morpho, sage }: { morpho?: MorphoReading; sage?: SageReading }) {
+  if (!morpho && !sage) return null;
+  return (
+    <div className="jov-read-detail">
+      {morpho && (
+        <div className="jov-read-section">
+          <div className="jov-read-section-head">
+            <ButterflyIcon size={13} glowing />
+            <span>Morpho</span>
+          </div>
+          <p className="jov-read-field jov-read-field--through">{morpho.throughLine}</p>
+          {morpho.subtext && (
+            <p className="jov-read-field jov-read-field--sub">{morpho.subtext}</p>
+          )}
+          {morpho.marginalNotes?.length > 0 && (
+            <ul className="jov-read-notes">
+              {morpho.marginalNotes.map((note, i) => (
+                <li key={i} className="jov-read-note">
+                  <em>{note.passage}</em> — {note.insight}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+      {sage && (
+        <div className="jov-read-section">
+          <div className="jov-read-section-head">
+            <CompassIcon size={13} glowing />
+            <span>Sage</span>
+          </div>
+          <p className="jov-read-field jov-read-field--resonance">{sage.resonance}</p>
+          {sage.personalizedCodes?.length > 0 && (
+            <div className="jov-read-list">
+              <div className="jov-read-list-label">your codes</div>
+              {sage.personalizedCodes.map((c, i) => (
+                <div key={i} className="jov-read-list-item">
+                  <span className="jov-read-list-title">{c.title}</span>
+                  <span className="jov-read-list-body">{c.body}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {sage.personalizedLore?.length > 0 && (
+            <div className="jov-read-list">
+              <div className="jov-read-list-label">your lore</div>
+              {sage.personalizedLore.map((l, i) => (
+                <div key={i} className="jov-read-list-item">
+                  <span className="jov-read-list-title">{l.title}</span>
+                  <span className="jov-read-list-body">{l.body}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 /* ── Readings Tab ──────────────────────────────────────────── */
 function ReadingsTab({ chapters, currentCh, reachedCh, cumulative }: {
@@ -148,7 +209,14 @@ function ReadingsTab({ chapters, currentCh, reachedCh, cumulative }: {
 
             {isOpen && (
               <div className="jov-reading-mini">
-                <MiniJournal chapters={chapters} selectedCh={ci} />
+                {hasReading
+                  ? <ChapterReadingDetail morpho={r.morpho} sage={r.sage} />
+                  : (
+                    <div className="jov-work-empty">
+                      no reading for this chapter yet — complete it and cross the threshold
+                    </div>
+                  )
+                }
               </div>
             )}
           </div>

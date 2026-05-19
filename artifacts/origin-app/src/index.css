@@ -1764,6 +1764,50 @@ input, textarea, select { font-family: inherit; color: inherit; }
   opacity: .8;
 }
 
+/* ─── Reading-only detail (Morpho + Sage, no user writing) ─── */
+.jov-read-detail { display: flex; flex-direction: column; gap: 20px; padding: 4px 0 8px; }
+
+.jov-read-section { display: flex; flex-direction: column; gap: 10px; }
+
+.jov-read-section-head {
+  display: flex; align-items: center; gap: 7px;
+  font-family: 'Cormorant SC', serif;
+  font-size: 11px; letter-spacing: .25em; text-transform: uppercase;
+  color: #8a6e3a; opacity: .75;
+}
+
+.jov-read-field {
+  font-family: 'EB Garamond', serif;
+  font-size: 15px; line-height: 1.65;
+  color: #4a3a24; margin: 0;
+}
+.jov-read-field--through { font-style: italic; }
+.jov-read-field--sub { font-size: 14px; opacity: .75; }
+.jov-read-field--resonance { }
+
+.jov-read-notes { margin: 0; padding: 0 0 0 18px; display: flex; flex-direction: column; gap: 6px; }
+.jov-read-note {
+  font-family: 'EB Garamond', serif;
+  font-size: 13.5px; line-height: 1.55;
+  color: #6a5030; opacity: .8;
+}
+
+.jov-read-list { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.jov-read-list-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: .28em; text-transform: uppercase;
+  color: #8a6e3a; opacity: .6; margin-bottom: 2px;
+}
+.jov-read-list-item { display: flex; flex-direction: column; gap: 3px; }
+.jov-read-list-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 13px; font-weight: 600; color: #5a3e1a;
+}
+.jov-read-list-body {
+  font-family: 'EB Garamond', serif;
+  font-size: 13.5px; line-height: 1.5; color: #6a5030; opacity: .8;
+}
+
 /* ─── Chapter / zone group headers in Work tab ─── */
 .jov-work-chapter-group { margin-bottom: 18px; }
 .jov-work-chapter-group:last-child { margin-bottom: 4px; }
