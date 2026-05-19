@@ -578,7 +578,7 @@ export default function App() {
   const [hasCumulative, setHasCumulative] = useState<boolean>(() => !!getCumulative());
   const [generatingCumulative, setGeneratingCumulative] = useState(false);
   const [cumulativeError, setCumulativeError] = useState<string | null>(null);
-  const [journalInitialTab, setJournalInitialTab] = useState<'reading' | 'spine' | 'body' | 'stream' | 'archive' | undefined>(undefined);
+  const [journalInitialTab, setJournalInitialTab] = useState<'readings' | 'work' | 'codex' | undefined>(undefined);
   const [showMigrationPrompt, setShowMigrationPrompt] = useState(false);
   const [sharingShown, setSharingShown] = useState<boolean>(() =>
     !!localStorage.getItem('origin.sharing.skipped') || !!localStorage.getItem('origin.sharing.done')
@@ -835,7 +835,7 @@ export default function App() {
 
   const onCumulative = async () => {
     if (hasCumulative) {
-      setJournalInitialTab('archive');
+      setJournalInitialTab('codex');
       setJournalOpen(true);
       return;
     }
@@ -872,7 +872,7 @@ export default function App() {
       });
       saveCumulative({ morpho, sage, generatedAt: Date.now() });
       setHasCumulative(true);
-      setJournalInitialTab('archive');
+      setJournalInitialTab('codex');
       setJournalOpen(true);
     } catch (e) {
       setCumulativeError(e instanceof Error ? e.message : String(e));

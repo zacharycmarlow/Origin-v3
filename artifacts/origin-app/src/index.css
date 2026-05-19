@@ -1537,35 +1537,6 @@ input, textarea, select { font-family: inherit; color: inherit; }
 }
 .jov-close:hover { background: rgba(196, 162, 101, 0.15); color: #5a3e1a; }
 
-.jov-chapters {
-  display: flex; gap: 4px; flex-wrap: nowrap;
-  padding: 12px 24px 10px;
-  border-bottom: 1px solid rgba(196, 162, 101, 0.18);
-  overflow-x: auto;
-  scrollbar-width: none;
-  flex-shrink: 0;
-}
-.jov-chapters::-webkit-scrollbar { display: none; }
-.jov-ch-btn {
-  font-family: var(--font-mono);
-  font-size: 10px; letter-spacing: .28em; text-transform: uppercase;
-  padding: 5px 10px; border-radius: 2px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: #a08050;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background .15s, color .15s, border-color .15s;
-}
-.jov-ch-btn:hover {
-  background: rgba(196, 162, 101, 0.12);
-  color: #6a4a1a;
-}
-.jov-ch-btn.active {
-  background: rgba(196, 162, 101, 0.18);
-  border-color: rgba(196, 162, 101, 0.5);
-  color: #6a4a1a;
-}
 
 .jov-tabs {
   display: flex; gap: 0;
@@ -1574,9 +1545,10 @@ input, textarea, select { font-family: inherit; color: inherit; }
   flex-shrink: 0;
 }
 .jov-tab {
-  font-family: var(--font-mono);
-  font-size: 10px; letter-spacing: .32em; text-transform: uppercase;
-  padding: 12px 16px 10px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 15px; letter-spacing: 0.02em;
+  font-weight: 500;
+  padding: 13px 18px 11px;
   border: none; background: transparent;
   color: #b09060;
   cursor: pointer;
@@ -1585,11 +1557,12 @@ input, textarea, select { font-family: inherit; color: inherit; }
 }
 .jov-tab::after {
   content: '';
-  position: absolute; bottom: 0; left: 0; right: 0;
+  position: absolute; bottom: 0; left: 12px; right: 12px;
   height: 2px;
-  background: #c89838;
+  background: var(--teal-core, #4ff0d6);
   transform: scaleX(0); transform-origin: left;
-  transition: transform .18s ease;
+  transition: transform .2s ease;
+  border-radius: 1px;
 }
 .jov-tab.active { color: #5a3e1a; }
 .jov-tab.active::after { transform: scaleX(1); }
@@ -1603,44 +1576,6 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .jov-content::-webkit-scrollbar-track { background: transparent; }
 .jov-content::-webkit-scrollbar-thumb { background: rgba(196, 162, 101, 0.3); border-radius: 2px; }
 
-/* ─── Spine tab ─── */
-.jov-spine { display: flex; flex-direction: column; gap: 0; }
-
-.jov-ch-heading {
-  font-family: var(--font-title);
-  font-size: 11px; letter-spacing: .4em; text-transform: uppercase;
-  margin: 22px 0 12px;
-  opacity: .9;
-}
-.jov-ch-heading:first-child { margin-top: 4px; }
-
-.jov-spine-entry { padding: 6px 0 14px; }
-.jov-spine-prompt {
-  font-family: var(--font-title);
-  font-size: 14px; letter-spacing: .04em;
-  font-style: italic;
-  color: #a08a60; opacity: .85;
-  margin-bottom: 10px; line-height: 1.5;
-}
-.jov-spine-response {
-  font-family: var(--font-body);
-  font-size: 15px; line-height: 1.65;
-  color: #4a3a24;
-  border-left: 3px solid #c89838;
-  padding-left: 14px;
-  white-space: pre-wrap;
-}
-.jov-spine-empty {
-  font-family: var(--font-script);
-  font-size: 14px; font-style: italic;
-  color: #b0996a; opacity: .6;
-  padding-left: 14px;
-}
-.jov-divider {
-  height: 1px;
-  background: linear-gradient(90deg, rgba(196, 162, 101, 0.3), transparent);
-  margin: 2px 0 6px;
-}
 
 /* ─── Body tab ─── */
 .jov-body-list { display: flex; flex-direction: column; gap: 14px; }
@@ -1731,6 +1666,102 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .jov-empty span {
   display: block; margin-top: 8px;
   font-size: 13px; opacity: .7;
+}
+
+/* ─── Readings tab ─── */
+.jov-readings-tab { display: flex; flex-direction: column; gap: 0; }
+
+.jov-reading-block {
+  border: 1px solid rgba(196, 162, 101, 0.18);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  overflow: hidden;
+  transition: border-color .2s;
+}
+.jov-reading-block--open { border-color: rgba(196, 162, 101, 0.35); }
+
+.jov-reading-block-head {
+  all: unset;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  box-sizing: border-box;
+  transition: background .18s;
+}
+.jov-reading-block-head:hover { background: rgba(196, 162, 101, 0.05); }
+.jov-reading-block-roman {
+  font-family: 'Cormorant SC', serif;
+  font-size: 13px; font-weight: 500;
+  min-width: 22px;
+}
+.jov-reading-block-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 14px; flex: 1; color: #6a4a1a;
+}
+.jov-reading-block-glyphs {
+  display: flex; align-items: center; gap: 4px;
+}
+
+.jov-reading-excerpt {
+  padding: 0 16px 12px 16px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.jov-reading-excerpt-line {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-family: 'EB Garamond', serif;
+  font-size: 14px; line-height: 1.55;
+  color: #6a4a1a; opacity: .8;
+  margin: 0;
+}
+.jov-reading-excerpt-line--sage { opacity: .6; }
+.jov-reading-excerpt-glyph {
+  flex-shrink: 0; margin-top: 2px;
+  color: #4ff0d6;
+}
+
+.jov-reading-mini {
+  padding: 0 16px 16px;
+  border-top: 1px solid rgba(196, 162, 101, 0.12);
+}
+
+/* ─── Work tab ─── */
+.jov-work-tab { display: flex; flex-direction: column; }
+
+.jov-work-section { padding: 4px 0 8px; }
+
+.jov-work-section-head {
+  display: flex; align-items: center; gap: 9px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 14px; letter-spacing: 0.03em;
+  color: #8a6e3a;
+  padding: 10px 0 12px;
+  border-bottom: 1px solid rgba(196, 162, 101, 0.18);
+  margin-bottom: 14px;
+}
+.jov-work-section-head svg { opacity: .7; }
+
+.jov-work-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(196, 162, 101, 0.28), transparent);
+  margin: 8px 0 20px;
+}
+
+.jov-work-empty {
+  font-family: var(--font-body);
+  font-size: 13px; color: #b0996a; opacity: .7;
+  padding: 8px 0 16px;
+  font-style: italic;
+}
+
+/* Chapter tag inside stream entries */
+.jov-stream-ch-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: .22em; text-transform: uppercase;
+  margin-bottom: 8px;
+  opacity: .8;
 }
 
 /* ─── Body Overlay ─────────────────────────────────────────── */
