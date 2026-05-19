@@ -323,7 +323,7 @@ function InstrumentBar({ onStream, onBody, onJournal, hasMorpho }: {
   return (
     <div className="instrument-bar">
       <button className="instr-btn" onClick={onStream} aria-label="Stream of consciousness">
-        <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
+        <svg width="27" height="27" viewBox="0 0 32 32" fill="none">
           <path d="M5 10 Q9 7 16 10 T27 10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
           <path d="M5 16 Q9 13 16 16 T27 16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" opacity=".75" />
           <path d="M5 22 Q9 19 16 22 T27 22" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" opacity=".5" />
@@ -331,7 +331,7 @@ function InstrumentBar({ onStream, onBody, onJournal, hasMorpho }: {
         <span className="instr-label">stream</span>
       </button>
       <button className="instr-btn" onClick={onBody} aria-label="Body check-in">
-        <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
+        <svg width="27" height="27" viewBox="0 0 32 32" fill="none">
           <circle cx="16" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.6" />
           <path d="M8 19 Q10 15 16 14.5 Q22 15 24 19" stroke="currentColor" strokeWidth="1.6" />
           <path d="M10 19 L10 27" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
@@ -344,7 +344,7 @@ function InstrumentBar({ onStream, onBody, onJournal, hasMorpho }: {
         onClick={onJournal}
         aria-label={hasMorpho ? 'Open readings and journal' : 'Open journal'}
       >
-        <ButterflyIcon size={24} glowing={hasMorpho} />
+        <ButterflyIcon size={27} glowing={hasMorpho} />
         <span className="instr-label">journal</span>
       </button>
     </div>
