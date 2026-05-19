@@ -628,27 +628,31 @@ input, textarea, select { font-family: inherit; color: inherit; }
     drop-shadow(0 2px 2px rgba(120, 80, 20, 0.4))
     drop-shadow(0 0 10px rgba(77, 240, 214, 0.4));
 }
+/* Code label: Cinzel — announces the law in gold */
 .code-label {
-  font-family: var(--font-title);
-  font-size: 12px; letter-spacing: .42em;
+  font-family: 'Cinzel', serif;
+  font-size: 11px; letter-spacing: .44em; text-transform: uppercase;
   background: linear-gradient(155deg, var(--gold-4), var(--gold-1) 40%, var(--gold-2) 60%, var(--gold-4));
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
   filter: drop-shadow(0 1px 1px rgba(120, 80, 20, 0.4));
 }
 .code-num {
-  font-family: var(--font-title);
-  font-size: 11px; letter-spacing: .3em;
-  color: var(--ink); opacity: .55; margin-left: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; letter-spacing: .15em;
+  color: var(--gold-2); opacity: .5; margin-left: auto;
 }
+/* Essence: Cinzel uppercase — lapidary, a law carved in gold */
 .code-essence {
-  font-family: "Ferrum", var(--font-script);
+  font-family: 'Cinzel', serif;
   font-style: normal;
-  font-size: 26px; line-height: 1.5;
+  font-size: 22px; line-height: 1.45; letter-spacing: 0.06em;
+  text-transform: uppercase;
   text-wrap: pretty; position: relative; z-index: 2;
-  color: var(--ink);
+  color: #7a5818;
   text-align: center;
 }
+.app[data-dark="true"] .code-essence { color: color-mix(in srgb, var(--accent) 90%, #fff); }
 .code-expanded {
   margin-top: 28px;
   animation: fade-slide-in .28s ease;
@@ -657,25 +661,26 @@ input, textarea, select { font-family: inherit; color: inherit; }
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+/* Body: JetBrains Mono — reading a formula, a dictum */
 .code-body {
-  font-family: "Ferrum", var(--font-script);
+  font-family: 'JetBrains Mono', monospace;
   font-style: normal;
-  font-size: 26px; line-height: 1.55;
+  font-size: 14px; line-height: 1.8;
   text-wrap: pretty; position: relative; z-index: 2;
-  color: var(--ink);
+  color: color-mix(in srgb, var(--ink) 88%, transparent);
 }
 .code-body--detail {
-  font-size: 19px; line-height: 1.65;
-  border-top: 1px solid color-mix(in srgb, var(--gold-2) 25%, transparent);
+  font-size: 13px; line-height: 1.75;
+  border-top: 1px solid color-mix(in srgb, var(--gold-2) 22%, transparent);
   padding-top: 22px;
 }
 .code-explore, .code-collapse {
   display: flex; align-items: center; gap: 7px;
-  font-family: var(--font-title);
-  font-size: 10px; letter-spacing: .38em;
+  font-family: 'Cinzel', serif;
+  font-size: 9px; letter-spacing: .44em;
   text-transform: uppercase;
   background: transparent; border: none;
-  color: var(--gold-2); opacity: .65;
+  color: var(--gold-2); opacity: .62;
   cursor: pointer; margin-top: 22px;
   padding: 4px 0;
   transition: opacity .18s;
@@ -744,51 +749,60 @@ input, textarea, select { font-family: inherit; color: inherit; }
   margin-bottom: 30px; position: relative; z-index: 2;
 }
 .lore-mark {
-  color: #c4a265;
+  color: #d4a464;
   flex-shrink: 0;
   filter:
     drop-shadow(0 1px 0 rgba(240, 210, 150, 0.35))
     drop-shadow(0 2px 2px rgba(100, 65, 10, 0.3))
-    drop-shadow(0 0 8px rgba(196, 162, 101, 0.25));
+    drop-shadow(0 0 8px rgba(79, 240, 214, 0.18));
 }
+/* Lore label whispers — EB Garamond italic, not uppercase-tracked */
 .lore-label {
-  font-family: var(--font-title);
-  font-size: 12px; letter-spacing: .42em;
-  color: #c4a265;
-  filter: drop-shadow(0 1px 1px rgba(120, 80, 20, 0.3));
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-size: 14px; letter-spacing: 0.04em;
+  text-transform: none;
+  color: #b08a4a;
+  filter: drop-shadow(0 1px 1px rgba(120, 80, 20, 0.2));
 }
 .lore-num {
-  font-family: var(--font-title);
-  font-size: 11px; letter-spacing: .3em;
-  color: var(--ink); opacity: .5; margin-left: auto;
+  font-family: 'EB Garamond', serif;
+  font-size: 15px; letter-spacing: .08em;
+  color: #c4a265; opacity: .5; margin-left: auto;
 }
+/* Essence: EB Garamond italic — felt before understood, a myth */
 .lore-essence {
-  font-family: var(--font-title);
-  font-size: 36px; font-style: italic; line-height: 1.3;
+  font-family: 'EB Garamond', serif;
+  font-size: 38px; font-style: italic; line-height: 1.35;
   text-align: center; position: relative; z-index: 2;
-  color: #c4a265;
-  filter: drop-shadow(0 1px 2px rgba(100, 65, 10, 0.25));
+  color: #8a6030;
+  filter: drop-shadow(0 1px 2px rgba(100, 65, 10, 0.22));
+  letter-spacing: 0.01em;
 }
+.app[data-dark="true"] .lore-essence { color: #d8b878; }
 .lore-expanded {
   margin-top: 28px;
   animation: fade-slide-in .28s ease;
 }
+/* Body: EB Garamond at manuscript scale — illuminated register */
 .lore-body {
-  font-family: var(--font-body);
-  font-size: 17px; line-height: 1.75;
+  font-family: 'EB Garamond', serif;
+  font-size: 19px; line-height: 1.88;
   color: var(--ink);
-  border-top: 1px solid rgba(196, 162, 101, 0.25);
+  border-top: 1px solid rgba(212, 164, 100, 0.28);
   padding-top: 22px;
   position: relative; z-index: 2;
   text-wrap: pretty;
 }
+/* Toggle whispers "enter" */
 .lore-explore, .lore-collapse {
   display: flex; align-items: center; gap: 7px;
-  font-family: var(--font-title);
-  font-size: 10px; letter-spacing: .38em;
-  text-transform: uppercase;
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-size: 15px; letter-spacing: 0.03em;
+  text-transform: none;
   background: transparent; border: none;
-  color: #c4a265; opacity: .6;
+  color: #b08a4a; opacity: .65;
   cursor: pointer; margin-top: 22px;
   padding: 4px 0;
   transition: opacity .18s;
@@ -801,15 +815,20 @@ input, textarea, select { font-family: inherit; color: inherit; }
   color: #c4a265;
   flex-shrink: 0;
 }
+/* Lore corners breathe — vine paths pulse with staggered delay */
+.lore-corner svg path { animation: vine-breathe 6s ease-in-out infinite; }
+.lore-corner:nth-child(2) svg path { animation-delay: 1.5s; }
+.lore-corner:nth-child(3) svg path { animation-delay: 3s; }
+.lore-corner:nth-child(4) svg path { animation-delay: 4.5s; }
 
 @media (max-width: 900px) {
   .lore-card { padding: 42px 30px 36px; }
-  .lore-essence { font-size: 28px; }
+  .lore-essence { font-size: 30px; }
 }
 @media (max-width: 600px) {
   .lore-card { padding: 32px 22px 28px; }
-  .lore-essence { font-size: 24px; }
-  .lore-body { font-size: 15px; }
+  .lore-essence { font-size: 26px; }
+  .lore-body { font-size: 17px; }
 }
 
 /* ─── Scene tiles ─────────────────────────────────────────── */
@@ -3156,24 +3175,6 @@ input, textarea, select { font-family: inherit; color: inherit; }
     0 8px 24px -12px rgba(0, 0, 0, 0.20);
   transition: padding .25s ease;
 }
-/* Angular corner ticks — geometric, like a cartouche or surveyor's mark */
-.inline-code-card::before,
-.inline-code-card::after {
-  content: '';
-  position: absolute;
-  width: 12px; height: 12px;
-  border-color: color-mix(in srgb, var(--gold-2) 75%, transparent);
-  border-style: solid;
-  pointer-events: none;
-}
-.inline-code-card::before {
-  top: 6px; left: 6px;
-  border-width: 1.5px 0 0 1.5px;
-}
-.inline-code-card::after {
-  bottom: 6px; right: 6px;
-  border-width: 0 1.5px 1.5px 0;
-}
 .app[data-dark="true"] .inline-code-card {
   box-shadow:
     0 0 0 1.5px color-mix(in srgb, var(--accent) 65%, transparent),
@@ -3490,6 +3491,49 @@ input, textarea, select { font-family: inherit; color: inherit; }
   color: #c4a265;
 }
 .inline-code-archived { background: rgba(79, 240, 214, 0.08); border-color: rgba(79, 240, 214, 0.32); color: #4ff0d6; }
+
+/* ── Inline corner frames for Code and Lore cards ── */
+.inline-code-frame,
+.inline-lore-frame {
+  position: absolute; inset: 0; pointer-events: none; z-index: 1;
+}
+
+/* Code corners — geometric angular L-shapes, gold */
+.inline-code-corner {
+  position: absolute;
+  display: block;
+  width: 22px; height: 22px;
+  color: color-mix(in srgb, var(--gold-2) 80%, transparent);
+}
+.inline-code-corner svg { width: 100%; height: 100%; display: block; }
+.inline-code-corner--tl { top: 6px; left: 6px; }
+.inline-code-corner--tr { top: 6px; right: 6px; }
+.inline-code-corner--bl { bottom: 6px; left: 6px; }
+.inline-code-corner--br { bottom: 6px; right: 6px; }
+.app[data-dark="true"] .inline-code-corner { color: color-mix(in srgb, var(--accent) 75%, transparent); }
+
+/* Lore corners — organic vine-and-eye, amber with breathing animation */
+.inline-lore-corner {
+  position: absolute;
+  display: block;
+  width: 22px; height: 22px;
+  color: rgba(212, 164, 100, 0.75);
+  filter: drop-shadow(0 0 3px rgba(79, 240, 214, 0.22));
+}
+.inline-lore-corner svg { width: 100%; height: 100%; display: block; }
+.inline-lore-corner--tl { top: 6px; left: 6px; }
+.inline-lore-corner--tr { top: 6px; right: 6px; }
+.inline-lore-corner--bl { bottom: 6px; left: 6px; }
+.inline-lore-corner--br { bottom: 6px; right: 6px; }
+/* Vine paths breathe — subtle opacity pulse, staggered by corner */
+.inline-lore-corner .lore-vine-path { animation: vine-breathe 6s ease-in-out infinite; }
+.inline-lore-corner--tr .lore-vine-path { animation-delay: 1.5s; }
+.inline-lore-corner--bl .lore-vine-path { animation-delay: 3s; }
+.inline-lore-corner--br .lore-vine-path { animation-delay: 4.5s; }
+@keyframes vine-breathe {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
 
 /* Code unlocked: retain crisp cartouche identity */
 .inline-code-card--unlocked {

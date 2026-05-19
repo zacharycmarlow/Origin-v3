@@ -69,6 +69,64 @@ function Chevron({ dir }: { dir: 'down' | 'up' }) {
   );
 }
 
+/* Angular geometric corner for Code tiles — lapidary, cartouche-like */
+function InlineCodeCorner({ pos }: { pos: 'tl' | 'tr' | 'bl' | 'br' }) {
+  const d = {
+    tl: 'M20 2 L2 2 L2 20',
+    tr: 'M4 2 L22 2 L22 20',
+    bl: 'M20 22 L2 22 L2 4',
+    br: 'M4 22 L22 22 L22 4',
+  }[pos];
+  /* Small filled square at the corner vertex */
+  const sq = {
+    tl: 'M2 2 L5 2 L5 5 L2 5 Z',
+    tr: 'M22 2 L19 2 L19 5 L22 5 Z',
+    bl: 'M2 22 L5 22 L5 19 L2 19 Z',
+    br: 'M22 22 L19 22 L19 19 L22 19 Z',
+  }[pos];
+  return (
+    <span className={`inline-code-corner inline-code-corner--${pos}`} aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d={d} stroke="currentColor" strokeWidth="1.4" strokeLinecap="square" />
+        <path d={sq} fill="currentColor" opacity="0.55" />
+      </svg>
+    </span>
+  );
+}
+
+/* Organic vine-and-eye corner for Lore tiles — living, breathing */
+function InlineLoreCorner({ pos }: { pos: 'tl' | 'tr' | 'bl' | 'br' }) {
+  const vine = {
+    tl: 'M14 2 C10 2 2 2 2 2 C2 2 2 10 2 14',
+    tr: 'M10 2 C14 2 22 2 22 2 C22 2 22 10 22 14',
+    bl: 'M14 22 C10 22 2 22 2 22 C2 22 2 14 2 10',
+    br: 'M10 22 C14 22 22 22 22 22 C22 22 22 14 22 10',
+  }[pos];
+  /* Eye/bud ornament at the corner vertex */
+  const eye = {
+    tl: 'M2 2 C4.5 0 7.5 0 10 2 C7.5 4 4.5 4 2 2 Z',
+    tr: 'M22 2 C19.5 0 16.5 0 14 2 C16.5 4 19.5 4 22 2 Z',
+    bl: 'M2 22 C4.5 24 7.5 24 10 22 C7.5 20 4.5 20 2 22 Z',
+    br: 'M22 22 C19.5 24 16.5 24 14 22 C16.5 20 19.5 20 22 22 Z',
+  }[pos];
+  /* Small tendril curling from the vine */
+  const tendril = {
+    tl: 'M2 6 C0 8 0 10 2 10',
+    tr: 'M22 6 C24 8 24 10 22 10',
+    bl: 'M2 18 C0 16 0 14 2 14',
+    br: 'M22 18 C24 16 24 14 22 14',
+  }[pos];
+  return (
+    <span className={`inline-lore-corner inline-lore-corner--${pos}`} aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d={vine} stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" className="lore-vine-path" />
+        <path d={eye} fill="currentColor" opacity="0.5" />
+        <path d={tendril} stroke="currentColor" strokeWidth="0.8" strokeLinecap="round" opacity="0.6" />
+      </svg>
+    </span>
+  );
+}
+
 function UnlockableInline({
   kind, chapterIdx, title, body,
 }: { kind: 'code' | 'lore'; chapterIdx: number; title: string; body: string }) {
@@ -104,6 +162,24 @@ function UnlockableInline({
       }
     >
       {justUnlocked && <span className="archive-unlock-flash" aria-hidden="true" />}
+      {/* Corner frame — geometric for Code, vine-and-eye for Lore */}
+      <div className={`${klass}-frame`} aria-hidden="true">
+        {kind === 'code' ? (
+          <>
+            <InlineCodeCorner pos="tl" />
+            <InlineCodeCorner pos="tr" />
+            <InlineCodeCorner pos="bl" />
+            <InlineCodeCorner pos="br" />
+          </>
+        ) : (
+          <>
+            <InlineLoreCorner pos="tl" />
+            <InlineLoreCorner pos="tr" />
+            <InlineLoreCorner pos="bl" />
+            <InlineLoreCorner pos="br" />
+          </>
+        )}
+      </div>
       <div className={`${klass}-head`}>
         <span className={`${klass}-label`}>{label}</span>
         {unlocked && (
