@@ -35,9 +35,9 @@ type Tile = PreludeTile | PreludeTwoTile | EpilogueTile | OpenerTile | SceneTile
 function buildTiles(chapters: Chapter[]): Tile[] {
   const tiles: Tile[] = [];
   tiles.push({ kind: 'prelude' });
-  tiles.push({ kind: 'prelude2' });
   chapters.forEach((ch, ci) => {
     tiles.push({ kind: 'opener', ch: ci });
+    if (ci === 0) tiles.push({ kind: 'prelude2' });
     ch.scenes.forEach((_, si) => {
       tiles.push({ kind: 'scene', ch: ci, sc: si });
     });
@@ -409,7 +409,8 @@ function DeckNav({ tileIdx, total, go, tiles }: {
   let label = 'continue';
   if (!next) label = 'complete';
   else if (tile?.kind === 'prelude') label = 'continue';
-  else if (tile?.kind === 'prelude2') label = 'enter chapter I';
+  else if (tile?.kind === 'prelude2') label = 'begin';
+  else if (tile?.kind === 'opener' && next.kind === 'prelude2') label = 'continue';
   else if (tile?.kind === 'opener') label = 'begin';
   else if (next.kind === 'opener') label = 'cross the threshold';
   else if (next.kind === 'epilogue') label = 'complete the origin';
