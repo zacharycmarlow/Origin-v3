@@ -1764,6 +1764,26 @@ input, textarea, select { font-family: inherit; color: inherit; }
   opacity: .8;
 }
 
+/* ─── Chapter / zone group headers in Work tab ─── */
+.jov-work-chapter-group { margin-bottom: 18px; }
+.jov-work-chapter-group:last-child { margin-bottom: 4px; }
+
+.jov-work-group-head {
+  display: flex; align-items: baseline; gap: 7px;
+  padding: 6px 0 8px;
+  border-bottom: 1px solid rgba(196, 162, 101, 0.15);
+  margin-bottom: 10px;
+}
+.jov-work-group-roman {
+  font-family: 'Cormorant SC', serif;
+  font-size: 12px; font-weight: 500;
+}
+.jov-work-group-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 13px; letter-spacing: 0.02em;
+  opacity: .75;
+}
+
 /* ─── Body Overlay ─────────────────────────────────────────── */
 /* Full-screen reveal — fades in as if the chapter became transparent
    and the body was always underneath. The body has been holding this

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import {
-  getBodyEntries, getStreamEntries, deleteStreamEntry,
+  getBodyEntries, getStreamEntries, deleteStreamEntry, deleteBodyEntry,
   getCodex, getCumulative, getReading, getUnlockedArchive,
   BodyEntry, StreamEntry, CodexEntry, CumulativeReading,
 } from '../storage';
@@ -161,23 +161,58 @@ function ReadingsTab({ chapters, currentCh, reachedCh, cumulative }: {
 /* ── Work Tab ──────────────────────────────────────────────── */
 function WorkTab({ chapters }: { chapters: Chapter[] }) {
   const [streamEntries, setStreamEntries] = useState<StreamEntry[]>(() => getStreamEntries());
-  const [bodyEntries] = useState<BodyEntry[]>(() => getBodyEntries());
+  const [bodyEntries, setBodyEntries] = useState<BodyEntry[]>(() => getBodyEntries());
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
-  const sortedStream = useMemo(
-    () => [...streamEntries].sort((a, b) => b.timestamp - a.timestamp),
-    [streamEntries]
-  );
-  const sortedBody = useMemo(
-    () => [...bodyEntries].sort((a, b) => b.timestamp - a.timestamp),
-    [bodyEntries]
-  );
+  // Stream entries grouped by chapter index, newest chapter first
+  const streamByChapter = useMemo(() => {
+    const map = new Map<number, StreamEntry[]>();
+    for (const e of streamEntries) {
+      const arr = map.get(e.chapter) ?? [];
+      arr.push(e);
+      map.set(e.chapter, arr);
+    }
+    // sort entries within each chapter newest-first, chapters newest-first
+    const groups = Array.from(map.entries()).map(([ci, entries]) => ({
+      ci,
+      entries: [...entries].sort((a, b) => b.timestamp - a.timestamp),
+    }));
+    groups.sort((a, b) => b.ci - a.ci);
+    return groups;
+  }, [streamEntries]);
 
-  const handleDelete = (id: string) => {
+  // Body entries grouped by zone, newest-zone-activity first
+  const bodyByZone = useMemo(() => {
+    const map = new Map<string, BodyEntry[]>();
+    for (const e of bodyEntries) {
+      const arr = map.get(e.zoneId) ?? [];
+      arr.push(e);
+      map.set(e.zoneId, arr);
+    }
+    const groups = Array.from(map.entries()).map(([zoneId, entries]) => ({
+      zoneId,
+      zoneName: entries[0].energyCenter,
+      entries: [...entries].sort((a, b) => b.timestamp - a.timestamp),
+    }));
+    groups.sort((a, b) => b.entries[0].timestamp - a.entries[0].timestamp);
+    return groups;
+  }, [bodyEntries]);
+
+  const handleDeleteStream = (id: string) => {
     if (deletingId === id) {
       deleteStreamEntry(id);
       setStreamEntries(getStreamEntries());
+      setDeletingId(null);
+    } else {
+      setDeletingId(id);
+    }
+  };
+
+  const handleDeleteBody = (id: string) => {
+    if (deletingId === id) {
+      deleteBodyEntry(id);
+      setBodyEntries(getBodyEntries());
       setDeletingId(null);
     } else {
       setDeletingId(id);
@@ -192,8 +227,8 @@ function WorkTab({ chapters }: { chapters: Chapter[] }) {
     });
   };
 
-  const hasStream = sortedStream.length > 0;
-  const hasBody = sortedBody.length > 0;
+  const hasStream = streamByChapter.length > 0;
+  const hasBody = bodyByZone.length > 0;
 
   if (!hasStream && !hasBody) {
     return (
@@ -204,9 +239,24 @@ function WorkTab({ chapters }: { chapters: Chapter[] }) {
     );
   }
 
+  const TrashIcon = () => (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+      <path d="M2 3.5h10M5.5 3.5V2.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 .5.5v1M5.5 6v4.5M8.5 6v4.5M3 3.5l.7 7.5a.5.5 0 0 0 .5.5h5.6a.5.5 0 0 0 .5-.5L11 3.5"
+        stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+
+  const DeleteConfirm = ({ id, onConfirm }: { id: string; onConfirm: () => void }) => (
+    <span className="jov-delete-confirm">
+      <span>Delete this?</span>
+      <button className="jov-delete-yes" onClick={onConfirm}>yes</button>
+      <button className="jov-delete-no" onClick={() => setDeletingId(null)}>no</button>
+    </span>
+  );
+
   return (
     <div className="jov-work-tab">
-      {/* Stream section */}
+      {/* Stream section — grouped by chapter */}
       <div className="jov-work-section">
         <div className="jov-work-section-head">
           <svg width="15" height="15" viewBox="0 0 32 32" fill="none" aria-hidden="true">
@@ -219,54 +269,54 @@ function WorkTab({ chapters }: { chapters: Chapter[] }) {
         {!hasStream ? (
           <div className="jov-work-empty">nothing captured yet</div>
         ) : (
-          <div className="jov-stream-list">
-            {sortedStream.map(entry => {
-              const accent = chapters[entry.chapter]?.palette.accent || '#c89838';
-              const isLong = entry.text.length > 220;
-              const isExp = expanded.has(entry.id);
-              const displayText = isLong && !isExp ? entry.text.slice(0, 220) + '…' : entry.text;
-              const isDeleting = deletingId === entry.id;
-              return (
-                <div key={entry.id} className="jov-stream-entry">
-                  <div className="jov-stream-ch-tag" style={{ color: accent }}>
-                    {chapters[entry.chapter]?.roman} · {chapters[entry.chapter]?.title?.toLowerCase()}
-                  </div>
-                  <div className="jov-stream-text">{displayText}</div>
-                  <div className="jov-stream-footer">
-                    <span className="jov-stream-time">{formatTime(entry.timestamp)}</span>
-                    <div className="jov-stream-actions">
-                      {isLong && (
-                        <button className="jov-more-btn" onClick={() => toggleExpand(entry.id)}>
-                          {isExp ? 'less' : 'more'}
-                        </button>
-                      )}
-                      {isDeleting ? (
-                        <span className="jov-delete-confirm">
-                          <span>Delete this?</span>
-                          <button className="jov-delete-yes" onClick={() => handleDelete(entry.id)}>yes</button>
-                          <button className="jov-delete-no" onClick={() => setDeletingId(null)}>no</button>
-                        </span>
-                      ) : (
-                        <button className="jov-trash-btn" onClick={() => handleDelete(entry.id)} aria-label="Delete entry">
-                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                            <path d="M2 3.5h10M5.5 3.5V2.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 .5.5v1M5.5 6v4.5M8.5 6v4.5M3 3.5l.7 7.5a.5.5 0 0 0 .5.5h5.6a.5.5 0 0 0 .5-.5L11 3.5"
-                              stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </button>
-                      )}
-                    </div>
-                  </div>
+          streamByChapter.map(({ ci, entries }) => {
+            const ch = chapters[ci];
+            const accent = ch?.palette.accent || '#c89838';
+            return (
+              <div key={ci} className="jov-work-chapter-group">
+                <div className="jov-work-group-head" style={{ color: accent }}>
+                  <span className="jov-work-group-roman">{ch?.roman}</span>
+                  <span className="jov-work-group-name">{ch?.title?.toLowerCase()}</span>
                 </div>
-              );
-            })}
-          </div>
+                <div className="jov-stream-list">
+                  {entries.map(entry => {
+                    const isLong = entry.text.length > 220;
+                    const isExp = expanded.has(entry.id);
+                    const displayText = isLong && !isExp ? entry.text.slice(0, 220) + '…' : entry.text;
+                    const isDeleting = deletingId === entry.id;
+                    return (
+                      <div key={entry.id} className="jov-stream-entry">
+                        <div className="jov-stream-text">{displayText}</div>
+                        <div className="jov-stream-footer">
+                          <span className="jov-stream-time">{formatTime(entry.timestamp)}</span>
+                          <div className="jov-stream-actions">
+                            {isLong && (
+                              <button className="jov-more-btn" onClick={() => toggleExpand(entry.id)}>
+                                {isExp ? 'less' : 'more'}
+                              </button>
+                            )}
+                            {isDeleting ? (
+                              <DeleteConfirm id={entry.id} onConfirm={() => handleDeleteStream(entry.id)} />
+                            ) : (
+                              <button className="jov-trash-btn" onClick={() => handleDeleteStream(entry.id)} aria-label="Delete entry">
+                                <TrashIcon />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })
         )}
       </div>
 
-      {/* Divider */}
-      {(hasStream || !hasStream) && <div className="jov-work-divider" />}
+      <div className="jov-work-divider" />
 
-      {/* Body section */}
+      {/* Body section — grouped by zone */}
       <div className="jov-work-section">
         <div className="jov-work-section-head">
           <svg width="15" height="15" viewBox="0 0 32 32" fill="none" aria-hidden="true">
@@ -285,18 +335,32 @@ function WorkTab({ chapters }: { chapters: Chapter[] }) {
               <BodyFigure entries={bodyEntries} chapters={chapters} interactive={false} scale={0.65} />
             </div>
             <div className="jov-body-list">
-              {sortedBody.map(entry => {
-                const accent = chapters[entry.chapter]?.palette.accent || '#c89838';
-                return (
-                  <div key={entry.id} className="jov-body-entry" style={{ borderLeftColor: accent }}>
-                    <div className="jov-body-center" style={{ color: accent }}>{entry.energyCenter}</div>
-                    <div className="jov-body-note">{entry.note}</div>
-                    <div className="jov-body-time">
-                      {chapters[entry.chapter]?.roman} · {formatTime(entry.timestamp)}
-                    </div>
+              {bodyByZone.map(({ zoneId, zoneName, entries }) => (
+                <div key={zoneId} className="jov-work-chapter-group">
+                  <div className="jov-work-group-head" style={{ color: '#8a6e3a' }}>
+                    <span className="jov-work-group-name">{zoneName}</span>
                   </div>
-                );
-              })}
+                  {entries.map(entry => {
+                    const accent = chapters[entry.chapter]?.palette.accent || '#c89838';
+                    const isDeleting = deletingId === entry.id;
+                    return (
+                      <div key={entry.id} className="jov-body-entry" style={{ borderLeftColor: accent }}>
+                        <div className="jov-body-note">{entry.note}</div>
+                        <div className="jov-body-time" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <span>{chapters[entry.chapter]?.roman} · {formatTime(entry.timestamp)}</span>
+                          {isDeleting ? (
+                            <DeleteConfirm id={entry.id} onConfirm={() => handleDeleteBody(entry.id)} />
+                          ) : (
+                            <button className="jov-trash-btn" onClick={() => handleDeleteBody(entry.id)} aria-label="Delete body note">
+                              <TrashIcon />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
             </div>
           </div>
         )}
