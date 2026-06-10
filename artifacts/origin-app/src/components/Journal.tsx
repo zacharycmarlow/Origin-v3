@@ -6,13 +6,14 @@ interface Props {
   placeholder?: string;
   rows?: number;
   big?: boolean;
+  onSave?: () => void;
 }
 
 const speechAvailable =
   typeof window !== 'undefined' &&
   !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
 
-export default function Journal({ sceneKey, placeholder, rows = 4, big }: Props) {
+export default function Journal({ sceneKey, placeholder, rows = 4, big, onSave }: Props) {
   const [val, setVal] = useState<string>(() => {
     const stored = load()[sceneKey];
     return typeof stored === 'string' ? stored : '';
@@ -22,9 +23,12 @@ export default function Journal({ sceneKey, placeholder, rows = 4, big }: Props)
   const finalBaseRef = useRef<string>('');
 
   useEffect(() => {
-    const t = setTimeout(() => save(sceneKey, val), 300);
+    const t = setTimeout(() => {
+      save(sceneKey, val);
+      if (val.trim()) onSave?.();
+    }, 300);
     return () => clearTimeout(t);
-  }, [val, sceneKey]);
+  }, [val, sceneKey]); // eslint-disable-line
 
   const wordCount = val.trim().split(/\s+/).filter(Boolean).length;
 

@@ -16,6 +16,7 @@ interface Props {
   total: number;
   chapterIdx: number;
   instantReveal?: boolean;
+  onSaveJournal?: () => void;
 }
 
 // Kinds that show everything at once (no progressive reveal)
@@ -219,7 +220,7 @@ function ExpandableLore(props: { title: string; body: string; chapterIdx: number
   return <UnlockableInline kind="lore" {...props} />;
 }
 
-export default function Scene({ scene, chapterIdx, instantReveal }: Props) {
+export default function Scene({ scene, chapterIdx, instantReveal, onSaveJournal }: Props) {
   const { phase, advance } = useSceneReveal(scene);
 
   const effectivePhase = instantReveal ? 99 : phase;
@@ -308,7 +309,7 @@ export default function Scene({ scene, chapterIdx, instantReveal }: Props) {
       {showInteraction && (
         <div className={`scene-practice ${phase === 1 ? 'scene-practice--entering' : 'scene-practice--visible'}`}>
           {scene.kind === 'prompt' && scene.key && (
-            <Journal sceneKey={scene.key} placeholder="" rows={scene.rows || 4} />
+            <Journal sceneKey={scene.key} placeholder="" rows={scene.rows || 4} onSave={onSaveJournal} />
           )}
           {scene.kind === 'threshold' && (
             <div className="threshold">
@@ -319,6 +320,7 @@ export default function Scene({ scene, chapterIdx, instantReveal }: Props) {
                   placeholder={scene.prompt.placeholder}
                   rows={scene.prompt.rows}
                   big={scene.prompt.big}
+                  onSave={onSaveJournal}
                 />
               )}
             </div>

@@ -13,6 +13,34 @@ interface Props {
   chapterIdx: number;
 }
 
+/* ── Word-by-word reveal hook ──────────────────────────────── */
+function useWordReveal(text: string | undefined, active: boolean, delayMs = 80) {
+  const [revealed, setRevealed] = useState(0);
+
+  useEffect(() => {
+    if (!active || !text) return;
+    setRevealed(0);
+    const words = text.split(/\s+/);
+    let idx = 0;
+    const interval = setInterval(() => {
+      idx++;
+      setRevealed(idx);
+      if (idx >= words.length) clearInterval(interval);
+    }, delayMs);
+    return () => clearInterval(interval);
+  }, [text, active]); // eslint-disable-line
+
+  if (!active || !text) return text || '';
+  const words = text.split(/\s+/);
+  return words.slice(0, revealed).join(' ');
+}
+
+/* ── Reading card text renderer with optional reveal ─────── */
+function RevealText({ text, active, delay = 80 }: { text: string; active: boolean; delay?: number }) {
+  const revealed = useWordReveal(text, active, delay);
+  return <>{revealed}</>;
+}
+
 export default function AiReadingSection({ chapters, chapterIdx }: Props) {
   const chapter = chapters[chapterIdx];
   const [morpho, setMorpho] = useState<MorphoReading | undefined>(() => getReading(chapterIdx).morpho);
@@ -28,6 +56,7 @@ export default function AiReadingSection({ chapters, chapterIdx }: Props) {
     const r = getReading(chapterIdx);
     setMorpho(r.morpho);
     setSage(r.sage);
+    setFreshlyLoaded(false);
   }, [chapterIdx]);
 
   const requestReading = async () => {
@@ -122,9 +151,13 @@ export default function AiReadingSection({ chapters, chapterIdx }: Props) {
             <ButterflyIcon size={13} glowing />
             <span>Morpho</span>
           </div>
-          <p className="sj-reading-through">{morpho.throughLine}</p>
+          <p className="sj-reading-through">
+            <RevealText text={morpho.throughLine} active={freshlyLoaded} delay={75} />
+          </p>
           {morpho.subtext && (
-            <p className="sj-reading-subtext">{morpho.subtext}</p>
+            <p className="sj-reading-subtext">
+              <RevealText text={morpho.subtext} active={freshlyLoaded} delay={55} />
+            </p>
           )}
           {morpho.marginalNotes?.length > 0 && (
             <ul className="sj-reading-notes">
@@ -144,7 +177,9 @@ export default function AiReadingSection({ chapters, chapterIdx }: Props) {
             <CompassIcon size={13} glowing />
             <span>Sage</span>
           </div>
-          <p className="sj-reading-resonance">{sage.resonance}</p>
+          <p className="sj-reading-resonance">
+            <RevealText text={sage.resonance} active={freshlyLoaded} delay={65} />
+          </p>
           {sage.personalizedCodes?.length > 0 && (
             <div className="sj-reading-list">
               <div className="sj-reading-list-label">your codes</div>

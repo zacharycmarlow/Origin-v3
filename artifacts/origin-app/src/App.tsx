@@ -14,8 +14,7 @@ import {
 } from './api/userApi';
 import AuthBar from './components/AuthBar';
 import JournalOverlay from './components/JournalOverlay';
-import BodyOverlay from './components/BodyOverlay';
-import StreamOverlay from './components/StreamOverlay';
+import HorizonOverlay from './components/HorizonOverlay';
 import SharingConsent from './components/SharingConsent';
 import ScrollJournal, { ScrollJournalHandle } from './components/ScrollJournal';
 import { ButterflyIcon, CompassIcon } from './components/MorphoCompassIcons';
@@ -125,8 +124,7 @@ export default function App() {
   /* Overlay states */
   const [journalOpen, setJournalOpen] = useState(false);
   const [journalInitialTab, setJournalInitialTab] = useState<'readings' | 'work' | 'codex' | undefined>(undefined);
-  const [streamOpen, setStreamOpen] = useState(false);
-  const [bodyOpen, setBodyOpen] = useState(false);
+  const [horizonTarget, setHorizonTarget] = useState<{ chapterIdx: number } | null>(null);
 
   /* Cumulative reading */
   const [hasCumulative, setHasCumulative] = useState<boolean>(() => !!getCumulative());
@@ -410,8 +408,7 @@ export default function App() {
           hasCumulative={hasCumulative}
           generatingCumulative={generatingCumulative}
           sharingShown={sharingShown}
-          onStream={() => setStreamOpen(true)}
-          onBody={() => setBodyOpen(true)}
+          onHorizon={(idx) => setHorizonTarget({ chapterIdx: idx })}
         />
       </main>
 
@@ -422,19 +419,13 @@ export default function App() {
         </div>
       )}
 
-      {streamOpen && (
-        <StreamOverlay
-          onClose={() => setStreamOpen(false)}
-          chapters={chapters}
-          currentCh={activeChapterIdx}
-        />
-      )}
-
-      {bodyOpen && (
-        <BodyOverlay
-          onClose={() => setBodyOpen(false)}
-          chapters={chapters}
-          currentCh={activeChapterIdx}
+      {horizonTarget && (
+        <HorizonOverlay
+          chapter={chapters[horizonTarget.chapterIdx]}
+          chapterIdx={horizonTarget.chapterIdx}
+          cycles={6}
+          onComplete={() => setHorizonTarget(null)}
+          onCancel={() => setHorizonTarget(null)}
         />
       )}
 

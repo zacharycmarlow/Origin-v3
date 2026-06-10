@@ -1,0 +1,2 @@
+- [Scroll Journal architecture](scroll-journal-arch.md) — sections array drives continuous scroll; inline tools are sj-section types, not overlays.
+- [HorizonOverlay integration](horizon-integration.md) — user-initiated from TransitionSection via onHorizon prop; horizonTarget state in App.

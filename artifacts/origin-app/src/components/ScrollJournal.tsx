@@ -3,17 +3,23 @@ import {
 } from 'react';
 import { Chapter } from '../chapters';
 import SceneComponent from './Scene';
+import Journal from './Journal';
 import ChapterGate from './sections/ChapterGate';
 import AiReadingSection from './sections/AiReadingSection';
 import ChapterTransition from './sections/ChapterTransition';
+import InlineStreamSection from './sections/InlineStreamSection';
+import InlineBodySection from './sections/InlineBodySection';
 import { ButterflyIcon, CompassIcon } from './MorphoCompassIcons';
 import MetamythInvite from './MetamythInvite';
+import { isChapterComplete, getReading } from '../storage';
 
 /* ─── Section data model ─────────────────────────────────────── */
 type SectionData =
   | { id: string; kind: 'prelude' }
   | { id: string; kind: 'chapter-gate'; chapterIdx: number }
   | { id: string; kind: 'scene'; chapterIdx: number; sceneIdx: number }
+  | { id: string; kind: 'stream-section'; chapterIdx: number }
+  | { id: string; kind: 'body-section'; chapterIdx: number }
   | { id: string; kind: 'ai-reading'; chapterIdx: number }
   | { id: string; kind: 'chapter-transition'; chapterIdx: number }
   | { id: string; kind: 'epilogue' };
@@ -25,6 +31,8 @@ function buildSections(chapters: Chapter[]): SectionData[] {
     chapters[ci].scenes.forEach((__, si) => {
       out.push({ id: `sj-scene-${ci}-${si}`, kind: 'scene', chapterIdx: ci, sceneIdx: si });
     });
+    out.push({ id: `sj-stream-${ci}`, kind: 'stream-section', chapterIdx: ci });
+    out.push({ id: `sj-body-${ci}`, kind: 'body-section', chapterIdx: ci });
     out.push({ id: `sj-reading-${ci}`, kind: 'ai-reading', chapterIdx: ci });
     if (ci < chapters.length - 1) {
       out.push({ id: `sj-trans-${ci}`, kind: 'chapter-transition', chapterIdx: ci });
@@ -34,7 +42,7 @@ function buildSections(chapters: Chapter[]): SectionData[] {
   return out;
 }
 
-/* ─── Compass glyph (local copy to avoid App.tsx coupling) ─── */
+/* ─── Compass glyph ─────────────────────────────────────────── */
 function CompassGlyph({ size = 100 }: { size?: number }) {
   return (
     <svg viewBox="0 0 120 120" width={size} height={size} aria-hidden="true">
@@ -145,32 +153,117 @@ function EpilogueSection({
   );
 }
 
+/* ─── SavedPulse indicator ───────────────────────────────────── */
+function SavedPulse({ visible }: { visible: boolean }) {
+  return (
+    <span className={`saved-pulse${visible ? ' saved-pulse--show' : ''}`} aria-live="polite">
+      <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+        <path d="M1.5 6.5L4.5 9.5L10.5 3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      saved
+    </span>
+  );
+}
+
+/* ─── Scene section (own state for SavedPulse) ───────────────── */
+function SceneSection({
+  section,
+  chapters,
+  isVisible,
+}: {
+  section: { id: string; kind: 'scene'; chapterIdx: number; sceneIdx: number };
+  chapters: Chapter[];
+  isVisible: boolean;
+}) {
+  const [savedVisible, setSavedVisible] = useState(false);
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleSave = useCallback(() => {
+    if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+    setSavedVisible(true);
+    savedTimerRef.current = setTimeout(() => setSavedVisible(false), 1600);
+  }, []);
+
+  useEffect(() => () => {
+    if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+  }, []);
+
+  const ci = section.chapterIdx;
+  const si = section.sceneIdx;
+  const ch = chapters[ci];
+  const scene = ch.scenes[si];
+  const baseClass = `sj-section${isVisible ? ' sj-section--visible' : ''}`;
+
+  return (
+    <div key={section.id} id={section.id} className={`${baseClass} sj-section--scene`}>
+      <div className="sj-scene-header">
+        <span className="sj-scene-chapter">
+          {ch.roman} · {ch.title.toLowerCase()}
+        </span>
+        <span className="sj-scene-progress">
+          <span>{String(si + 1).padStart(2, '0')}</span>
+          <span className="sep">/</span>
+          <span>{String(ch.scenes.length).padStart(2, '0')}</span>
+        </span>
+      </div>
+      <div className="sj-scene-content">
+        <SceneComponent
+          scene={scene}
+          idx={si}
+          total={ch.scenes.length}
+          chapterIdx={ci}
+          instantReveal
+          onSaveJournal={handleSave}
+        />
+      </div>
+      <div className="sj-scene-footer">
+        <SavedPulse visible={savedVisible} />
+      </div>
+    </div>
+  );
+}
+
+/* ─── Chapter transition section (with Horizon breath CTA) ─── */
+function TransitionSection({
+  section,
+  chapters,
+  isVisible,
+  onHorizon,
+}: {
+  section: { id: string; kind: 'chapter-transition'; chapterIdx: number };
+  chapters: Chapter[];
+  isVisible: boolean;
+  onHorizon: (chapterIdx: number) => void;
+}) {
+  const ci = section.chapterIdx;
+  const chapter = chapters[ci];
+  const hasReading = !!(getReading(ci).morpho || getReading(ci).sage);
+  const complete = isChapterComplete(chapter);
+  const baseClass = `sj-section${isVisible ? ' sj-section--visible' : ''}`;
+
+  return (
+    <div id={section.id} className={`${baseClass} sj-section--transition`}>
+      <ChapterTransition chapter={chapter} />
+      {(complete || hasReading) && (
+        <div className="sj-horizon-cta">
+          <button
+            className="sj-horizon-btn"
+            onClick={() => onHorizon(ci)}
+            title="Coherence breath between chapters"
+          >
+            <span className="sj-horizon-orb" />
+            <span className="sj-horizon-label">coherence breath</span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ─── Public handle ─────────────────────────────────────────── */
 export interface ScrollJournalHandle {
   scrollToChapter: (idx: number) => void;
   scrollToStart: () => void;
-}
-
-/* ─── Scene tools strip ─────────────────────────────────────── */
-function SceneTools({ onStream, onBody }: { onStream: () => void; onBody: () => void }) {
-  return (
-    <div className="sj-scene-tools">
-      <button className="sj-tool-btn" onClick={onStream} title="Open stream of consciousness">
-        <svg viewBox="0 0 18 18" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.2">
-          <path d="M2 4h14M2 8h10M2 12h12M2 16h8" strokeLinecap="round" />
-        </svg>
-        <span>stream</span>
-      </button>
-      <button className="sj-tool-btn" onClick={onBody} title="Body check-in">
-        <svg viewBox="0 0 18 18" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.2">
-          <circle cx="9" cy="3.5" r="1.5" />
-          <path d="M9 5.5v5m-3 0 1 4h4l1-4" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M6.5 8.5h5" strokeLinecap="round" />
-        </svg>
-        <span>body</span>
-      </button>
-    </div>
-  );
 }
 
 /* ─── Props ─────────────────────────────────────────────────── */
@@ -183,8 +276,7 @@ interface Props {
   hasCumulative: boolean;
   generatingCumulative: boolean;
   sharingShown: boolean;
-  onStream: () => void;
-  onBody: () => void;
+  onHorizon: (chapterIdx: number) => void;
 }
 
 /* ─── ScrollJournal ─────────────────────────────────────────── */
@@ -197,8 +289,7 @@ const ScrollJournal = forwardRef<ScrollJournalHandle, Props>(({
   hasCumulative,
   generatingCumulative,
   sharingShown,
-  onStream,
-  onBody,
+  onHorizon,
 }, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const gateEls = useRef<Map<number, HTMLElement>>(new Map());
@@ -270,9 +361,7 @@ const ScrollJournal = forwardRef<ScrollJournalHandle, Props>(({
       (entries) => {
         const newVisible: string[] = [];
         entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            newVisible.push(entry.target.id);
-          }
+          if (entry.isIntersecting) newVisible.push(entry.target.id);
         });
         if (newVisible.length > 0) {
           setVisibleSections(prev => {
@@ -293,7 +382,6 @@ const ScrollJournal = forwardRef<ScrollJournalHandle, Props>(({
   /* ── Restore scroll position on mount ─────────────────────── */
   useEffect(() => {
     if (initialChapterIdx > 0) {
-      // Defer so layout is settled
       const t = setTimeout(() => {
         const el = gateEls.current.get(initialChapterIdx);
         if (el && containerRef.current) {
@@ -351,37 +439,38 @@ const ScrollJournal = forwardRef<ScrollJournalHandle, Props>(({
             );
           }
 
-          case 'scene': {
+          case 'scene':
+            return (
+              <SceneSection
+                key={section.id}
+                section={section}
+                chapters={chapters}
+                isVisible={isVisible}
+              />
+            );
+
+          case 'stream-section': {
             const ci = section.chapterIdx;
-            const si = section.sceneIdx;
-            const ch = chapters[ci];
-            const scene = ch.scenes[si];
             return (
               <div
                 key={section.id}
                 id={section.id}
-                className={`${baseClass} sj-section--scene`}
+                className={`${baseClass} sj-section--stream`}
               >
-                <div className="sj-scene-header">
-                  <span className="sj-scene-chapter">
-                    {ch.roman} · {ch.title.toLowerCase()}
-                  </span>
-                  <span className="sj-scene-progress">
-                    <span>{String(si + 1).padStart(2, '0')}</span>
-                    <span className="sep">/</span>
-                    <span>{String(ch.scenes.length).padStart(2, '0')}</span>
-                  </span>
-                </div>
-                <div className="sj-scene-content">
-                  <SceneComponent
-                    scene={scene}
-                    idx={si}
-                    total={ch.scenes.length}
-                    chapterIdx={ci}
-                    instantReveal
-                  />
-                </div>
-                <SceneTools onStream={onStream} onBody={onBody} />
+                <InlineStreamSection chapterIdx={ci} chapters={chapters} />
+              </div>
+            );
+          }
+
+          case 'body-section': {
+            const ci = section.chapterIdx;
+            return (
+              <div
+                key={section.id}
+                id={section.id}
+                className={`${baseClass} sj-section--body`}
+              >
+                <InlineBodySection chapterIdx={ci} chapters={chapters} />
               </div>
             );
           }
@@ -399,18 +488,16 @@ const ScrollJournal = forwardRef<ScrollJournalHandle, Props>(({
             );
           }
 
-          case 'chapter-transition': {
-            const ci = section.chapterIdx;
+          case 'chapter-transition':
             return (
-              <div
+              <TransitionSection
                 key={section.id}
-                id={section.id}
-                className={`${baseClass} sj-section--transition`}
-              >
-                <ChapterTransition chapter={chapters[ci]} />
-              </div>
+                section={section}
+                chapters={chapters}
+                isVisible={isVisible}
+                onHorizon={onHorizon}
+              />
             );
-          }
 
           case 'epilogue':
             return (
