@@ -15,6 +15,7 @@ interface Props {
   idx: number;
   total: number;
   chapterIdx: number;
+  instantReveal?: boolean;
 }
 
 // Kinds that show everything at once (no progressive reveal)
@@ -218,11 +219,12 @@ function ExpandableLore(props: { title: string; body: string; chapterIdx: number
   return <UnlockableInline kind="lore" {...props} />;
 }
 
-export default function Scene({ scene, chapterIdx }: Props) {
+export default function Scene({ scene, chapterIdx, instantReveal }: Props) {
   const { phase, advance } = useSceneReveal(scene);
 
-  const showInteraction = phase >= 1;
-  const showAfter = phase >= 2;
+  const effectivePhase = instantReveal ? 99 : phase;
+  const showInteraction = effectivePhase >= 1;
+  const showAfter = effectivePhase >= 2;
 
   return (
     <div className="scene" onClick={(e) => {
@@ -296,7 +298,7 @@ export default function Scene({ scene, chapterIdx }: Props) {
       </div>
 
       {/* ── Continue cue: appears before interaction reveals ── */}
-      {phase === 0 && !SIMPLE_KINDS.has(scene.kind) && (
+      {effectivePhase === 0 && !SIMPLE_KINDS.has(scene.kind) && (
         <button className="scene-continue-cue" onClick={advance} aria-label="Continue">
           <span className="cue-dot" />
         </button>

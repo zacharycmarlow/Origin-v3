@@ -4770,3 +4770,478 @@ input, textarea, select { font-family: inherit; color: inherit; }
   width: 100%;
   align-items: center;
 }
+
+
+/* ═══════════════════════════════════════════════════════════
+   SCROLL JOURNAL — Continuous vertical long-form layout
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── Stage override for scroll mode ─────────────────────── */
+.stage {
+  position: relative;
+  z-index: 5;
+  height: 100vh;
+  height: 100dvh;
+  overflow: visible;
+}
+
+.scroll-journal {
+  position: absolute;
+  inset: 0;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  scroll-snap-type: y proximity;
+  overscroll-behavior-y: none;
+}
+
+.scroll-journal::-webkit-scrollbar { width: 4px; }
+.scroll-journal::-webkit-scrollbar-track { background: transparent; }
+.scroll-journal::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  border-radius: 2px;
+}
+
+/* ─── Base section ───────────────────────────────────────── */
+.sj-section {
+  min-height: 100svh;
+  padding: 100px 80px 80px 220px;
+  scroll-snap-align: start;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+  position: relative;
+}
+
+.sj-section--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Prelude: centered, no left offset (Spine not visible here) */
+.sj-section--prelude {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 100px 80px 80px 80px;
+  min-height: 100svh;
+}
+
+.sj-prelude-inner {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+/* Chapter gate: full-height, vertically centered */
+.sj-section--gate {
+  display: flex;
+  align-items: center;
+  min-height: 100svh;
+  padding: 100px 80px 80px 220px;
+}
+
+.sj-gate-inner {
+  width: 100%;
+  max-width: 700px;
+}
+
+/* Scroll cue arrow below invocation */
+.sj-gate-scroll-cue {
+  margin-top: 56px;
+  opacity: 0;
+  transition: opacity 0.6s ease, transform 0.6s ease;
+  color: var(--ink);
+  animation: sj-scroll-cue-bounce 2.4s ease-in-out 1.5s infinite;
+}
+.sj-gate-scroll-cue.opener-phase--in {
+  opacity: 0.28;
+}
+@keyframes sj-scroll-cue-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(5px); }
+}
+
+/* Scene section */
+.sj-section--scene {
+  padding: 80px 80px 80px 220px;
+  min-height: 100svh;
+}
+
+.sj-scene-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 32px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 9%, transparent);
+}
+
+.sj-scene-chapter {
+  font-family: var(--font-title);
+  font-size: 11px;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  opacity: .52;
+}
+
+.sj-scene-progress {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .12em;
+  opacity: .4;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sj-scene-progress .sep {
+  opacity: .5;
+}
+
+.sj-scene-content {
+  max-width: 740px;
+}
+
+/* AI reading section */
+.sj-section--reading {
+  min-height: auto;
+  padding: 60px 80px 80px 220px;
+}
+
+.sj-reading-section {
+  max-width: 680px;
+}
+
+.sj-reading-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 36px;
+  padding-top: 20px;
+  border-top: 1px solid color-mix(in srgb, var(--glow) 22%, transparent);
+}
+
+.sj-reading-label {
+  font-family: var(--font-title);
+  font-size: 12px;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  opacity: .6;
+}
+
+.sj-reading-gate {
+  padding: 40px 0 20px;
+}
+
+.sj-reading-hint {
+  font-size: 15px;
+  line-height: 1.7;
+  opacity: .6;
+  margin-bottom: 28px;
+  max-width: 480px;
+}
+
+.sj-reading-request {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sj-reading-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 32px 0;
+  opacity: .65;
+  font-size: 14px;
+  font-family: var(--font-title);
+  letter-spacing: .08em;
+}
+
+.sj-reading-dots {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+
+.sj-reading-dots span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .3;
+  animation: sj-dot-bounce 1.5s ease-in-out infinite;
+}
+.sj-reading-dots span:nth-child(2) { animation-delay: .18s; }
+.sj-reading-dots span:nth-child(3) { animation-delay: .36s; }
+
+@keyframes sj-dot-bounce {
+  0%, 100% { opacity: .2; transform: translateY(0); }
+  50% { opacity: .85; transform: translateY(-4px); }
+}
+
+.sj-reading-error {
+  padding: 20px 24px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  font-size: 14px;
+  color: var(--accent);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Reading cards */
+.sj-reading-card {
+  margin-bottom: 36px;
+  opacity: 0;
+  animation: none;
+}
+
+/* Existing readings (already in storage): show immediately */
+.sj-section--visible .sj-reading-card {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.7s ease 0.1s;
+}
+
+/* Freshly loaded readings: slide in */
+.sj-reading-card--fresh {
+  animation: sj-reading-arrive 0.9s ease forwards;
+}
+
+.sj-reading-card--sage.sj-reading-card--fresh {
+  animation-delay: 0.4s;
+}
+
+@keyframes sj-reading-arrive {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+.sj-reading-guide-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-family: var(--font-title);
+  font-size: 13px;
+  letter-spacing: .2em;
+  opacity: .72;
+}
+
+.sj-reading-through {
+  font-size: 18px;
+  line-height: 1.75;
+  font-style: italic;
+  margin-bottom: 14px;
+}
+
+.sj-reading-subtext {
+  font-size: 15px;
+  line-height: 1.7;
+  opacity: .7;
+  margin-bottom: 18px;
+}
+
+.sj-reading-notes {
+  list-style: none;
+  padding: 0;
+  margin: 14px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sj-reading-note {
+  font-size: 14px;
+  line-height: 1.68;
+  padding-left: 16px;
+  border-left: 1.5px solid color-mix(in srgb, var(--glow) 45%, transparent);
+  opacity: .8;
+}
+
+.sj-reading-resonance {
+  font-size: 17px;
+  line-height: 1.75;
+  font-style: italic;
+  margin-bottom: 20px;
+}
+
+.sj-reading-list {
+  margin-bottom: 22px;
+}
+
+.sj-reading-list-label {
+  font-family: var(--font-title);
+  font-size: 11px;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  opacity: .45;
+  margin-bottom: 12px;
+}
+
+.sj-reading-list-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 12px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 7%, transparent);
+}
+
+.sj-reading-list-title {
+  font-size: 14px;
+  font-weight: 500;
+  opacity: .88;
+}
+
+.sj-reading-list-body {
+  font-size: 13px;
+  opacity: .68;
+  line-height: 1.62;
+}
+
+/* Chapter transition section */
+.sj-section--transition {
+  min-height: auto;
+  padding: 20px 80px 20px 220px;
+  display: flex;
+  align-items: center;
+}
+
+.sj-transition {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  padding: 48px 0;
+}
+
+.sj-transition-rule {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--ink) 22%, transparent) 30%,
+    color-mix(in srgb, var(--ink) 22%, transparent) 70%,
+    transparent
+  );
+}
+
+.sj-transition-text {
+  font-family: var(--font-title);
+  font-style: italic;
+  font-size: 16px;
+  line-height: 1.72;
+  text-align: center;
+  opacity: .62;
+  max-width: 480px;
+}
+
+.sj-transition-arrow {
+  opacity: .32;
+}
+
+/* Epilogue section */
+.sj-section--epilogue {
+  padding: 100px 80px 120px 220px;
+}
+
+/* ─── Topbar journal button ──────────────────────────────── */
+.topbar-journal-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  opacity: .65;
+  transition: opacity .25s;
+}
+.topbar-journal-btn:hover { opacity: 1; }
+.topbar-journal-btn.instr-btn--lit { opacity: .9; }
+
+/* ─── Saved pulse indicator ──────────────────────────────── */
+.saved-pulse {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .14em;
+  color: var(--teal-core);
+  animation: saved-fade 1.4s ease forwards;
+  pointer-events: none;
+}
+
+@keyframes saved-fade {
+  0%   { opacity: 0; transform: translateY(3px); }
+  15%  { opacity: .85; transform: translateY(0); }
+  75%  { opacity: .85; }
+  100% { opacity: 0; }
+}
+
+/* ─── Mobile responsive ──────────────────────────────────── */
+@media (max-width: 768px) {
+  .sj-section {
+    padding: 80px 28px 60px 28px;
+  }
+  .sj-section--gate {
+    padding: 80px 28px 60px 28px;
+  }
+  .sj-section--scene {
+    padding: 70px 24px 60px 24px;
+  }
+  .sj-section--reading {
+    padding: 40px 24px 60px 24px;
+  }
+  .sj-section--transition {
+    padding: 10px 24px 10px 24px;
+  }
+  .sj-section--epilogue {
+    padding: 80px 24px 80px 24px;
+  }
+}
+
+
+/* ─── Scene tools strip ──────────────────────────────────────── */
+.sj-scene-tools {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 36px;
+  padding-top: 20px;
+  border-top: 1px solid color-mix(in srgb, var(--ink) 7%, transparent);
+}
+
+.sj-tool-btn {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-title);
+  font-size: 11px;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  opacity: .4;
+  transition: opacity .22s, transform .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sj-tool-btn:hover {
+  opacity: .75;
+  transform: translateY(-1px);
+}
+
+.sj-tool-btn:active {
+  transform: translateY(0);
+  opacity: .55;
+}
