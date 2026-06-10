@@ -4910,6 +4910,80 @@ input, textarea, select { font-family: inherit; color: inherit; }
   padding-top: 0;
 }
 
+/* Prelude closing lines */
+.prelude-body--closing {
+  font-style: italic;
+  opacity: 0.7;
+}
+
+/* Prelude horizontal rule */
+.prelude-rule {
+  width: 60px;
+  height: 1px;
+  background: color-mix(in srgb, var(--ink) 25%, transparent);
+  margin: 40px auto;
+}
+
+/* Prelude note block */
+.prelude-note-block {
+  max-width: 480px;
+  margin: 0 auto;
+  text-align: left;
+}
+.prelude-note-heading {
+  font-family: var(--font-title);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: .32em;
+  color: var(--teal-ink);
+  opacity: .8;
+  margin-bottom: 14px;
+}
+
+/* Prelude road map */
+.prelude-road-block {
+  max-width: 480px;
+  margin: 0 auto;
+  text-align: left;
+}
+.prelude-road-heading {
+  font-family: var(--font-title);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: .32em;
+  color: var(--teal-ink);
+  opacity: .8;
+  margin-bottom: 14px;
+}
+.prelude-road-list {
+  list-style: none;
+  padding: 0; margin: 0 0 40px;
+  display: grid; gap: 10px;
+}
+.prelude-road-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+.prelude-road-roman {
+  font-family: var(--font-title);
+  font-size: 12px;
+  letter-spacing: .18em;
+  color: var(--gold-2);
+  min-width: 28px;
+  opacity: 0.9;
+}
+.prelude-road-text {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink);
+  opacity: 0.82;
+}
+.prelude-road-locked {
+  opacity: 0.4;
+}
+
 /* Scene section */
 .sj-section--scene {
   padding: 80px 80px 80px 220px;

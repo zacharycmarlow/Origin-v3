@@ -76,14 +76,52 @@ function PreludeSection({ onScrollToJourney }: { onScrollToJourney: () => void }
       <div className="prelude-eyebrow">A guide for becoming the author of your reality.</div>
       <h1 className="prelude-title">THE ORIGIN</h1>
       <p className="prelude-body">
-        The world is made of stories. So are you. The one running in your head right now — about who you are, what's real, what's possible — has been producing your reality since before you had the language to question it.
+        The world is made of stories. So are you.
       </p>
       <p className="prelude-body">
-        Seven chapters. Seven arts of storytelling: film, the novel, poetry, scripture, mythology, adventure, the spoken word. The journey moves backward through the history of how humans learned to tell stories, from the screen to the fire. Each one ancient. Each one dangerous.
+        You know the magic already. A dark room, and you are carried to a place that never existed, laughing with people who were never born, weeping at a loss that never happened. And it feels weirdly familiar, because it is what your mind is doing every minute. Authoring the next moment before it arrives. Running a story so vivid and so constant that you believed it, and it became the world.
       </p>
-      <p className="prelude-body prelude-body--note">
-        Everyone who has walked this path has been changed by it. The only thing between you and that power is shame, doubt, and your own resistance to the size of what you actually are. Name it. Keep going.
+      <p className="prelude-body">
+        The same process that makes you laugh and cry at a movie creates your mind, your moods, your life. The same operating system runs the money, the nations, the news, the whole towering production of human civilization.
       </p>
+      <p className="prelude-body">
+        You will learn how by practicing on the most precious story ever told: you.
+      </p>
+      <p className="prelude-body">
+        The promise of this book is exact. Rewrite your life. Reprogram your nervous system around a story you actually choose. Then live it, until the story and the life are the same thing.
+      </p>
+      <p className="prelude-body">
+        Seven chapters. Seven arts of storytelling: film, the novel, poetry, scripture, mythology, adventure, the spoken word. The journey moves backward through the history of how humans learned to tell stories, from the screen to the fire. Each one ancient. Each one dangerous. At every layer, a deeper truth about how story creates reality. By the end you hold all seven, proven in your body, braided into a voice that cannot be faked: yours.
+      </p>
+      <p className="prelude-body">
+        You cannot change what happened to you. You decide what it means, and the meaning changes everything downstream.
+      </p>
+      <p className="prelude-body prelude-body--closing">
+        The pen has been in your hand the whole time.
+      </p>
+      <p className="prelude-body prelude-body--closing">
+        Let this be an ending. And a beginning.
+      </p>
+      <div className="prelude-rule" />
+      <div className="prelude-note-block">
+        <p className="prelude-note-heading">A note before you begin</p>
+        <p className="prelude-body">
+          Stories make the world and they can break it too. Everyone who has walked this path has been changed by it. The only thing between you and that power is shame, doubt, and your own resistance to the size of what you actually are. Name it. Keep going.
+        </p>
+      </div>
+      <div className="prelude-rule" />
+      <div className="prelude-road-block">
+        <p className="prelude-road-heading">The Road</p>
+        <ol className="prelude-road-list">
+          <li><span className="prelude-road-roman">I</span><span className="prelude-road-text">The Opening — See the story you have been living inside.</span></li>
+          <li><span className="prelude-road-roman">II</span><span className="prelude-road-text prelude-road-locked">The Conflict — Face the challenges that make the story interesting.</span></li>
+          <li><span className="prelude-road-roman">III</span><span className="prelude-road-text prelude-road-locked">The Twist — Turn everything you survived into gold.</span></li>
+          <li><span className="prelude-road-roman">IV</span><span className="prelude-road-text prelude-road-locked">The Source — Touch the source code of what you are.</span></li>
+          <li><span className="prelude-road-roman">V</span><span className="prelude-road-text prelude-road-locked">The Reality — See through the mythology and rewrite it.</span></li>
+          <li><span className="prelude-road-roman">VI</span><span className="prelude-road-text prelude-road-locked">The Dream — Enter the adventure of your own future.</span></li>
+          <li><span className="prelude-road-roman">VII</span><span className="prelude-road-text prelude-road-locked">The Return — Bring the story back and make it real.</span></li>
+        </ol>
+      </div>
       <button className="primary-btn" onClick={onScrollToJourney}>
         <span className="label">begin</span>
       </button>
