@@ -4865,6 +4865,51 @@ input, textarea, select { font-family: inherit; color: inherit; }
   50% { transform: translateY(5px); }
 }
 
+/* Locked chapter gate */
+.sj-gate-inner--locked {
+  opacity: 0.72;
+}
+.sj-section--gate:has(.sj-gate-inner--locked) {
+  min-height: auto;
+  padding-top: 48px;
+  padding-bottom: 48px;
+  border-top: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+}
+.opener-roman--locked {
+  opacity: 0.35;
+  font-size: 56px;
+  margin-bottom: 4px;
+}
+.opener-title--locked {
+  font-size: clamp(28px, 4vw, 40px);
+  opacity: 0.55;
+  margin-bottom: 4px;
+}
+.opener-sub--locked {
+  opacity: 0.4;
+  margin-bottom: 16px;
+}
+.sj-gate-lock {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.4;
+  color: var(--ink);
+}
+
+/* Prelude note paragraph */
+.prelude-body--note {
+  font-style: italic;
+  opacity: 0.65;
+  font-size: 0.9em;
+  margin-top: 0;
+  padding-top: 0;
+}
+
 /* Scene section */
 .sj-section--scene {
   padding: 80px 80px 80px 220px;

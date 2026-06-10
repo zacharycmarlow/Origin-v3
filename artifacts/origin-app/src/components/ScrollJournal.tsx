@@ -26,16 +26,18 @@ type SectionData =
 
 function buildSections(chapters: Chapter[]): SectionData[] {
   const out: SectionData[] = [{ id: 'sj-prelude', kind: 'prelude' }];
-  chapters.forEach((_, ci) => {
+  chapters.forEach((ch, ci) => {
     out.push({ id: `sj-gate-${ci}`, kind: 'chapter-gate', chapterIdx: ci });
-    chapters[ci].scenes.forEach((__, si) => {
-      out.push({ id: `sj-scene-${ci}-${si}`, kind: 'scene', chapterIdx: ci, sceneIdx: si });
-    });
-    out.push({ id: `sj-stream-${ci}`, kind: 'stream-section', chapterIdx: ci });
-    out.push({ id: `sj-body-${ci}`, kind: 'body-section', chapterIdx: ci });
-    out.push({ id: `sj-reading-${ci}`, kind: 'ai-reading', chapterIdx: ci });
-    if (ci < chapters.length - 1) {
-      out.push({ id: `sj-trans-${ci}`, kind: 'chapter-transition', chapterIdx: ci });
+    if (!ch.locked) {
+      ch.scenes.forEach((__, si) => {
+        out.push({ id: `sj-scene-${ci}-${si}`, kind: 'scene', chapterIdx: ci, sceneIdx: si });
+      });
+      out.push({ id: `sj-stream-${ci}`, kind: 'stream-section', chapterIdx: ci });
+      out.push({ id: `sj-body-${ci}`, kind: 'body-section', chapterIdx: ci });
+      out.push({ id: `sj-reading-${ci}`, kind: 'ai-reading', chapterIdx: ci });
+      if (ci < chapters.length - 1) {
+        out.push({ id: `sj-trans-${ci}`, kind: 'chapter-transition', chapterIdx: ci });
+      }
     }
   });
   out.push({ id: 'sj-epilogue', kind: 'epilogue' });
@@ -71,10 +73,16 @@ function PreludeSection({ onScrollToJourney }: { onScrollToJourney: () => void }
       <div className="prelude-glyph">
         <CompassGlyph size={90} />
       </div>
-      <div className="prelude-eyebrow">seven chapters · seven thresholds</div>
+      <div className="prelude-eyebrow">A guide for becoming the author of your reality.</div>
       <h1 className="prelude-title">THE ORIGIN</h1>
       <p className="prelude-body">
-        The world is made of stories. The one running in your head right now — about who you are, what's real, what's possible — has been producing your reality since before you had the language to question it. This is a guide for becoming the author of yours.
+        The world is made of stories. So are you. The one running in your head right now — about who you are, what's real, what's possible — has been producing your reality since before you had the language to question it.
+      </p>
+      <p className="prelude-body">
+        Seven chapters. Seven arts of storytelling: film, the novel, poetry, scripture, mythology, adventure, the spoken word. The journey moves backward through the history of how humans learned to tell stories, from the screen to the fire. Each one ancient. Each one dangerous.
+      </p>
+      <p className="prelude-body prelude-body--note">
+        Everyone who has walked this path has been changed by it. The only thing between you and that power is shame, doubt, and your own resistance to the size of what you actually are. Name it. Keep going.
       </p>
       <button className="primary-btn" onClick={onScrollToJourney}>
         <span className="label">begin</span>
@@ -434,6 +442,7 @@ const ScrollJournal = forwardRef<ScrollJournalHandle, Props>(({
                   chapter={chapters[ci]}
                   chapterIdx={ci}
                   total={chapters.length}
+                  locked={chapters[ci].locked}
                 />
               </div>
             );

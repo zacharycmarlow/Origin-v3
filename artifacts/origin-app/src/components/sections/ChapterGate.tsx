@@ -5,13 +5,15 @@ interface Props {
   chapter: Chapter;
   chapterIdx: number;
   total: number;
+  locked?: boolean;
 }
 
-export default function ChapterGate({ chapter, chapterIdx, total }: Props) {
+export default function ChapterGate({ chapter, chapterIdx, total, locked }: Props) {
   const paragraphs = chapter.invocation.split('\n\n');
   const [phase, setPhase] = useState(0);
 
   useEffect(() => {
+    if (locked) return;
     setPhase(0);
     const timers = [
       setTimeout(() => setPhase(1), 100),
@@ -23,6 +25,28 @@ export default function ChapterGate({ chapter, chapterIdx, total }: Props) {
     ];
     return () => timers.forEach(clearTimeout);
   }, [chapter.title]); // eslint-disable-line
+
+  if (locked) {
+    return (
+      <div className="sj-gate-inner sj-gate-inner--locked">
+        <div className="opener-meta">
+          <span>chapter {String(chapterIdx + 1).padStart(2, '0')} of {String(total).padStart(2, '0')}</span>
+          <span className="opener-rule" />
+          <span>territory · {chapter.title.toLowerCase()}</span>
+        </div>
+        <div className="opener-roman opener-roman--locked">{chapter.roman}</div>
+        <h2 className="opener-title opener-title--locked">{chapter.title}</h2>
+        <div className="opener-sub opener-sub--locked">{chapter.subtitle}</div>
+        <div className="sj-gate-lock">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <rect x="4" y="9" width="12" height="10" rx="2" stroke="currentColor" strokeWidth="1.4" />
+            <path d="M7 9V6a3 3 0 0 1 6 0v3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+          </svg>
+          <span>coming soon</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="sj-gate-inner">
