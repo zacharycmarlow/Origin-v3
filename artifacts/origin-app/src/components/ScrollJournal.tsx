@@ -76,10 +76,13 @@ function PreludeSection({ onScrollToJourney }: { onScrollToJourney: () => void }
       <div className="prelude-eyebrow">A guide for becoming the author of your reality.</div>
       <h1 className="prelude-title">THE ORIGIN</h1>
       <p className="prelude-body">
-        The world is made of stories. So are you.
+        The magic of story is the power to create worlds with words. Since humans gathered around the fire at the dawn of time and spoke all that came to pass into motion. We all live and breathe stories, to get through the bad times and immortalize the good. We tell stories, all day every day.
       </p>
       <p className="prelude-body">
-        You know the magic already. A dark room, and you are carried to a place that never existed, laughing with people who were never born, weeping at a loss that never happened. And it feels weirdly familiar, because it is what your mind is doing every minute. Authoring the next moment before it arrives. Running a story so vivid and so constant that you believed it, and it became the world.
+        Your mind is telling a story right now.
+      </p>
+      <p className="prelude-body">
+        Authoring the next moment before it arrives. Running a story so vivid and so constant that you believed it, and it became the world.
       </p>
       <p className="prelude-body">
         The same process that makes you laugh and cry at a movie creates your mind, your moods, your life. The same operating system runs the money, the nations, the news, the whole towering production of human civilization.
