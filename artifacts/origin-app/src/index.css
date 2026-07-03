@@ -4790,7 +4790,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   inset: 0;
   overflow-y: scroll;
   overflow-x: hidden;
-  scroll-snap-type: y proximity;
+  scroll-snap-type: y mandatory;
   overscroll-behavior-y: none;
 }
 
@@ -4806,6 +4806,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   min-height: 100svh;
   padding: 100px 80px 80px 220px;
   scroll-snap-align: start;
+  scroll-snap-stop: always;
   opacity: 0;
   transform: translateY(12px);
   transition: opacity 0.55s ease, transform 0.55s ease;
