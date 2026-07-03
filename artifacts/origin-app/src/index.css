@@ -358,10 +358,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
       var(--gold-1) 86%, var(--gold-4) 100%);
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
-  filter:
-    drop-shadow(0 1px 0 rgba(255, 230, 170, 0.4))
-    drop-shadow(0 2px 3px rgba(120, 80, 20, 0.35))
-    drop-shadow(0 0 18px rgba(230, 190, 100, 0.28));
+  text-shadow: 0 1px 0 rgba(255, 230, 170, 0.4), 0 2px 3px rgba(120, 80, 20, 0.35), 0 0 18px rgba(230, 190, 100, 0.28);
 }
 
 /* ─── Gold ornamental rule ────────────────────────────────── */
@@ -413,10 +410,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
       var(--gold-1) 86%, var(--gold-4) 100%);
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
-  filter:
-    drop-shadow(0 1px 0 rgba(255, 235, 180, 0.45))
-    drop-shadow(0 2px 2px rgba(120, 80, 20, 0.38))
-    drop-shadow(0 0 16px rgba(230, 190, 100, 0.22));
+  text-shadow: 0 1px 0 rgba(255, 235, 180, 0.45), 0 2px 2px rgba(120, 80, 20, 0.38), 0 0 16px rgba(230, 190, 100, 0.22);
   text-transform: uppercase;
 }
 .prelude-sub {
@@ -471,7 +465,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   background: linear-gradient(155deg, var(--gold-4), var(--gold-1) 40%, var(--gold-2) 60%, var(--gold-4));
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
-  filter: drop-shadow(0 1px 1px rgba(120, 80, 20, 0.4));
+  text-shadow: 0 1px 1px rgba(120, 80, 20, 0.4);
 }
 .before-text { font-size: 14px; line-height: 1.55; opacity: .88; }
 .before-tool-name {
@@ -510,10 +504,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
       var(--gold-1) 86%, var(--gold-4) 100%);
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
-  filter:
-    drop-shadow(0 1px 0 rgba(255, 235, 180, 0.45))
-    drop-shadow(0 2px 2px rgba(120, 80, 20, 0.38))
-    drop-shadow(0 0 16px rgba(230, 190, 100, 0.22));
+  text-shadow: 0 1px 0 rgba(255, 235, 180, 0.45), 0 2px 2px rgba(120, 80, 20, 0.38), 0 0 16px rgba(230, 190, 100, 0.22);
   text-transform: uppercase;
 }
 .opener-title {
@@ -528,10 +519,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
       var(--gold-1) 86%, var(--gold-4) 100%);
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
-  filter:
-    drop-shadow(0 1px 0 rgba(255, 235, 180, 0.45))
-    drop-shadow(0 2px 2px rgba(120, 80, 20, 0.38))
-    drop-shadow(0 0 16px rgba(230, 190, 100, 0.22));
+  text-shadow: 0 1px 0 rgba(255, 235, 180, 0.45), 0 2px 2px rgba(120, 80, 20, 0.38), 0 0 16px rgba(230, 190, 100, 0.22);
   text-transform: uppercase;
 }
 .opener-sub {
@@ -648,7 +636,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   background: linear-gradient(155deg, var(--gold-4), var(--gold-1) 40%, var(--gold-2) 60%, var(--gold-4));
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
-  filter: drop-shadow(0 1px 1px rgba(120, 80, 20, 0.4));
+  text-shadow: 0 1px 1px rgba(120, 80, 20, 0.4);
 }
 .code-num {
   font-family: 'JetBrains Mono', monospace;
@@ -859,10 +847,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
       var(--gold-1) 86%, var(--gold-4) 100%);
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
-  filter:
-    drop-shadow(0 1px 0 rgba(255, 235, 180, 0.45))
-    drop-shadow(0 2px 2px rgba(120, 80, 20, 0.38))
-    drop-shadow(0 0 16px rgba(230, 190, 100, 0.22));
+  text-shadow: 0 1px 0 rgba(255, 235, 180, 0.45), 0 2px 2px rgba(120, 80, 20, 0.38), 0 0 16px rgba(230, 190, 100, 0.22);
 }
 .scene-label {
   font-family: var(--font-title);
@@ -873,7 +858,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   background: linear-gradient(155deg, var(--gold-4), var(--gold-1) 30%, var(--gold-2) 50%, var(--gold-1) 70%, var(--gold-4));
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
-  filter: drop-shadow(0 1px 1px rgba(120, 80, 20, 0.4));
+  text-shadow: 0 1px 1px rgba(120, 80, 20, 0.4);
 }
 .scene-body {
   font-family: var(--font-body);
@@ -897,7 +882,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   background: linear-gradient(155deg, var(--gold-4), var(--gold-1) 45%, var(--gold-2) 60%, var(--gold-4));
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
-  filter: drop-shadow(0 1px 1px rgba(120, 80, 20, 0.3));
+  text-shadow: 0 1px 1px rgba(120, 80, 20, 0.3);
 }
 
 /* outside scene */
@@ -934,10 +919,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
       var(--gold-2) 50%, var(--gold-3) 62%, var(--gold-2) 74%, var(--gold-4) 100%);
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
-  filter:
-    drop-shadow(0 1px 0 rgba(255, 235, 180, 0.5))
-    drop-shadow(0 2px 3px rgba(120, 80, 20, 0.42))
-    drop-shadow(0 0 24px rgba(77, 240, 214, 0.35));
+  text-shadow: 0 1px 0 rgba(255, 235, 180, 0.5), 0 2px 3px rgba(120, 80, 20, 0.42), 0 0 24px rgba(77, 240, 214, 0.35);
 }
 .tile-kind-threshold .journal {
   background:
@@ -975,7 +957,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   background: linear-gradient(155deg, var(--gold-4), var(--gold-1) 40%, var(--gold-2) 60%, var(--gold-4));
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
-  filter: drop-shadow(0 1px 1px rgba(120, 80, 20, 0.35));
+  text-shadow: 0 1px 1px rgba(120, 80, 20, 0.35);
 }
 
 /* ─── Journal — inked paper field ─────────────────────────── */
@@ -1112,7 +1094,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   background: linear-gradient(155deg, var(--gold-4), var(--gold-1) 45%, var(--gold-2) 60%, var(--gold-4));
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
-  filter: drop-shadow(0 1px 1px rgba(120, 80, 20, 0.3));
+  text-shadow: 0 1px 1px rgba(120, 80, 20, 0.3);
 }
 
 /* ─── Buttons — gold foil filigree ornament ───────────────── */
@@ -1128,7 +1110,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
     linear-gradient(155deg, var(--gold-2), var(--gold-1) 30%, var(--gold-2) 50%, var(--gold-3) 68%, var(--gold-2) 85%, var(--gold-1));
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
-  filter: drop-shadow(0 1px 2px rgba(100, 60, 10, 0.55));
+  text-shadow: 0 1px 2px rgba(100, 60, 10, 0.55);
   position: relative; isolation: isolate;
   transition: letter-spacing .8s cubic-bezier(.3,0,.3,1), gap .8s cubic-bezier(.3,0,.3,1), filter .3s;
 }
@@ -1160,9 +1142,9 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .primary-btn:hover, .shame-btn:hover, .btn-ghost:hover,
 .nav-btn:hover:not(:disabled) {
   letter-spacing: .42em; gap: 28px;
-  filter:
-    drop-shadow(0 1px 1px rgba(120, 80, 20, 0.4))
-    drop-shadow(0 0 10px rgba(77, 240, 214, 0.4));
+  text-shadow:
+    0 1px 1px rgba(120, 80, 20, 0.4),
+    0 0 10px rgba(77, 240, 214, 0.4);
 }
 .primary-btn:hover::before, .primary-btn:hover::after,
 .shame-btn:hover::before, .shame-btn:hover::after,
@@ -1219,7 +1201,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   background: linear-gradient(155deg, var(--gold-4), var(--gold-1) 40%, var(--gold-2) 60%, var(--gold-4));
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
-  filter: drop-shadow(0 1px 1px rgba(120, 80, 20, 0.38));
+  text-shadow: 0 1px 1px rgba(120, 80, 20, 0.38);
 }
 .move-num { position: relative; top: 0; font-size: 48px; }
 .still-label, .move-sub {
@@ -1350,7 +1332,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   background: linear-gradient(155deg, var(--gold-4), var(--gold-1) 40%, var(--gold-2) 60%, var(--gold-4));
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
-  filter: drop-shadow(0 1px 1px rgba(120, 80, 20, 0.4));
+  text-shadow: 0 1px 1px rgba(120, 80, 20, 0.4);
 }
 .decl-row input {
   flex: 1; background: transparent; border: none; outline: none;
@@ -1384,7 +1366,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   background: linear-gradient(155deg, var(--gold-4), var(--gold-1) 40%, var(--gold-2) 60%, var(--gold-4));
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
-  filter: drop-shadow(0 1px 1px rgba(120, 80, 20, 0.4));
+  text-shadow: 0 1px 1px rgba(120, 80, 20, 0.4);
 }
 .gather-line.fixed {
   padding: 18px 22px;
@@ -1440,7 +1422,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   background: linear-gradient(155deg, var(--gold-4), var(--gold-1) 45%, var(--gold-2) 60%, var(--gold-4));
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
-  filter: drop-shadow(0 0 16px var(--teal-halo));
+  text-shadow: 0 0 16px var(--teal-halo);
 }
 .finale-words {
   font-family: var(--font-title); font-size: 72px; font-style: italic;
@@ -2769,10 +2751,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
       var(--gold-1) 86%, var(--gold-4) 100%);
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
-  filter:
-    drop-shadow(0 1px 0 rgba(255, 235, 180, 0.4))
-    drop-shadow(0 2px 2px rgba(120, 80, 20, 0.3))
-    drop-shadow(0 0 14px rgba(230, 190, 100, 0.18));
+  text-shadow: 0 1px 0 rgba(255, 235, 180, 0.4), 0 2px 2px rgba(120, 80, 20, 0.3), 0 0 14px rgba(230, 190, 100, 0.18);
   text-transform: uppercase;
 }
 .metamyth-invite-body {
@@ -3857,9 +3836,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
       var(--gold-1, #f2d27a) 92%, var(--gold-4, #f5e4a1) 100%);
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
-  filter:
-    drop-shadow(0 1px 0 rgba(255,235,180,.4))
-    drop-shadow(0 2px 3px rgba(120,80,20,.35));
+  text-shadow: 0 1px 0 rgba(255,235,180,.4), 0 2px 3px rgba(120,80,20,.35);
   text-transform: uppercase;
 }
 
@@ -4623,7 +4600,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  filter: drop-shadow(0 2px 12px rgba(200,152,56,0.22));
+  text-shadow: 0 2px 12px rgba(200,152,56,0.22);
 }
 
 .intro-body {
@@ -4808,8 +4785,8 @@ input, textarea, select { font-family: inherit; color: inherit; }
   scroll-snap-align: start;
   scroll-snap-stop: always;
   opacity: 0;
-  transform: translateY(12px);
-  transition: opacity 0.55s ease, transform 0.55s ease;
+  transform: translateY(6px);
+  transition: opacity 0.22s ease, transform 0.22s ease;
   position: relative;
 }
 

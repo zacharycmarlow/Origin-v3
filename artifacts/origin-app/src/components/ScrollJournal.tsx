@@ -420,7 +420,7 @@ const ScrollJournal = forwardRef<ScrollJournalHandle, Props>(({
           });
         }
       },
-      { root: container, threshold: 0.04 }
+      { root: container, threshold: 0.15 }
     );
 
     const sectionEls = container.querySelectorAll('.sj-section');
