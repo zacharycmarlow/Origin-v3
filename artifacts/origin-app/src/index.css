@@ -2882,7 +2882,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
 }
 /* Roman numeral gets a grander entrance */
 .opener-roman.opener-phase { transform: translateY(22px) scale(.96); filter: blur(6px); }
-.opener-roman.opener-phase--in { transform: translateY(0) scale(1); }
+.opener-roman.opener-phase--in { transform: translateY(0) scale(1); filter: blur(0); }
 
 /* ─── Scene text materialise ─────────────────────────────── */
 @keyframes sceneMaterialize {
