@@ -5373,6 +5373,9 @@ input, textarea, select { font-family: inherit; color: inherit; }
 /* ── Inline Stream section ──────────────────────────────────── */
 .sj-section--stream {
   padding: 0 0 8px;
+  min-height: 0;
+  scroll-snap-align: none;
+  scroll-snap-stop: normal;
 }
 
 .inline-stream {
@@ -5563,6 +5566,9 @@ input, textarea, select { font-family: inherit; color: inherit; }
 /* ── Inline Body section ────────────────────────────────────── */
 .sj-section--body {
   padding: 0 0 8px;
+  min-height: 0;
+  scroll-snap-align: none;
+  scroll-snap-stop: normal;
 }
 
 .inline-body {
