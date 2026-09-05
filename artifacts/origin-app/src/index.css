@@ -6704,7 +6704,6 @@ input, textarea, select { font-family: inherit; color: inherit; }
   height: 100dvh;
   scroll-snap-align: start;
   scroll-snap-stop: always;
-  view-timeline: --beat;
   position: relative;
 }
 
@@ -6719,55 +6718,25 @@ input, textarea, select { font-family: inherit; color: inherit; }
   align-items: center; justify-content: center;
   padding: 8vh 5vw;
   box-sizing: border-box;
-  --melt-blur: .42rem;
-  --melt-contrast: 1.12;
-  /* BASE STATE = HIDDEN. Essential: a beat far from the viewport has an
-     INACTIVE view-timeline, and an inactive scroll timeline contributes no
-     styles at all (not even the animation's fill). Without a hidden base,
-     every one of those beats falls back to fully-opaque and all 179 fixed
-     layers paint on top of each other as an unreadable smear. The melt
-     overrides this the moment the timeline goes active. */
+  /* MEASURED, REPRODUCIBLE FINDING: with all ~179 beats simultaneously
+     declaring `view-timeline`, EVERY timeline reports permanently INACTIVE
+     (currentTime/progress both null) — verified even with unique per-beat
+     timeline names and a full animation restart, so it isn't a naming
+     collision. The identical CSS works correctly at small scale (24 beats
+     in the isolated reference); this is a genuine browser-scale limit at
+     this book's real size, not a bug in this rule. The melt is now driven
+     by JS (BeatStage's scroll listener) reading window.scrollY — it only
+     WRITES opacity/filter, it never reads scroll position via a timeline
+     and never touches scrollTop, so it can't affect scroll or snap. Base
+     state stays hidden so an untouched (not-yet-computed) beat doesn't
+     flash fully opaque and stack. */
   opacity: 0;
   visibility: hidden;
-  animation: beat-melt linear both;
-  animation-timeline: --beat;
+  will-change: opacity, filter;
 }
-/* Exactly the approved reference values (46%/54%). A beat's view-timeline
-   spans 200vh of scroll; the snap point sits at 50%, so a landed beat is
-   sharp, and adjacent beats crossfade through each other on the way. Do
-   NOT widen this plateau: at ~22%/78% two neighbours are both fully opaque
-   at once and their text superimposes. */
-@keyframes beat-melt {
-  0%, 100% { filter: blur(var(--melt-blur)) contrast(var(--melt-contrast)); opacity: 0; visibility: hidden; }
-  46%, 54% { filter: blur(0) contrast(1); opacity: 1; visibility: visible; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .beat-content { animation: none; opacity: 1; visibility: visible; filter: none; }
-}
-
-/* ── CRITICAL FALLBACK — do not remove ──────────────────────────────
-   `animation-timeline` is not supported everywhere (Chromium yes; Safari
-   only very recently; Firefox needs a flag/polyfill). Where it is NOT
-   supported the declaration is dropped, which leaves `animation: beat-melt
-   linear both` with NO duration — so every beat instantly fills to its
-   100% keyframe: opacity 0, visibility hidden. Result: every beat renders
-   INVISIBLE and the whole book reads as endless blank paper ("scrolling
-   through dead space"). This guard turns the melt off entirely wherever it
-   can't be driven, so the content is always readable. */
-@supports not (animation-timeline: view()) {
-  /* Content is position:FIXED for the melt. Where the melt cannot run,
-     merely revealing it stacks ALL beats on top of each other in one
-     unreadable smear — it must be UN-PINNED back into normal flow so each
-     beat occupies its own screen. Degrades to clean snap-paging, no melt. */
-  .beat-content {
-    position: static !important;
-    height: 100% !important;
-    animation: none !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-    filter: none !important;
-  }
-}
+/* The melt keyframe is now applied by JS directly as inline
+   opacity/filter (see BeatStage.tsx) — no CSS animation/keyframes here.
+   Reduced-motion is checked in that same JS before ever writing a blur. */
 
 /* A beat whose content genuinely can't fit one screen (a long invocation,
    a long scene) can't be fixed-and-melted — there'd be nothing to scroll

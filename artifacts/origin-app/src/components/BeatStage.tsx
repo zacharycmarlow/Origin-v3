@@ -1,5 +1,5 @@
 import {
-  useRef, useEffect, useMemo, forwardRef, useImperativeHandle, useCallback, useState,
+  useRef, useEffect, useLayoutEffect, useMemo, forwardRef, useImperativeHandle, useCallback, useState,
 } from 'react';
 import { Chapter } from '../chapters';
 import SceneComponent from './Scene';
@@ -434,6 +434,83 @@ const BeatStage = forwardRef<BeatStageHandle, Props>(({
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [beats, chapters.length, onChapterChange]);
+
+  /* THE MELT — JS-driven, read-only with respect to scroll.
+
+     MEASURED FINDING: the CSS `view-timeline`/`animation-timeline` melt
+     (the approved reference's own mechanism) works correctly at small
+     scale — verified in an isolated 24-beat file — but at this book's
+     real scale (~179 beats, all declaring a view-timeline) every single
+     timeline reports permanently INACTIVE in testing, even with unique
+     per-beat timeline names and a full animation restart. That is a
+     genuine browser limitation at this scale, not a bug in the CSS.
+
+     This effect reproduces the exact same visual (a soft blur+contrast
+     dissolve, sharp while landed, melting at the edges) by reading
+     `window.scrollY` on scroll and writing opacity/filter directly. It
+     NEVER calls scrollTo/scrollBy and never touches scroll position —
+     so it cannot fight scroll-snap or momentum the way the earlier
+     wheel/touch proxies did. Only PINNED beats (not `.beat--tall`, which
+     stay in normal flow and are always visible) need this. */
+  useLayoutEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return undefined;
+
+    const BLUR = 0.42;       // rem — matches the approved --melt-blur
+    const CONTRAST = 1.12;   // matches the approved --melt-contrast
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let pinned: { content: HTMLElement; top: number }[] = [];
+
+    const measure = () => {
+      const sections = Array.from(stage.querySelectorAll<HTMLElement>(':scope > .beat'));
+      pinned = sections
+        .filter(s => !s.classList.contains('beat--tall'))
+        .map(s => ({ content: s.querySelector<HTMLElement>('.beat-content')!, top: s.offsetTop }))
+        .filter(x => !!x.content);
+    };
+    measure();
+
+    const clamp01 = (n: number) => (n < 0 ? 0 : n > 1 ? 1 : n);
+
+    const update = () => {
+      const scrollY = window.scrollY;
+      const vh = window.innerHeight || 1;
+      for (const { content, top } of pinned) {
+        // p: 0 = landed/sharp, ±1 = one full viewport away (fully melted)
+        const p = (scrollY - top) / vh;
+        const ap = Math.abs(p);
+        if (ap >= 1.05) {
+          content.style.opacity = '0';
+          content.style.visibility = 'hidden';
+          content.style.filter = '';
+          continue;
+        }
+        content.style.visibility = 'visible';
+        if (reduce || ap < 0.02) {
+          content.style.opacity = '1';
+          content.style.filter = '';
+          continue;
+        }
+        const e = clamp01(ap);                 // 0 sharp → 1 fully melted
+        const eased = e * e * (3 - 2 * e);      // smoothstep
+        content.style.opacity = String(1 - eased);
+        content.style.filter = `blur(${(BLUR * eased).toFixed(3)}rem) contrast(${1 + (CONTRAST - 1) * eased})`;
+      }
+    };
+
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    const remeasure = () => { measure(); update(); };
+    window.addEventListener('resize', remeasure);
+    const ro = new ResizeObserver(remeasure);
+    ro.observe(stage);
+    return () => {
+      window.removeEventListener('scroll', update);
+      window.removeEventListener('resize', remeasure);
+      ro.disconnect();
+    };
+  }, [beats]);
 
   /* THE MELT is now pure CSS (index.css "THE BEAT ENGINE") — ported
      verbatim from the approved origin-scroll-melt.html reference:
