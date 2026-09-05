@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
-import { Scene as SceneType } from '../chapters';
+import { createPortal } from 'react-dom';
+import CHAPTERS, { Scene as SceneType } from '../chapters';
 import BreathPacer from './BreathPacer';
 import Journal from './Journal';
 import VoicesList from './VoicesList';
@@ -8,6 +9,9 @@ import Gratitude from './Gratitude';
 import Gathering from './Gathering';
 import MoveTimer from './MoveTimer';
 import Broadcast from './Broadcast';
+import { RegisterPara } from './Registers';
+import MarginNotes from './MarginNotes';
+import { PortalCode, PortalLore, PortalEty } from './Portal';
 import { unlockArchive, isArchiveUnlocked } from '../storage';
 
 interface Props {
@@ -23,6 +27,90 @@ interface Props {
 const SIMPLE_KINDS = new Set([
   'arrive', 'breath', 'reflection', 'outside', 'movement', 'embody', 'finale'
 ]);
+
+const ROMANS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+
+// Kinds whose first paragraph opens with a gilded drop cap
+const DROPCAP_KINDS = new Set(['prompt', 'threshold']);
+
+// Kinds whose closing line is a real question with a desk beneath it
+const INTERACTIVE_KINDS = new Set(['arrive', 'prompt', 'threshold']);
+
+/* ─── v2 inline-portal prose renderer ─────────────────────────────
+   Parses {code}...{/code}, {lore}...{/lore}, {ety:key|Display} markers
+   in a movement body and wraps them in real portals inline. The Codex
+   Code/Lore content and the etymology map come from the scene. */
+const V2_MARKER = /(\{code\}[\s\S]*?\{\/code\}|\{lore\}[\s\S]*?\{\/lore\}|\{ety:[^}]+\})/g;
+
+function renderV2Prose(scene: SceneType, chapterIdx: number, sceneIdx: number) {
+  const paras = (scene.body || '').split('\n\n');
+  return paras.map((para, pi) => {
+    const parts = para.split(V2_MARKER).filter(p => p !== '');
+    const nodes = parts.map((part, i) => {
+      const key = `${pi}-${i}`;
+
+      // CODE — highlighter phrase
+      const codeMatch = part.match(/^\{code\}([\s\S]*?)\{\/code\}$/);
+      if (codeMatch && scene.code) {
+        return (
+          <PortalCode
+            key={key}
+            title={scene.code.title}
+            body={scene.code.body}
+            explore={scene.code.explore}
+            kind={scene.codeCite || 'code'}
+            storageKey={`code:${chapterIdx}:${sceneIdx}`}
+          >
+            {codeMatch[1]}
+          </PortalCode>
+        );
+      }
+
+      // LORE — underscribbled sentence
+      const loreMatch = part.match(/^\{lore\}([\s\S]*?)\{\/lore\}$/);
+      if (loreMatch && scene.lore) {
+        return (
+          <PortalLore
+            key={key}
+            essence={scene.lore.title}
+            body={scene.lore.body}
+            kind={scene.loreCite || 'lore'}
+            storageKey={`lore:${chapterIdx}:${sceneIdx}`}
+          >
+            {loreMatch[1]}
+          </PortalLore>
+        );
+      }
+
+      // ETY — glowing word. {ety:key|Display}  (Display optional)
+      const etyMatch = part.match(/^\{ety:([^}|]+)(?:\|([^}]+))?\}$/);
+      if (etyMatch && scene.etymologies) {
+        const ety = scene.etymologies[etyMatch[1].trim()];
+        if (ety) {
+          const display = etyMatch[2]?.trim() || ety.word;
+          return (
+            <PortalEty
+              key={key}
+              word={ety.word}
+              chain={ety.chain}
+              note={ety.note}
+              storageKey={`ety:${chapterIdx}:${sceneIdx}:${etyMatch[1].trim()}`}
+            >
+              {display}
+            </PortalEty>
+          );
+        }
+      }
+
+      return <span key={key}>{part}</span>;
+    });
+    return (
+      <p key={pi} className={pi === 0 ? 'scene-body-p invocation-dropcap' : 'scene-body-p'}>
+        {nodes}
+      </p>
+    );
+  });
+}
 
 function useSceneReveal(scene: SceneType) {
   const [phase, setPhase] = useState(0);
@@ -129,6 +217,45 @@ function InlineLoreCorner({ pos }: { pos: 'tl' | 'tr' | 'bl' | 'br' }) {
   );
 }
 
+/* The full text opens as a centered revelation over the page —
+   the card in the flow stays a sealed door: essence + invitation. */
+function RevelationModal({
+  kind, title, body, onClose,
+}: { kind: 'code' | 'lore'; title: string; body: string; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  return createPortal(
+    <div className="rev-backdrop" onClick={onClose} role="presentation">
+      <div
+        className={`rev-modal rev-modal--${kind}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${kind === 'code' ? 'Code' : 'Lore'}: ${title}`}
+        onClick={e => e.stopPropagation()}
+      >
+        <button className="rev-close" onClick={onClose} aria-label="Close">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+            <path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+          </svg>
+        </button>
+        <div className="rev-kicker">
+          <span>{kind === 'code' ? 'Code · The Science' : 'Lore · The Old Knowing'}</span>
+          <span>{kind === 'code' ? '◇' : '❋'}</span>
+        </div>
+        <div className="rev-title">{title}</div>
+        <div className="rev-body">
+          {body.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 function UnlockableInline({
   kind, chapterIdx, title, body,
 }: { kind: 'code' | 'lore'; chapterIdx: number; title: string; body: string }) {
@@ -137,11 +264,10 @@ function UnlockableInline({
   const [unlocked, setUnlocked] = useState(initiallyUnlocked);
   const [justUnlocked, setJustUnlocked] = useState(false);
 
-  const handleToggle = (e: React.MouseEvent) => {
+  const handleOpen = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const next = !open;
-    setOpen(next);
-    if (next && !unlocked) {
+    setOpen(true);
+    if (!unlocked) {
       unlockArchive(chapterIdx, kind, title);
       setUnlocked(true);
       setJustUnlocked(true);
@@ -158,7 +284,6 @@ function UnlockableInline({
     <div
       className={
         `${klass}-card` +
-        (open ? ` ${klass}-card--open` : '') +
         (unlocked ? ` ${klass}-card--unlocked` : '') +
         (justUnlocked ? ` ${klass}-card--just-unlocked` : '')
       }
@@ -195,20 +320,18 @@ function UnlockableInline({
         <span className={`${klass}-num`} aria-hidden="true">{sigil}</span>
       </div>
       <div className={`${klass}-essence`}>{title}</div>
-      {open && (
-        <div className={`${klass}-body`}>
-          {body.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
-        </div>
-      )}
       <button
         type="button"
         className={`${klass}-toggle`}
-        onClick={handleToggle}
-        aria-expanded={open}
+        onClick={handleOpen}
+        aria-haspopup="dialog"
       >
-        <Chevron dir={open ? 'up' : 'down'} />
-        <span>{open ? 'collapse' : verb}</span>
+        <Chevron dir="down" />
+        <span>{verb}</span>
       </button>
+      {open && (
+        <RevelationModal kind={kind} title={title} body={body} onClose={() => setOpen(false)} />
+      )}
     </div>
   );
 }
@@ -220,7 +343,43 @@ function ExpandableLore(props: { title: string; body: string; chapterIdx: number
   return <UnlockableInline kind="lore" {...props} />;
 }
 
-export default function Scene({ scene, chapterIdx, instantReveal, onSaveJournal }: Props) {
+/* ─── Threshold — a crossing you make in the world, not a textarea.
+   The instruction lives in the prose above; this is the ceremonial
+   act of marking it done. ── */
+function ThresholdCrossing({ sceneKey, onSave }: {
+  sceneKey?: string; onSave?: () => void;
+}) {
+  const storeKey = sceneKey ? `threshold:${sceneKey}` : undefined;
+  const [done, setDone] = useState<boolean>(() => (storeKey ? !!localStorage.getItem(storeKey) : false));
+  const mark = () => {
+    setDone(true);
+    if (storeKey) localStorage.setItem(storeKey, '1');
+    onSave?.();
+  };
+  return (
+    <div className={`threshold-crossing${done ? ' is-done' : ''}`}>
+      <button
+        className="threshold-orb"
+        onClick={mark}
+        aria-label={done ? 'crossed' : 'mark this crossed'}
+      >
+        <span className="threshold-orb-ring" aria-hidden="true" />
+        <span className="threshold-orb-core" aria-hidden="true" />
+        {done && (
+          <svg className="threshold-orb-check" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M4 10.5L8.5 15L16 5.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+      </button>
+      {done && <div className="threshold-verb">crossed</div>}
+      {!done && (
+        <button className="threshold-mark" onClick={mark}>done</button>
+      )}
+    </div>
+  );
+}
+
+export default function Scene({ scene, idx, chapterIdx, instantReveal, onSaveJournal }: Props) {
   const { phase, advance } = useSceneReveal(scene);
 
   const effectivePhase = instantReveal ? 99 : phase;
@@ -228,44 +387,82 @@ export default function Scene({ scene, chapterIdx, instantReveal, onSaveJournal 
   const showAfter = effectivePhase >= 2;
 
   return (
-    <div className="scene" onClick={(e) => {
+    <div className={
+      'scene'
+      + (scene.kind === 'threshold' ? ' scene--threshold' : '')
+      + (chapterIdx === 6 ? ' scene--fire' : '')
+    } onClick={(e) => {
       // Tap anywhere in the lower area of the scene to advance phase early
       const target = e.target as HTMLElement;
       const isInput = target.tagName === 'TEXTAREA' || target.tagName === 'INPUT' || target.tagName === 'BUTTON';
       if (!isInput && phase < 1) advance();
     }}>
 
-      {/* ── Context: always visible, materialises on mount ── */}
+      {/* ── Context: always visible, materialises on mount ──
+           Movement anatomy: kicker (number · lens) → title → hairline → prose */}
       <div className="scene-context scene-materialize">
-        {scene.title && <h3 className="scene-title">{scene.title}</h3>}
-        {scene.subtitle && <div className="scene-subtitle">{scene.subtitle}</div>}
-        {scene.label && <div className="scene-label">{scene.label}</div>}
+        <div className="mv-kicker">
+          <span className="mv-no">{ROMANS[chapterIdx] || ''}·{idx + 1}</span>
+          {scene.subtitle && <span className="mv-rule" aria-hidden="true" />}
+          {scene.subtitle && <span className="mv-lens">{scene.subtitle}</span>}
+        </div>
+        {(scene.title || scene.label) && (
+          <h3 className="scene-title">{scene.title || scene.label}</h3>
+        )}
+        <div className="mv-hairline" aria-hidden="true" />
 
-        {scene.body && (
-          scene.body.includes('\n\n') ? (
-            <div className="scene-body scene-body--multi">
-              {scene.body.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
-            </div>
-          ) : (
-            <p className="scene-body">{scene.body}</p>
-          )
+        {/* ── v2: inline-portal prose. The Codex Code/Lore/etymology are
+             woven into the essay as glowing words, highlights, and
+             underscribbles — no end-of-scene cards. ── */}
+        {scene.v2 ? (
+          <div className="scene-body scene-body--multi scene-body--v2">
+            {renderV2Prose(scene, chapterIdx, idx)}
+          </div>
+        ) : (
+          <>
+            {scene.body && (
+              scene.body.includes('\n\n') ? (
+                <div className="scene-body scene-body--multi">
+                  {(() => {
+                    const paras = scene.body!.split('\n\n');
+                    const firstIdx = DROPCAP_KINDS.has(scene.kind)
+                      ? paras.findIndex(p => !p.startsWith('! ') && !p.startsWith('^ '))
+                      : -1;
+                    return paras.map((para, i) => (
+                      <RegisterPara key={i} text={para} dropcap={i === firstIdx} />
+                    ));
+                  })()}
+                </div>
+              ) : (
+                <p className="scene-body">{scene.body}</p>
+              )
+            )}
+
+            {scene.code && (
+              <ExpandableCode title={scene.code.title} body={scene.code.body} chapterIdx={chapterIdx} />
+            )}
+
+            {scene.middle && (
+              scene.middle.includes('\n\n') ? (
+                <div className="scene-middle">
+                  {scene.middle.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
+                </div>
+              ) : (
+                <p className="scene-middle">{scene.middle}</p>
+              )
+            )}
+
+            {scene.lore && (
+              <ExpandableLore title={scene.lore.title} body={scene.lore.body} chapterIdx={chapterIdx} />
+            )}
+          </>
         )}
 
-        {scene.code && <ExpandableCode title={scene.code.title} body={scene.code.body} chapterIdx={chapterIdx} />}
-
-        {scene.middle && (
-          scene.middle.includes('\n\n') ? (
-            <div className="scene-middle">
-              {scene.middle.split('\n\n').map((para, i) => <p key={i}>{para}</p>)}
-            </div>
-          ) : (
-            <p className="scene-middle">{scene.middle}</p>
-          )
+        {(scene.closing || (scene.v2 && scene.ask)) && INTERACTIVE_KINDS.has(scene.kind) && (
+          <span className="scene-ask-eyebrow">the chapter asks</span>
         )}
-
-        {scene.lore && <ExpandableLore title={scene.lore.title} body={scene.lore.body} chapterIdx={chapterIdx} />}
-
         {scene.closing && <p className="scene-closing">{scene.closing}</p>}
+        {scene.ask && <p className="scene-ask-detail">{scene.ask}</p>}
 
         {scene.kind === 'breath' && scene.breath && (
           <BreathPacer cycles={scene.breath.cycles} />
@@ -308,21 +505,51 @@ export default function Scene({ scene, chapterIdx, instantReveal, onSaveJournal 
       {/* ── Practice: interaction slides up ── */}
       {showInteraction && (
         <div className={`scene-practice ${phase === 1 ? 'scene-practice--entering' : 'scene-practice--visible'}`}>
-          {scene.kind === 'prompt' && scene.key && (
-            <Journal sceneKey={scene.key} placeholder="" rows={scene.rows || 4} onSave={onSaveJournal} />
+          {(scene.kind === 'prompt' || scene.kind === 'arrive') && scene.key && (
+            <>
+              <Journal
+                sceneKey={scene.key}
+                placeholder=""
+                rows={scene.rows || 4}
+                onSave={onSaveJournal}
+                question={scene.closing}
+                detail={scene.ask}
+                eyebrow="the chapter asks"
+              />
+              <MarginNotes
+                sceneKey={scene.key}
+                chapterIdx={chapterIdx}
+                chapterTitle={CHAPTERS[chapterIdx]?.title || ''}
+                movementTitle={scene.title || scene.label || ''}
+                question={scene.closing}
+              />
+            </>
           )}
           {scene.kind === 'threshold' && (
             <div className="threshold">
               <div className="threshold-rule" />
-              {scene.prompt && (
-                <Journal
-                  sceneKey={scene.prompt.key}
-                  placeholder={scene.prompt.placeholder}
-                  rows={scene.prompt.rows}
-                  big={scene.prompt.big}
-                  onSave={onSaveJournal}
-                />
-              )}
+              {/* v2 threshold: a crossing you do in the world, not a textarea.
+                 The kind (voice/ritual/making/declaration) is carried in subtitle. */}
+              {scene.v2 ? (
+                <ThresholdCrossing sceneKey={scene.key} onSave={onSaveJournal} />
+              ) : scene.prompt ? (
+                <>
+                  <Journal
+                    sceneKey={scene.prompt.key}
+                    placeholder={scene.prompt.placeholder}
+                    rows={scene.prompt.rows}
+                    big={scene.prompt.big}
+                    onSave={onSaveJournal}
+                  />
+                  <MarginNotes
+                    sceneKey={scene.prompt.key}
+                    chapterIdx={chapterIdx}
+                    chapterTitle={CHAPTERS[chapterIdx]?.title || ''}
+                    movementTitle={scene.title || scene.label || ''}
+                    question={scene.closing}
+                  />
+                </>
+              ) : null}
             </div>
           )}
           {scene.kind === 'voices' && scene.key && <VoicesList sceneKey={scene.key} />}

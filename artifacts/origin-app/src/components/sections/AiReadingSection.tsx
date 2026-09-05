@@ -4,8 +4,9 @@ import {
   getReading, saveMorpho, saveSage, extractChapterBeats,
   isChapterComplete, getAllReadings,
   MorphoReading, SageReading,
+  getSynthesis, saveSynthesis, getAllSyntheses, ChapterSynthesis,
 } from '../../storage';
-import { fetchMorpho, fetchSage } from '../../api/readings';
+import { fetchMorpho, fetchSage, fetchSynthesis } from '../../api/readings';
 import { ButterflyIcon, CompassIcon } from '../MorphoCompassIcons';
 
 interface Props {
@@ -48,6 +49,10 @@ export default function AiReadingSection({ chapters, chapterIdx }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [freshlyLoaded, setFreshlyLoaded] = useState(false);
+  const [synthesis, setSynthesis] = useState<ChapterSynthesis | undefined>(() => getSynthesis(chapterIdx));
+  const [weaving, setWeaving] = useState(false);
+  const [weaveError, setWeaveError] = useState<string | null>(null);
+  const [synthesisFresh, setSynthesisFresh] = useState(false);
 
   const chapterComplete = isChapterComplete(chapter);
   const hasReading = !!(morpho || sage);
@@ -57,7 +62,37 @@ export default function AiReadingSection({ chapters, chapterIdx }: Props) {
     setMorpho(r.morpho);
     setSage(r.sage);
     setFreshlyLoaded(false);
+    setSynthesis(getSynthesis(chapterIdx));
+    setSynthesisFresh(false);
   }, [chapterIdx]);
+
+  const requestSynthesis = async () => {
+    setWeaving(true);
+    setWeaveError(null);
+    try {
+      const beats = extractChapterBeats(chapter);
+      const all = getAllSyntheses();
+      const previousSyntheses = Object.entries(all)
+        .map(([k, s]) => ({ chapterNumber: Number(k) + 1, title: s.title, story: s.story }))
+        .filter(p => p.chapterNumber <= chapterIdx)
+        .sort((a, b) => a.chapterNumber - b.chapterNumber);
+
+      const result = await fetchSynthesis({
+        chapterNumber: chapterIdx + 1,
+        chapterTitle: chapter.title,
+        beats,
+        morpho: getReading(chapterIdx).morpho,
+        previousSyntheses: previousSyntheses.length > 0 ? previousSyntheses : undefined,
+      });
+      saveSynthesis(chapterIdx, result);
+      setSynthesis(result);
+      setSynthesisFresh(true);
+    } catch (e) {
+      setWeaveError(e instanceof Error ? e.message : 'The Storyteller is silent right now.');
+    } finally {
+      setWeaving(false);
+    }
+  };
 
   const requestReading = async () => {
     setLoading(true);
@@ -200,6 +235,47 @@ export default function AiReadingSection({ chapters, chapterIdx }: Props) {
                   <span className="sj-reading-list-body">{l.body}</span>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── The Storyteller — this chapter, woven whole ── */}
+      {chapterComplete && (
+        <div className="weave">
+          {!synthesis && !weaving && (
+            <div className="weave-gate">
+              <p className="sj-reading-hint">
+                The Storyteller can weave what you wrote in this chapter into one telling.
+              </p>
+              <button className="primary-btn weave-request" onClick={requestSynthesis}>
+                <span className="label">weave this chapter</span>
+              </button>
+            </div>
+          )}
+          {weaving && (
+            <div className="sj-reading-loading">
+              <div className="sj-reading-dots"><span /><span /><span /></div>
+              <p>the storyteller is weaving…</p>
+            </div>
+          )}
+          {weaveError && (
+            <div className="sj-reading-error">
+              <p>{weaveError}</p>
+              <button className="btn-ghost small" onClick={requestSynthesis}>try again</button>
+            </div>
+          )}
+          {synthesis && (
+            <div className={`weave-story${synthesisFresh ? ' weave-story--fresh' : ''}`}>
+              <div className="weave-eyebrow">the storyteller</div>
+              <h3 className="weave-title">{synthesis.title}</h3>
+              {synthesis.story.split('\n\n').map((para, i) => (
+                <p key={i} className="weave-para">{para}</p>
+              ))}
+              {synthesis.closing && <p className="weave-closing">{synthesis.closing}</p>}
+              <button className="margins-again" onClick={requestSynthesis} disabled={weaving}>
+                {weaving ? 'weaving again…' : 'weave again'}
+              </button>
             </div>
           )}
         </div>

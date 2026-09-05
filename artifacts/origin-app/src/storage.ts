@@ -280,7 +280,7 @@ export function extractChapterBeats(chapter: Chapter): Beat[] {
     if (scene.kind === 'prompt' && scene.key) {
       beats.push({
         title: scene.title || 'Reflection',
-        thread: scene.body?.split('\n')[0]?.slice(0, 160) || '',
+        thread: scene.body?.split('\n')[0]?.replace(/^[!^] /, '').slice(0, 160) || '',
         text: nonEmpty(stored[scene.key]) ? (stored[scene.key] as string) : '',
         storageKey: scene.key,
       });
@@ -334,7 +334,7 @@ export function extractChapterBeats(chapter: Chapter): Beat[] {
     } else if (scene.kind === 'threshold' && scene.prompt?.key) {
       beats.push({
         title: scene.label || 'The Threshold',
-        thread: scene.body?.split('\n')[0]?.slice(0, 160) || '',
+        thread: scene.body?.split('\n')[0]?.replace(/^[!^] /, '').slice(0, 160) || '',
         text: nonEmpty(stored[scene.prompt.key]) ? (stored[scene.prompt.key] as string) : '',
         storageKey: scene.prompt.key,
       });
@@ -377,4 +377,147 @@ export function isChapterComplete(chapter: Chapter): boolean {
   }
 
   return writableScenes > 0 && filledScenes === writableScenes;
+}
+
+/* ─────────────── Margins — Morpho reads a submitted page ─────────────── */
+
+export interface PageMargins {
+  marginalNotes: MarginalNote[];
+  invitation: string;
+  generatedAt: number;
+}
+
+const MARGINS_KEY = "origin.margins";
+
+export function getAllMargins(): Record<string, PageMargins> {
+  return readJson<Record<string, PageMargins>>(MARGINS_KEY, {});
+}
+
+export function getMargins(sceneKey: string): PageMargins | undefined {
+  return getAllMargins()[sceneKey];
+}
+
+export function saveMargins(sceneKey: string, margins: PageMargins): void {
+  const all = getAllMargins();
+  all[sceneKey] = margins;
+  writeJson(MARGINS_KEY, all);
+}
+
+/* ─────────────── The Storyteller — chapter syntheses ─────────────── */
+
+export interface ChapterSynthesis {
+  title: string;
+  story: string;
+  closing: string;
+  generatedAt: number;
+}
+
+const SYNTHESIS_KEY = "origin.synthesis";
+
+export function getAllSyntheses(): Record<number, ChapterSynthesis> {
+  return readJson<Record<number, ChapterSynthesis>>(SYNTHESIS_KEY, {});
+}
+
+export function getSynthesis(chapterIdx: number): ChapterSynthesis | undefined {
+  return getAllSyntheses()[chapterIdx];
+}
+
+export function saveSynthesis(chapterIdx: number, synthesis: ChapterSynthesis): void {
+  const all = getAllSyntheses();
+  all[chapterIdx] = synthesis;
+  writeJson(SYNTHESIS_KEY, all);
+}
+
+/* ─────────────── The Origin Story — the full telling ─────────────── */
+
+export interface OriginStoryMovement {
+  movement: string;
+  heading: string;
+  text: string;
+}
+
+export interface OriginStory {
+  title: string;
+  movements: OriginStoryMovement[];
+  dedication: string;
+  generatedAt: number;
+}
+
+const ORIGIN_STORY_KEY = "origin.story";
+
+export function getOriginStory(): OriginStory | undefined {
+  return readJson<OriginStory | undefined>(ORIGIN_STORY_KEY, undefined);
+}
+
+export function saveOriginStory(story: OriginStory): void {
+  writeJson(ORIGIN_STORY_KEY, story);
+}
+
+/* ─────────────── Birth data — the invisible archetype layer ───────────────
+   Collected once, early. Computed server-side into a background character
+   sketch. Never surfaced to the user as any named system. */
+
+export interface BirthData {
+  date: string;      // YYYY-MM-DD
+  time?: string;     // HH:MM, optional
+  place?: string;    // free text, optional
+  savedAt: number;
+}
+
+const BIRTH_KEY = "origin.birth";
+
+export function getBirthData(): BirthData | undefined {
+  return readJson<BirthData | undefined>(BIRTH_KEY, undefined);
+}
+
+export function saveBirthData(data: BirthData): void {
+  writeJson(BIRTH_KEY, data);
+}
+
+/* ─────────────── Pace — free scroll or one chapter a day ─────────────── */
+
+export type Pace = "free" | "daily";
+
+const PACE_KEY = "origin.pace";
+const DAILY_UNLOCKS_KEY = "origin.daily";
+
+export function getPace(): Pace {
+  return localStorage.getItem(PACE_KEY) === "daily" ? "daily" : "free";
+}
+
+export function setPace(pace: Pace): void {
+  localStorage.setItem(PACE_KEY, pace);
+}
+
+/** chapterIdx → ISO date (YYYY-MM-DD) it was unlocked. Chapter 0 always unlocked. */
+export function getDailyUnlocks(): Record<number, string> {
+  return readJson<Record<number, string>>(DAILY_UNLOCKS_KEY, {});
+}
+
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+/** Unlock the next chapter if the previous is complete and it's a new day. */
+export function tryUnlockDaily(chapterIdx: number): boolean {
+  if (chapterIdx === 0) return true;
+  const unlocks = getDailyUnlocks();
+  if (unlocks[chapterIdx]) return true;
+  const prevUnlockedOn = chapterIdx === 1 ? null : unlocks[chapterIdx - 1];
+  const today = todayIso();
+  if (chapterIdx === 1 || (prevUnlockedOn && prevUnlockedOn < today)) {
+    unlocks[chapterIdx] = today;
+    writeJson(DAILY_UNLOCKS_KEY, unlocks);
+    return true;
+  }
+  return false;
+}
+
+/** In daily pace, is this chapter open yet? (Free pace: always.) */
+export function isChapterDayOpen(chapterIdx: number): boolean {
+  if (getPace() === "free") return true;
+  if (chapterIdx === 0) return true;
+  const unlocks = getDailyUnlocks();
+  if (unlocks[chapterIdx]) return true;
+  return tryUnlockDaily(chapterIdx);
 }

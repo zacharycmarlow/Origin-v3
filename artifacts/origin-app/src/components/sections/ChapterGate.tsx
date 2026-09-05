@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Chapter } from '../../chapters';
+import { RegisterPara, HERO_SIGIL, WEIGHT_SIGIL } from '../Registers';
+import { isChapterDayOpen } from '../../storage';
 
 interface Props {
   chapter: Chapter;
@@ -48,8 +50,31 @@ export default function ChapterGate({ chapter, chapterIdx, total, locked }: Prop
     );
   }
 
+  /* The bookends of the descent: Chapter I opens as cinema, VII as fire */
+  const flavor = chapterIdx === 0 ? ' sj-gate-inner--film' : chapterIdx === 6 ? ' sj-gate-inner--fire' : '';
+
+  /* One day, one chapter: in daily pace, tomorrow's chapter waits for tomorrow. */
+  if (!isChapterDayOpen(chapterIdx)) {
+    return (
+      <div className={`sj-gate-inner sj-gate-inner--daylocked${flavor}`}>
+        <div className="opener-meta">
+          <span>chapter {String(chapterIdx + 1).padStart(2, '0')} of {String(total).padStart(2, '0')}</span>
+          <span className="opener-rule" />
+          <span>territory · {chapter.title.toLowerCase()}</span>
+        </div>
+        <div className="opener-roman opener-roman--locked">{chapter.roman}</div>
+        <h2 className="opener-title opener-title--locked">{chapter.title}</h2>
+        <div className="opener-sub opener-sub--locked">{chapter.subtitle}</div>
+        <div className="daylock">
+          <span className="daylock-mark" aria-hidden="true">☾</span>
+          <span>this chapter opens with tomorrow's sun</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="sj-gate-inner">
+    <div className={`sj-gate-inner${flavor}`}>
       <div className={`opener-meta opener-phase${phase >= 1 ? ' opener-phase--in' : ''}`}>
         <span>chapter {String(chapterIdx + 1).padStart(2, '0')} of {String(total).padStart(2, '0')}</span>
         <span className="opener-rule" />
@@ -68,15 +93,31 @@ export default function ChapterGate({ chapter, chapterIdx, total, locked }: Prop
         {chapter.subtitle}
       </div>
       <blockquote className="opener-invocation">
-        {paragraphs.map((para, i) => (
-          <p
-            key={i}
-            className={`opener-invocation-para opener-phase${phase >= 4 + i ? ' opener-phase--in' : ''}`}
-            style={{ transitionDelay: `${i * 40}ms` }}
-          >
-            {para}
-          </p>
-        ))}
+        {(() => {
+          const firstBodyIdx = paragraphs.findIndex(
+            p => !p.startsWith(HERO_SIGIL) && !p.startsWith(WEIGHT_SIGIL),
+          );
+          return paragraphs.map((para, i) => {
+            const phased = `opener-invocation-para opener-phase${phase >= 4 + i ? ' opener-phase--in' : ''}`;
+            const delay = { transitionDelay: `${i * 40}ms` };
+            if (para.startsWith(HERO_SIGIL) || para.startsWith(WEIGHT_SIGIL)) {
+              return (
+                <div key={i} className={phased} style={delay}>
+                  <RegisterPara text={para} />
+                </div>
+              );
+            }
+            return (
+              <p
+                key={i}
+                className={`${phased}${i === firstBodyIdx ? ' invocation-dropcap' : ''}`}
+                style={delay}
+              >
+                {para}
+              </p>
+            );
+          });
+        })()}
       </blockquote>
       <div className={`sj-gate-scroll-cue opener-phase${phase >= 4 + paragraphs.length - 1 ? ' opener-phase--in' : ''}`}>
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">

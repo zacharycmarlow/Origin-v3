@@ -1,6 +1,5 @@
 import { createRoot } from "react-dom/client";
 import { ClerkProvider } from "@clerk/react";
-import { publishableKeyFromHost } from "@clerk/react/internal";
 import { Router as WouterRouter, Switch, Route, useLocation } from "wouter";
 import App from "./App";
 import SignInPage from "./pages/SignInPage";
@@ -9,10 +8,13 @@ import "./index.css";
 
 const basePath = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
 
-const clerkPubKey = publishableKeyFromHost(
-  window.location.hostname,
-  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
-);
+// Only use an explicitly configured key. Deriving one from the hostname
+// (e.g. localhost) synthesizes something that looks valid enough for
+// ClerkProvider to attempt loading clerk.localhost's script, which does
+// not exist in local dev and throws on every render. With no real key,
+// ClerkProvider stays inert (its hooks still work, just signed-out) and
+// the app runs in guest mode, which is already the local source of truth.
+const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
 

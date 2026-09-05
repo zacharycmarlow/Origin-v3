@@ -36,6 +36,19 @@
   font-weight: 400;
   font-display: swap;
 }
+@font-face {
+  font-family: "TropicFantasy";
+  src: url("/fonts/TropicFantasy.woff2") format("woff2"),
+       url("/fonts/TropicFantasy.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "OptimaLTPro";
+  src: url("/fonts/OptimaLTPro-Medium.otf") format("opentype");
+  font-weight: 500;
+  font-display: swap;
+}
 
 /* ─── Animated CSS Custom Properties ─────────────────────── */
 /* @property enables smooth color transitions on custom properties */
@@ -70,12 +83,19 @@
   --teal-deep: #0a6b5e;
   --teal-halo: #2dd4c2;
 
-  /* Typography */
+  /* Typography — the hierarchy, four roles, nothing else:
+     Pherome     = titles, chapter romans, illuminated display
+     TropicFantasy = hero pull-quotes, italic ceremony
+     Optima      = body reading, everywhere (the literary, humanist register)
+     Futura      = eyebrows, labels, buttons, chrome (the clean Kubrick voice) */
   --font-title: "Pherome", "FantasyMagist", "Cormorant Garamond", Georgia, serif;
   --font-display: "Pherome", "FantasyMagist", "Cormorant Garamond", Georgia, serif;
+  --font-quote: "TropicFantasy", "Cormorant Garamond", Georgia, serif;
   --font-script: "FantasyMagist", "Cormorant Garamond", Georgia, serif;
-  --font-body: "Futura", "Century Gothic", "Jost", "AppleGothic", Tahoma, sans-serif;
-  --font-mono: "JetBrains Mono", "Menlo", monospace;
+  --font-body: "OptimaLTPro", "Optima", "Palatino Linotype", "Charter", Georgia, serif;
+  --font-label: "Futura", "Futura PT", "Century Gothic", "Avenir Next", "Jost", ui-sans-serif, system-ui, sans-serif;
+  /* --font-mono is kept for legacy call sites but Futura is the label voice now */
+  --font-mono: var(--font-label);
   --font-stream: "Maritim", "Cormorant Garamond", Georgia, serif;
 
   /* Chapter CSS vars (overridden per-chapter via inline style on .app) */
@@ -85,13 +105,36 @@
   --veil: #e3d6b2;
   --glow: #4ff0d6;
   --shadow: #8a5a24;
+
+  /* ─── Reading registers (typographic ladder — five stops, nothing between) ── */
+  --reg-whisper-size: 16px;  --reg-whisper-lh: 1.6;
+  --reg-body-size:    20px;  --reg-body-lh:    1.75;
+  --reg-weight-size:  25px;  --reg-weight-lh:  1.5;
+  --reg-hero-size:    clamp(28px, 4.5vw, 34px);  --reg-hero-lh: 1.32;
+  --reg-ask-size:     24px;  --reg-ask-lh:     1.45;
+
+  /* ─── Rhythm (whitespace in four denominations — para < shift < event < mvmt) ── */
+  --rhythm-para:   26px;   /* paragraph → paragraph, same register */
+  --rhythm-shift:  48px;   /* register/content-type change */
+  --rhythm-event:  88px;   /* around a hero line */
+  --rhythm-mvmt:  140px;   /* between movements / before a threshold */
 }
 
-html, body {
-  height: 100%;
-  height: 100dvh;
-  background: var(--bg);   /* uses :root default #ece1c3 — no dark edge bleed */
-  overflow: hidden;
+/* THE DOCUMENT IS THE SCROLLER — load-bearing, do not re-lock.
+
+   The beat engine pins each beat's content with `position: fixed`, which
+   positions against the VIEWPORT. That means a wheel/touch gesture over it
+   targets the DOCUMENT scroller — not any nested div. When html/body were
+   height-locked with `overflow: hidden` and scrolling lived in a nested
+   `.beat-stage`, the gesture had nowhere to go and the page simply would
+   not scroll ("it says scroll to begin but I can't scroll"). The approved
+   reference works precisely because the document itself scrolls and snaps.
+   The header is independently `position:fixed` (see .topbar) so it stays
+   put regardless of document scroll — it never needed a nested scroller. */
+html {
+  background: var(--bg);
+  overflow-x: hidden;
+  scroll-snap-type: y mandatory;
 }
 
 body {
@@ -106,14 +149,14 @@ body {
 
 button { font-family: inherit; background: none; border: none; cursor: pointer; color: inherit; }
 input, textarea, select { font-family: inherit; color: inherit; }
-#root { height: 100vh; height: 100dvh; }
+#root { min-height: 100dvh; }  /* NOT a fixed height — caps the document to one screen */
 
 /* ─── App shell — paper surface with watercolor chapter transitions ─ */
 .app {
   position: relative;
-  height: 100vh;
+  min-height: 100dvh;   /* NOT height+overflow:hidden — the document scrolls */
   color: var(--ink);
-  overflow: hidden;
+  overflow: visible;
   background-color: var(--bg);
   background-image:
     radial-gradient(ellipse 120% 90% at 50% 20%, rgba(255, 255, 255, 0.07), transparent 60%),
@@ -308,8 +351,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
 /* ─── Stage / Deck ────────────────────────────────────────── */
 .stage {
   position: relative; z-index: 5;
-  height: 100vh;
-  height: 100dvh;
+  min-height: 100dvh;
   display: flex; flex-direction: column;
 }
 .deck {
@@ -429,6 +471,188 @@ input, textarea, select { font-family: inherit; color: inherit; }
 }
 .prelude-body.dim { opacity: .65; font-style: italic; }
 
+/* The invocation's turning lines — pulled out of the prose as sacred
+   pull-quotes. Tropic Fantasy in gold foil: the register shift IS the
+   event, the way a spell has lines that land heavier than the rest.
+   Visible by default — the beat's own scroll entrance carries the
+   motion, so no per-line fade (which read as laggy before). */
+.prelude-hero {
+  font-family: var(--font-quote);
+  font-size: clamp(30px, 6.6vw, 48px);
+  line-height: 1.1; letter-spacing: .01em;
+  max-width: 620px; margin: 64px auto 64px;
+  text-wrap: balance;
+  background:
+    linear-gradient(155deg,
+      var(--gold-4) 0%, var(--gold-0) 14%, var(--gold-1) 30%,
+      var(--gold-2) 48%, var(--gold-3) 62%, var(--gold-2) 74%,
+      var(--gold-1) 86%, var(--gold-4) 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  text-shadow: 0 1px 0 rgba(255, 235, 180, 0.35), 0 0 18px rgba(230, 190, 100, 0.18);
+}
+
+/* ── The opening COMPOSITION — ported from the origin-scroll-melt mockup.
+   The first screen lands as a title-sequence: a small setup line, one
+   huge gold statement, a quiet sub. Impact by scale contrast, not a wall
+   of prose. The full invocation follows on scroll, in editorial prose. */
+.op-lead {
+  font-family: var(--font-quote); font-style: italic;
+  font-size: clamp(17px, 2.8vw, 24px); line-height: 1.5;
+  opacity: .78; text-align: center; margin: 0 auto 10px;
+}
+.op-big {
+  font-family: var(--font-quote);
+  font-size: clamp(44px, 10vw, 82px); line-height: 1.03;
+  text-wrap: balance; text-align: center;
+  max-width: 16ch; margin: 8px auto;
+  /* Deeper gold stops so the fill itself reads on the cream ground —
+     the near-white gold highlights were washing the whole line out. */
+  background:
+    linear-gradient(160deg,
+      var(--gold-3) 0%, var(--gold-2) 20%, var(--gold-1) 42%,
+      var(--gold-2) 58%, var(--gold-3) 80%, var(--gold-2) 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  /* Crisp zero-blur bevel — a hairline dark edge under a light top sheen
+     defines the letterforms on cream WITHOUT the blurred drop-shadow that
+     smeared under these thin Tropic-Fantasy strokes. */
+  text-shadow:
+    0 -1px 0 rgba(255, 244, 214, 0.4),
+    0 1px 0 rgba(92, 58, 12, 0.3);
+}
+/* On dark chapter grounds, lift the gold back up for contrast. */
+.app[data-dark="true"] .op-big {
+  background:
+    linear-gradient(160deg,
+      var(--gold-1) 0%, var(--gold-0) 30%, var(--gold-4) 50%,
+      var(--gold-1) 72%, var(--gold-2) 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 0 24px rgba(240, 200, 120, 0.22);
+}
+/* The turn — "So are you." lands as its own beat of the line. */
+.op-echo {
+  font-family: var(--font-quote);
+  font-size: clamp(30px, 6.4vw, 54px); line-height: 1.05;
+  text-align: center; margin: 6px auto 0;
+  background:
+    linear-gradient(160deg,
+      var(--gold-3) 0%, var(--gold-2) 30%, var(--gold-1) 60%, var(--gold-2) 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  text-shadow:
+    0 -1px 0 rgba(255, 244, 214, 0.4),
+    0 1px 0 rgba(92, 58, 12, 0.3);
+}
+.app[data-dark="true"] .op-echo {
+  background:
+    linear-gradient(160deg,
+      var(--gold-1) 0%, var(--gold-4) 50%, var(--gold-2) 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+/* Arrival is a single clean screen. The .beat already centers it, so NO
+   min-height here — that was inflating the beat past one viewport and
+   landing the reader on blank padding instead of the title. */
+/* the title card wants the full screen — trim the beat's default padding */
+.beat:has(.sj-prelude-inner--arrival) { padding-top: 3vh; padding-bottom: 3vh; }
+
+.sj-prelude-inner--arrival {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 0;
+}
+/* Scale the title card to the SHORT axis too, so it always lands as one
+   screen instead of overflowing and stranding the reader on blank padding. */
+.sj-prelude-inner--arrival .prelude-glyph { margin: 0 0 clamp(6px, 1.4vh, 16px); }
+.sj-prelude-inner--arrival .prelude-glyph svg {
+  width: clamp(44px, 7vh, 72px); height: clamp(44px, 7vh, 72px);
+}
+.sj-prelude-inner--arrival .prelude-eyebrow { margin: 0 0 clamp(8px, 1.8vh, 20px); }
+.sj-prelude-inner--arrival .prelude-title {
+  font-size: clamp(24px, 4.6vh, 42px);
+  margin: 0 0 clamp(10px, 2vh, 24px);
+}
+.sj-prelude-inner--arrival .op-big {
+  font-size: clamp(28px, 6.4vh, 62px);
+  line-height: 1.02;
+  margin: 0;
+}
+.sj-prelude-inner--arrival .op-echo {
+  font-size: clamp(20px, 4vh, 40px);
+  margin: clamp(2px, .8vh, 8px) 0 0;
+}
+.sj-prelude-inner--arrival .op-rule { margin: clamp(8px, 1.6vh, 18px) auto; }
+.sj-prelude-inner--arrival .scroll-cue { margin-top: clamp(8px, 1.8vh, 22px); }
+/* Quiet "scroll to begin" cue so the crossing is discoverable. */
+.scroll-cue {
+  margin-top: 44px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  opacity: .55;
+  animation: scroll-cue-bob 2.4s ease-in-out infinite;
+}
+.scroll-cue-label {
+  font-family: var(--font-label);
+  font-size: 11px; letter-spacing: .28em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--ink) 64%, transparent);
+}
+.scroll-cue-arrow {
+  font-size: 20px; line-height: 1;
+  color: color-mix(in srgb, var(--accent) 70%, transparent);
+}
+@keyframes scroll-cue-bob {
+  0%, 100% { transform: translateY(0); opacity: .5; }
+  50%      { transform: translateY(5px); opacity: .8; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scroll-cue { animation: none; }
+}
+
+.op-sub {
+  font-family: var(--font-quote);
+  font-size: clamp(16px, 2vw, 20px); line-height: 1.68;
+  opacity: .72; text-align: center; text-wrap: pretty;
+  max-width: 32ch; margin: 26px auto 0;
+}
+/* the divider between the opening composition and the invocation prose */
+.op-rule {
+  width: 1px; height: 56px; margin: 54px auto 46px;
+  background: linear-gradient(currentColor, transparent);
+  opacity: .35;
+}
+/* Editorial prose block — a proper drop cap and pull-quote weight lines,
+   so the invocation reads like a set page, not a uniform slab. */
+.inv-prose {
+  max-width: 42ch; width: 100%; margin: 0 auto; text-align: left;
+}
+.inv-prose p {
+  font-family: var(--font-body);
+  font-size: clamp(17px, 1.9vw, 19px); line-height: 1.8;
+  color: var(--ink); opacity: .84;
+  margin: 0 0 1.15em; text-wrap: pretty;
+}
+.inv-prose .drop::first-letter {
+  font-family: var(--font-title);
+  font-size: 3.9em; line-height: .8;
+  float: left; padding: .04em .1em 0 0;
+  background: linear-gradient(155deg,
+    var(--gold-4), var(--gold-0) 14%, var(--gold-1) 30%,
+    var(--gold-2) 48%, var(--gold-3) 62%, var(--gold-1) 86%, var(--gold-4));
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 1px 0 rgba(255,235,180,.4));
+}
+.inv-prose .weight {
+  font-family: var(--font-quote);
+  font-size: 1.42em; line-height: 1.4; opacity: 1;
+  border-left: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  padding-left: 22px; margin: 30px 0;
+  color: var(--accent);
+}
+
 .prelude-before {
   margin: 28px auto;
   max-width: 540px; width: 100%;
@@ -530,9 +754,9 @@ input, textarea, select { font-family: inherit; color: inherit; }
 }
 .opener-invocation {
   font-family: var(--font-body);
-  font-size: 17px; line-height: 1.85; font-style: italic;
-  max-width: 620px; text-wrap: pretty;
-  color: var(--ink); opacity: .92;
+  font-size: 21px; line-height: 1.9; font-style: normal;
+  max-width: 640px; text-wrap: pretty;
+  color: var(--ink); opacity: .95;
   padding: 22px 0 22px 28px;
   position: relative;
   border: none;
@@ -3145,92 +3369,76 @@ input, textarea, select { font-family: inherit; color: inherit; }
   opacity: .8;
 }
 
-/* ── Inline expandable CODE card — Crystalline / Carved ── */
-/*    Angular, lapidary, inscribed — a law pressed in gold on stone    */
+/* ── CODE — the Plate ─────────────────────────────────────────
+   A double-ruled tablet, centered, hard-edged, symmetric.
+   Code is law: nothing about its shape moves or breathes. ── */
 .inline-code-card {
   position: relative; isolation: isolate;
-  margin: 30px 0 26px; padding: 26px 30px 20px;
-  border-radius: 1px; /* sharp, architectural */
-  max-width: 640px;
-  /* Darker inscribed surface — parchment deepened by shadow */
-  background:
-    radial-gradient(ellipse 70% 40% at 50% 0%,
-      color-mix(in srgb, var(--gold-3) 10%, transparent), transparent 55%),
-    linear-gradient(175deg,
-      color-mix(in srgb, var(--veil) 38%, var(--paper-2)) 0%,
-      color-mix(in srgb, var(--bg) 55%, var(--paper-2)) 100%);
-  /* Crisp single gold rule border — feels like a seal or cartouche */
-  box-shadow:
-    0 0 0 1.5px color-mix(in srgb, var(--gold-2) 70%, transparent),
-    0 0 0 4px   color-mix(in srgb, var(--gold-4) 10%, transparent),
-    0 0 16px -6px color-mix(in srgb, var(--gold-2) 20%, transparent),
-    0 8px 24px -12px rgba(0, 0, 0, 0.20);
-  transition: padding .25s ease;
-}
-.app[data-dark="true"] .inline-code-card {
-  box-shadow:
-    0 0 0 1.5px color-mix(in srgb, var(--accent) 65%, transparent),
-    0 0 0 4px   color-mix(in srgb, var(--accent) 10%, transparent),
-    0 0 16px -6px color-mix(in srgb, var(--accent) 22%, transparent),
-    0 8px 24px -12px rgba(0, 0, 0, 0.32);
+  margin: var(--rhythm-event) auto; padding: 4px;
+  max-width: 560px;
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent);
+  background: none;
 }
 .inline-code-head {
-  display: flex; align-items: center; gap: 12px;
-  margin-bottom: 14px;
+  position: relative;
+  display: block;
+  text-align: center;
+  padding: 40px 40px 0;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  border-bottom: none;
 }
 .inline-code-label {
-  font-family: 'Cinzel', serif;
-  font-size: 9px; letter-spacing: .45em; text-transform: uppercase;
-  color: var(--gold-2); opacity: .8;
+  position: absolute; top: -9px; left: 50%; transform: translateX(-50%);
+  padding: 0 14px;
+  background: var(--bg);
+  font-family: var(--font-mono);
+  font-size: 9.5px; letter-spacing: .34em; text-transform: uppercase;
+  color: var(--accent); opacity: .85; white-space: nowrap;
 }
-.inline-code-num {
-  margin-left: auto;
-  font-family: 'JetBrains Mono', monospace;
-  color: var(--gold-2); opacity: .45;
-  font-size: 11px;
-}
-/* Essence line: lapidary — commanding, compact, a law */
+.inline-code-num { display: none; }
+/* Essence: the codified insight — an accent-register line, not a shout */
 .inline-code-essence {
-  font-family: 'Cinzel', serif;
+  font-family: var(--font-quote);
   font-style: normal;
-  font-size: 16px; line-height: 1.5;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #7a5818;
-  text-wrap: pretty;
-}
-.app[data-dark="true"] .inline-code-essence {
-  color: color-mix(in srgb, var(--accent) 90%, #fff);
+  font-size: 23px; line-height: 1.4;
+  letter-spacing: 0.005em;
+  color: var(--accent);
+  text-align: center;
+  text-wrap: balance;
+  padding: 26px 40px 0;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  border-top: none; border-bottom: none;
 }
 .inline-code-body {
-  margin-top: 18px;
-  padding-top: 16px;
-  border-top: 1px solid color-mix(in srgb, var(--gold-2) 22%, transparent);
+  padding: 20px 40px 0;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  border-top: none; border-bottom: none;
   animation: fade-slide-in .28s ease;
 }
-/* Body: JetBrains Mono — like reading a formula or a dictum */
 .inline-code-body p {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 13px; line-height: 1.75;
-  color: color-mix(in srgb, var(--ink) 85%, transparent);
+  font-family: var(--font-body);
+  font-size: 16px; line-height: 1.72;
+  color: color-mix(in srgb, var(--ink) 90%, transparent);
   margin: 0 0 1.1em;
   text-wrap: pretty;
 }
 .inline-code-body p:last-child { margin-bottom: 0; }
 .inline-code-toggle {
-  display: inline-flex; align-items: center; gap: 8px;
-  margin-top: 16px;
-  background: transparent; border: none; padding: 4px 0;
-  font-family: 'Cinzel', serif;
-  font-size: 9px; letter-spacing: .44em; text-transform: uppercase;
-  color: var(--gold-2); opacity: .6;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%;
+  margin: 0; padding: 18px 40px 26px;
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  border-top: none;
+  font-family: var(--font-mono);
+  font-size: 9.5px; letter-spacing: .34em; text-transform: uppercase;
+  color: var(--accent); opacity: .7;
   cursor: pointer;
-  transition: opacity .18s;
+  transition: opacity .18s, background .18s;
 }
-.inline-code-toggle:hover { opacity: 1; }
-.app[data-dark="true"] .inline-code-toggle { color: var(--accent); }
+.inline-code-toggle:hover { opacity: 1; background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.inline-code-toggle:focus-visible { outline: 2px solid var(--glow); outline-offset: -2px; }
 
-/* ── Optional middle paragraph between code and lore ── */
 .scene-middle {
   font-family: var(--font-body);
   font-size: 19px; line-height: 1.75;
@@ -3241,121 +3449,100 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .scene-middle p { margin: 0 0 1.05em; }
 .scene-middle p:last-child { margin-bottom: 0; }
 
-/* ── Inline expandable LORE card — Illuminated / Living ── */
-/*    Rounded, lyrical, bioluminescent — a myth that breathes     */
+/* ── LORE — the Interlude ─────────────────────────────────────
+   Breaks out of the reading column entirely: wide, washed,
+   centered, ruled top and bottom like a chapter divider.
+   Lore doesn't sit in the page — it opens the page out. ── */
 .inline-lore-card {
   position: relative; isolation: isolate;
-  margin: 28px 0 24px; padding: 28px 32px 24px;
-  border-radius: 10px; /* soft, organic */
-  max-width: 640px;
-  /* Warm amber candlelight surface */
+  margin: var(--rhythm-mvmt) 0;
+  padding: 64px 40px;
+  max-width: 100%;
+  width: 100%;
+  text-align: center;
   background:
-    radial-gradient(ellipse 80% 50% at 50% 0%,
-      color-mix(in srgb, #d4a464 14%, transparent), transparent 60%),
-    linear-gradient(170deg,
-      color-mix(in srgb, #f5ead8 22%, var(--veil)) 0%,
-      color-mix(in srgb, #f0e2c8 14%, var(--bg)) 100%);
-  /* Amber border + faint teal edge halo — candlelight meets bioluminescence */
-  box-shadow:
-    0 0 0 1px rgba(212, 164, 100, 0.60),
-    0 0 0 4px rgba(212, 164, 100, 0.10),
-    0 0 22px -4px rgba(212, 164, 100, 0.28),
-    0 0 0 6px rgba(79, 240, 214, 0.04),
-    0 0 32px -6px rgba(79, 240, 214, 0.10),
-    0 10px 28px -14px rgba(0, 0, 0, 0.15);
-  transition: padding .25s ease;
-  overflow: hidden;
-}
-/* Breathing bioluminescent glow along the bottom edge */
-.inline-lore-card::before {
-  content: '';
-  position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg,
-    transparent 0%, rgba(79, 240, 214, 0.35) 35%,
-    rgba(79, 240, 214, 0.55) 50%,
-    rgba(79, 240, 214, 0.35) 65%, transparent 100%);
-  animation: lore-breathe 5s ease-in-out infinite;
-  pointer-events: none;
-}
-@keyframes lore-breathe {
-  0%, 100% { opacity: 0.4; transform: scaleX(0.7); }
-  50% { opacity: 1; transform: scaleX(1); }
+    radial-gradient(ellipse 70% 90% at 50% 0%,
+      color-mix(in srgb, var(--glow) 10%, transparent), transparent 65%),
+    color-mix(in srgb, var(--ink) 4%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--glow) 35%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--glow) 35%, transparent);
 }
 .inline-lore-head {
-  display: flex; align-items: center; gap: 12px;
-  margin-bottom: 16px;
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  margin-bottom: 22px;
 }
-/* Label whispers — EB Garamond italic, no uppercase shout */
 .inline-lore-label {
-  font-family: 'EB Garamond', serif;
-  font-style: italic;
-  font-size: 13px; letter-spacing: 0.04em;
-  text-transform: none;
-  color: #b08a4a; opacity: .85;
+  font-family: var(--font-mono);
+  font-size: 9.5px; letter-spacing: .34em; text-transform: uppercase;
+  color: var(--teal-ink); opacity: .85;
 }
-.inline-lore-num {
-  margin-left: auto;
-  color: #c4a265; opacity: .45;
-  font-size: 14px;
-}
-/* Essence: EB Garamond italic — flowing, lyrical, felt before understood */
+.inline-lore-num { display: none; }
+/* Essence: the myth's line, largest accent moment on the page after a hero */
 .inline-lore-essence {
-  font-family: 'EB Garamond', serif;
+  font-family: var(--font-quote);
   font-style: italic;
-  font-size: 26px; line-height: 1.5;
-  letter-spacing: 0.01em;
-  color: #8a6030;
-  filter: drop-shadow(0 1px 1px rgba(100, 65, 10, 0.18));
-  text-wrap: pretty;
+  font-size: 32px; line-height: 1.32;
+  letter-spacing: 0.005em;
+  color: var(--ink);
+  max-width: 26ch; margin: 0 auto;
+  text-wrap: balance;
 }
-.app[data-dark="true"] .inline-lore-essence { color: #d8b878; }
+/* Code essence is gold (sacred science). On the dark chapter grounds the
+   mid-gold accent goes muddy and unreadable — brighten it toward a
+   luminous gold with a faint glow, the way titles are already handled. */
+.app[data-dark="true"] .inline-code-essence {
+  color: color-mix(in srgb, var(--accent) 58%, #ffe9b0);
+  text-shadow: 0 0 16px rgba(255, 220, 140, 0.22);
+}
+.app[data-dark="true"] .inline-code-label {
+  color: color-mix(in srgb, var(--accent) 66%, #ffe9b0);
+  opacity: 1;
+}
+
 .inline-lore-body {
-  margin-top: 20px;
-  padding-top: 18px;
-  border-top: 1px solid rgba(212, 164, 100, 0.28);
+  margin-top: 26px;
   animation: fade-slide-in .28s ease;
 }
-/* Body: EB Garamond at manuscript size — illuminated manuscript register */
 .inline-lore-body p {
-  font-family: 'EB Garamond', serif;
-  font-size: 18px; line-height: 1.85;
-  color: color-mix(in srgb, var(--ink) 90%, transparent);
-  margin: 0 0 1em;
+  font-family: var(--font-body);
+  font-size: 16.5px; line-height: 1.8;
+  color: color-mix(in srgb, var(--ink) 85%, transparent);
+  max-width: 58ch; margin: 0 auto 1em;
+  text-align: left;
   text-wrap: pretty;
 }
 .inline-lore-body p:last-child { margin-bottom: 0; }
-/* Toggle whispers "enter" — soft, not commanded */
 .inline-lore-toggle {
   display: inline-flex; align-items: center; gap: 8px;
-  margin-top: 18px;
+  margin-top: 28px;
   background: transparent; border: none; padding: 4px 0;
-  font-family: 'EB Garamond', serif;
-  font-style: italic;
-  font-size: 14px; letter-spacing: 0.03em;
-  text-transform: none;
-  color: #b08a4a; opacity: .65;
+  font-family: var(--font-mono);
+  font-size: 9.5px; letter-spacing: .34em; text-transform: uppercase;
+  color: var(--teal-ink); opacity: .75;
   cursor: pointer;
   transition: opacity .18s;
 }
 .inline-lore-toggle:hover { opacity: 1; }
+.inline-lore-toggle:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
 
 @media (max-width: 640px) {
-  .inline-code-card { padding: 20px 20px 16px; }
-  .inline-lore-card { padding: 22px 22px 20px; }
-  .inline-code-essence { font-size: 14px; }
-  .inline-lore-essence { font-size: 22px; }
-  .inline-code-body p { font-size: 12px; }
-  .inline-lore-body p { font-size: 16px; }
+  .inline-code-head, .inline-code-essence, .inline-code-body, .inline-code-toggle { padding-left: 22px; padding-right: 22px; }
+  .inline-lore-card { padding: 48px 24px; }
+  .inline-code-essence { font-size: 18px; }
+  .inline-lore-essence { font-size: 24px; }
+  .inline-code-body p { font-size: 14px; }
+  .inline-lore-body p { font-size: 16px; text-align: left; }
 }
 
-/* ── Closing question / instruction (between lore and practice) ── */
+/* ── The asking — closing question register (gold italic serif, tight to the journal) ── */
 .scene-closing {
   font-family: var(--font-title);
-  font-size: 19px; font-style: italic; line-height: 1.6;
-  color: var(--ink); opacity: .95;
-  margin: 24px 0 8px; max-width: 640px;
-  padding-left: 14px;
-  border-left: 2px solid color-mix(in srgb, var(--accent) 50%, transparent);
+  font-size: var(--reg-ask-size); font-style: italic; line-height: var(--reg-ask-lh);
+  color: var(--accent); opacity: 1;
+  margin: 56px 0 20px; max-width: 520px;
+  padding-left: 0;
+  border-left: none;
+  text-wrap: balance;
 }
 
 /* Dark territory tweaks */
@@ -3485,9 +3672,11 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .inline-code-archived { background: rgba(79, 240, 214, 0.08); border-color: rgba(79, 240, 214, 0.32); color: #4ff0d6; }
 
 /* ── Inline corner frames for Code and Lore cards ── */
+/* Ornamental corners retired — the Plate and the Interlude carry
+   their own identity through shape and rule, not applied ornament. */
 .inline-code-frame,
 .inline-lore-frame {
-  position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  display: none;
 }
 
 /* Code corners — geometric angular L-shapes, gold */
@@ -3527,24 +3716,9 @@ input, textarea, select { font-family: inherit; color: inherit; }
   50% { opacity: 1; }
 }
 
-/* Code unlocked: retain crisp cartouche identity */
-.inline-code-card--unlocked {
-  box-shadow:
-    0 0 0 1.5px color-mix(in srgb, var(--gold-2) 80%, transparent),
-    0 0 0 4px color-mix(in srgb, var(--gold-4) 12%, transparent),
-    0 0 20px -4px color-mix(in srgb, var(--gold-2) 28%, transparent),
-    0 8px 24px -10px rgba(0, 0, 0, 0.18);
-}
-/* Lore unlocked: amber border + gentle teal halo deepened */
-.inline-lore-card--unlocked {
-  box-shadow:
-    0 0 0 1px rgba(212, 164, 100, 0.65),
-    0 0 0 4px rgba(212, 164, 100, 0.12),
-    0 0 24px -4px rgba(212, 164, 100, 0.30),
-    0 0 0 6px rgba(79, 240, 214, 0.05),
-    0 0 36px -6px rgba(79, 240, 214, 0.13),
-    0 8px 24px -10px rgba(0, 0, 0, 0.14);
-}
+/* Unlocked state: the archived badge in the head already signals it —
+   the Plate and Interlude shapes stay exactly themselves. */
+.inline-code-card--unlocked, .inline-lore-card--unlocked { box-shadow: none; }
 
 .archive-unlock-flash {
   position: absolute;
@@ -3554,7 +3728,8 @@ input, textarea, select { font-family: inherit; color: inherit; }
   background: radial-gradient(60% 80% at 50% 0%, rgba(255, 240, 180, 0.28), transparent 70%);
   animation: archive-unlock 2.4s ease-out forwards;
 }
-.inline-code-card, .inline-lore-card { position: relative; overflow: hidden; }
+.inline-code-card { position: relative; overflow: visible; }
+.inline-lore-card { position: relative; overflow: hidden; }
 
 .inline-code-card--just-unlocked,
 .inline-lore-card--just-unlocked {
@@ -4755,10 +4930,12 @@ input, textarea, select { font-family: inherit; color: inherit; }
 
 /* ─── Stage override for scroll mode ─────────────────────── */
 .stage {
+  /* DUPLICATE selector, later in the cascade — WINS over the rule above
+     regardless of what it says. Legacy scroll-journal block; height must
+     not re-cap the document. */
   position: relative;
   z-index: 5;
-  height: 100vh;
-  height: 100dvh;
+  min-height: 100dvh;
   overflow: visible;
 }
 
@@ -4972,7 +5149,10 @@ input, textarea, select { font-family: inherit; color: inherit; }
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 32px;
+  gap: 24px;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto 32px;
   padding-bottom: 14px;
   border-bottom: 1px solid color-mix(in srgb, var(--ink) 9%, transparent);
 }
@@ -5812,4 +5992,1338 @@ input, textarea, select { font-family: inherit; color: inherit; }
 @keyframes orb-pulse {
   0%, 100% { transform: scale(1); opacity: .7; }
   50%       { transform: scale(1.3); opacity: 1; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   READING REGISTERS — the typographic ladder
+   The body never changes. Gold marks meaning. Teal marks doing.
+   Serif marks the sacred. Silence is spent in four denominations —
+   so when the page finally raises its voice, the reader stops.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* R0 — Whisper: after-lines, marginal cues */
+.reg-whisper {
+  font-family: var(--font-body);
+  font-size: var(--reg-whisper-size); line-height: var(--reg-whisper-lh);
+  color: var(--ink); opacity: .65;
+  max-width: 560px;
+}
+
+/* R2 — Weighted line: the prose leaning in. Same voice, raised volume.
+   Full ink (the only body text at 100%) — on paper, that alone reads as emphasis. */
+.reg-weight {
+  font-family: var(--font-body);
+  font-size: var(--reg-weight-size); line-height: var(--reg-weight-lh);
+  font-weight: 400; letter-spacing: .01em;
+  color: var(--ink); opacity: 1;
+  max-width: 560px;
+  margin: 40px 0 36px;
+  text-wrap: pretty;
+}
+
+/* R3 — Hero line: the book changing voice. Serif, accent ink, flat
+   (no glow, no foil) — the register shift is the entire event. */
+.reg-hero {
+  font-family: var(--font-title);
+  font-size: var(--reg-hero-size); line-height: var(--reg-hero-lh);
+  font-weight: 400; font-style: normal;
+  letter-spacing: .015em;
+  color: var(--accent); opacity: 1;
+  max-width: 580px;
+  margin: var(--rhythm-event) 0 72px;
+  text-wrap: balance;
+}
+.scene-body--multi .reg-hero:first-child,
+.opener-invocation .reg-hero:first-child { margin-top: 0; }
+
+/* The hairline above a hero line — kin to the threshold rule, not new ornament */
+.hero-rule {
+  display: block;
+  width: 32px; height: 1px;
+  background: var(--accent);
+  opacity: .55;
+  margin: 0 0 28px;
+}
+
+/* Breath reveal — hero lines only. The line exhales into place. */
+.reg-hero {
+  opacity: 0; transform: translateY(14px); letter-spacing: .06em;
+  transition: opacity 1.4s cubic-bezier(.22,.6,.2,1),
+              transform 1.4s cubic-bezier(.22,.6,.2,1),
+              letter-spacing 1.8s cubic-bezier(.22,.6,.2,1);
+}
+.reg-hero.is-lit { opacity: 1; transform: none; letter-spacing: .015em; }
+@media (prefers-reduced-motion: reduce) {
+  .reg-hero { opacity: 1; transform: none; letter-spacing: .015em; transition: none; }
+}
+
+/* Threshold ask — the chapter's biggest question, centered above the writing field.
+   (Closings here run long — 26px keeps dignity without absurdity.) */
+.scene--threshold .scene-closing {
+  font-size: 26px; line-height: 1.45;
+  text-align: center;
+  margin: var(--rhythm-event) auto 32px;
+  max-width: 580px;
+}
+
+/* Drop cap — one per chapter, on the first invocation paragraph.
+   The one deliberate foreshadowing of the illuminated phase. */
+.invocation-dropcap::first-letter {
+  font-family: var(--font-title);
+  font-size: 4.4em; line-height: .82;
+  float: left; padding: .06em .12em 0 0;
+  background: linear-gradient(155deg,
+    var(--gold-4), var(--gold-0) 14%, var(--gold-1) 30%,
+    var(--gold-2) 48%, var(--gold-3) 62%, var(--gold-2) 74%,
+    var(--gold-1) 86%, var(--gold-4));
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 1px 0 rgba(255,235,180,.45)) drop-shadow(0 2px 2px rgba(120,80,20,.38));
+}
+
+/* Rhythm between content blocks — every change of voice gets the same breath */
+.scene-body--multi p + p { margin-top: var(--rhythm-para); margin-bottom: 0; }
+
+@media (max-width: 600px) {
+  .reg-weight { font-size: 22px; }
+  .scene-middle { margin-left: 8px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CONSOLIDATION — one style, two moods
+   Pherome titles · TropicFantasy pull-quotes · legible flat gold
+   Color mode (chapter palettes) · Paper mode (clean papery ground)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Title legibility: kill the muddy gradient, keep the foil feel.
+      Dark grounds get bright gold; light grounds get deep gold. ── */
+.prelude-title, .opener-title, .scene-title,
+.opener-roman, .gold-text, .tile-kind-threshold .scene-title {
+  background: none;
+  -webkit-background-clip: initial; background-clip: initial;
+  -webkit-text-fill-color: currentColor;
+  color: #9a7222;
+  filter: none;
+  text-shadow: 0 1px 0 rgba(255, 243, 196, .35);
+}
+.app[data-dark="true"] .prelude-title,
+.app[data-dark="true"] .opener-title,
+.app[data-dark="true"] .scene-title,
+.app[data-dark="true"] .opener-roman,
+.app[data-dark="true"] .gold-text,
+.app[data-dark="true"] .tile-kind-threshold .scene-title {
+  color: #e8c87a;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .45), 0 0 24px rgba(232, 200, 122, .18);
+}
+
+/* ── Pull-quote registers move to TropicFantasy ── */
+.reg-hero {
+  font-family: var(--font-quote);
+  letter-spacing: .02em;
+  line-height: 1.28;
+}
+.reg-hero.is-lit { letter-spacing: .02em; }
+.reg-weight {
+  font-family: var(--font-quote);
+  font-size: 24px;
+  line-height: 1.52;
+}
+.scene-closing { font-family: var(--font-quote); font-style: normal; }
+.scene--threshold .scene-closing { font-family: var(--font-quote); font-style: normal; }
+
+/* ── Mode toggle — small, clean, self-evident ── */
+.mode-toggle {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 12px;
+  background: none;
+  border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--ink);
+  transition: border-color .25s, background .25s;
+}
+.mode-toggle:hover { border-color: color-mix(in srgb, var(--ink) 45%, transparent); }
+.mode-toggle:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+.mode-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  opacity: .35; transition: opacity .25s, box-shadow .25s;
+}
+.mode-dot--color {
+  background: conic-gradient(#c89838, #d47060, #5090e0, #2aaa8a, #c89838);
+}
+.mode-dot--paper {
+  background: #f2ecdd;
+  box-shadow: inset 0 0 0 1px rgba(60, 50, 38, .4);
+}
+.mode-dot.on { opacity: 1; box-shadow: 0 0 6px color-mix(in srgb, var(--glow) 55%, transparent); }
+.mode-label {
+  font-family: var(--font-mono);
+  font-size: 9px; letter-spacing: .28em; text-transform: uppercase;
+  opacity: .7;
+}
+
+/* ── Code & Lore — pop-up revelation ─────────────────────────
+      The card in the flow is a sealed door: essence + invitation.
+      The click opens the full text as a centered rite. ── */
+.rev-backdrop {
+  position: fixed; inset: 0; z-index: 320;
+  background: color-mix(in srgb, var(--bg) 40%, rgba(10, 8, 6, .55));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 32px;
+  animation: rev-fade .35s ease;
+}
+@keyframes rev-fade { from { opacity: 0; } to { opacity: 1; } }
+.rev-modal {
+  position: relative;
+  max-width: 640px; width: 100%;
+  max-height: min(78vh, 720px);
+  overflow-y: auto;
+  background: var(--bg);
+  color: var(--ink);
+  padding: 56px 60px 48px;
+  animation: rev-rise .45s cubic-bezier(.22,.6,.2,1);
+}
+/* Code modal: the Plate identity carried into the popup — hard gold rule */
+.rev-modal--code {
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent),
+    0 24px 80px rgba(8, 6, 4, .45);
+}
+/* Lore modal: the Interlude identity — washed, teal-ruled top and bottom */
+.rev-modal--lore {
+  text-align: center;
+  border-top: 1px solid color-mix(in srgb, var(--glow) 45%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--glow) 45%, transparent);
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 0%,
+      color-mix(in srgb, var(--glow) 10%, transparent), transparent 65%),
+    var(--bg);
+  box-shadow: 0 24px 80px rgba(8, 6, 4, .45);
+}
+@keyframes rev-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .rev-backdrop, .rev-modal { animation: none; }
+}
+.rev-modal::-webkit-scrollbar { width: 4px; }
+.rev-modal::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--ink) 18%, transparent); }
+.rev-kicker {
+  font-family: var(--font-mono);
+  font-size: 9.5px; letter-spacing: .34em; text-transform: uppercase;
+  margin-bottom: 22px;
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+.rev-modal--lore .rev-kicker { justify-content: center; gap: 12px; }
+.rev-modal--code .rev-kicker { color: var(--accent); }
+.rev-modal--lore .rev-kicker { color: var(--teal-ink); }
+.rev-title {
+  font-family: var(--font-quote);
+  font-size: 26px; line-height: 1.3;
+  margin-bottom: 24px; text-wrap: balance;
+  color: var(--ink);
+}
+.rev-modal--code .rev-title { color: var(--accent); }
+.rev-modal--lore .rev-title { font-style: italic; font-size: 30px; max-width: 22ch; margin-inline: auto; margin-bottom: 26px; }
+.rev-body p {
+  font-family: var(--font-body);
+  font-size: 16.5px; line-height: 1.75;
+  color: color-mix(in srgb, var(--ink) 88%, transparent);
+  margin-bottom: 18px;
+}
+.rev-modal--lore .rev-body p { max-width: 52ch; margin-inline: auto; text-align: left; }
+.rev-body p:last-child { margin-bottom: 0; }
+.rev-close {
+  position: absolute; top: 16px; right: 16px;
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--ink) 25%, transparent);
+  background: none; color: var(--ink); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color .2s;
+}
+.rev-close:hover { border-color: var(--accent); }
+.rev-close:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+@media (max-width: 600px) {
+  .rev-backdrop { padding: 14px; }
+  .rev-modal { padding: 42px 26px 34px; max-height: 86vh; }
+  .mode-label { display: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   THE MOVEMENT — editorial anatomy of every scene
+   Zones alternate: left prose → center plate → left practice →
+   full-bleed interlude → centered ask → the desk. The alternation
+   is the flow. The descent ends at the user's own hand.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Movement head: kicker → title → hairline ── */
+.mv-kicker {
+  display: flex; align-items: center; gap: 14px;
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: .32em; text-transform: uppercase;
+  margin-bottom: 26px;
+}
+.mv-no { color: var(--teal-ink); }
+.mv-rule {
+  width: 34px; height: 1px;
+  background: color-mix(in srgb, var(--ink) 30%, transparent);
+}
+.mv-lens { color: color-mix(in srgb, var(--ink) 62%, transparent); }
+
+.scene-title {
+  font-size: clamp(38px, 4.6vw, 52px);
+  letter-spacing: .06em;
+  line-height: 1.06;
+  margin-bottom: 0;
+  text-wrap: balance;
+}
+.mv-hairline {
+  width: 42px; height: 1px;
+  background: var(--accent); opacity: .5;
+  margin: 22px 0 34px;
+}
+
+/* Running head above each movement — quiet wayfinding */
+.sj-scene-header {
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+  padding-bottom: 12px;
+  margin-bottom: 54px;
+}
+
+/* ── Weighted lines hang into the margin (the voice leans in) ── */
+.reg-weight {
+  border-left: 1px solid color-mix(in srgb, var(--accent) 65%, transparent);
+  padding-left: 26px;
+}
+@media (min-width: 981px) {
+  .reg-weight { margin-left: -27px; }
+}
+
+/* ── Interlude: truly full-bleed — the page opens out ── */
+.inline-lore-card {
+  width: 100vw;
+  max-width: none;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding-left: max(40px, calc(50vw - 340px));
+  padding-right: max(40px, calc(50vw - 340px));
+}
+
+/* ── The Ask — every movement descends to the same ceremony ──
+   Eyebrow names the event ("the chapter asks"), the closing line
+   is the question itself, and the desk beneath is left unlabeled —
+   blank space for the answer, not one more thing to read. */
+.scene-ask-eyebrow {
+  display: block;
+  text-align: center;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  font-size: 10px; letter-spacing: .32em;
+  color: var(--teal-ink);
+  opacity: .8;
+  margin: var(--rhythm-event) auto 0;
+}
+.scene-ask-eyebrow + .scene-closing { margin-top: 22px; }
+
+.scene-closing {
+  display: block;
+  text-align: center;
+  margin: var(--rhythm-event) auto 30px;
+  max-width: 580px;
+}
+.scene-closing::before {
+  content: "";
+  display: block;
+  width: 1px; height: 64px;
+  background: var(--accent); opacity: .5;
+  margin: 0 auto 36px;
+}
+.scene-ask-eyebrow + .scene-closing::before { display: none; }
+.scene--threshold .scene-closing { margin-top: var(--rhythm-mvmt); }
+.scene-closing:has(+ .scene-ask-detail) { margin-bottom: 0; }
+
+/* The full prompt beneath the gold lead line — plain reading prose,
+   deliberately not the quote-font/gold treatment, so the lead stays
+   the one impactful line and this is the room to elaborate. */
+.scene-ask-detail {
+  display: block;
+  font-family: var(--font-body);
+  font-style: normal;
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--ink);
+  opacity: .88;
+  text-align: center;
+  max-width: 560px;
+  margin: 18px auto 30px;
+}
+
+/* ── The Desk — the altar. Everything above it was approach. ── */
+.scene-practice { margin-top: 0; }
+.scene-practice .journal {
+  position: relative;
+  border: 1px solid color-mix(in srgb, var(--ink) 24%, transparent);
+  background: color-mix(in srgb, var(--ink) 3%, var(--bg));
+  padding: 30px 34px 22px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+.scene-practice .journal textarea { caret-color: var(--accent); }
+
+/* ═══ THE BOOKENDS — the descent made legible ═══ */
+
+/* Chapter I — cinema. The gate is a title card. */
+.sj-gate-inner--film { text-align: center; }
+.sj-gate-inner--film .opener-meta { justify-content: center; }
+.sj-gate-inner--film .opener-roman { margin-inline: auto; }
+.sj-gate-inner--film .opener-title {
+  display: inline-block;
+  letter-spacing: .2em;
+  border-top: 1px solid color-mix(in srgb, var(--ink) 25%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 25%, transparent);
+  padding: 20px 44px;
+}
+.sj-gate-inner--film .opener-sub { margin-inline: auto; }
+.sj-gate-inner--film .opener-invocation {
+  text-align: left;
+  margin-inline: auto;
+}
+
+/* Chapter VII — fire. Everything gathers to the center. */
+.sj-gate-inner--fire { text-align: center; }
+.sj-gate-inner--fire .opener-meta { justify-content: center; }
+.sj-gate-inner--fire .opener-roman {
+  text-shadow: 0 0 34px color-mix(in srgb, var(--glow) 55%, transparent);
+}
+.sj-gate-inner--fire .opener-sub { margin-inline: auto; }
+.sj-gate-inner--fire .opener-invocation { text-align: left; margin-inline: auto; }
+.scene--fire .mv-kicker { justify-content: center; }
+.scene--fire .scene-title { text-align: center; }
+.scene--fire .mv-hairline { margin-inline: auto; }
+.scene--fire .scene-body { margin-inline: auto; }
+.scene--fire .scene-middle { margin-inline: auto; }
+.scene--fire .reg-weight { margin-inline: auto; border-left: none; padding-left: 0; text-align: center; }
+.scene--fire .reg-weight::before { content: none; }
+
+@media (max-width: 980px) {
+  .mv-hairline { margin: 24px 0 40px; }
+  .scene-title { font-size: clamp(32px, 8vw, 44px); }
+  .inline-lore-card { padding-left: 24px; padding-right: 24px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   THE COLOR LAW — gold is the sacred text; teal is the
+   intelligence reading you. Titles shine; the AI glows.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Shiny gold titles — a narrow tonal band so the shine never costs
+   legibility (the old muddy gradient died for this). */
+.prelude-title, .opener-title, .scene-title,
+.opener-roman, .gold-text, .tile-kind-threshold .scene-title {
+  background: linear-gradient(168deg, #8a681c 0%, #c2913a 38%, #a87e28 55%, #8a681c 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: #9a7222;
+  filter: drop-shadow(0 1px 0 rgba(255, 243, 196, .3));
+}
+.app[data-dark="true"] .prelude-title,
+.app[data-dark="true"] .opener-title,
+.app[data-dark="true"] .scene-title,
+.app[data-dark="true"] .opener-roman,
+.app[data-dark="true"] .gold-text,
+.app[data-dark="true"] .tile-kind-threshold .scene-title {
+  background: linear-gradient(168deg, #d8ae54 0%, #f7e2a4 42%, #e4c06a 58%, #d8ae54 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: #e8c87a;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .4)) drop-shadow(0 0 18px rgba(232, 200, 122, .22));
+}
+
+/* The AI glow — one vocabulary for every intelligence in the app */
+.ai-glow {
+  color: var(--teal-ink);
+  text-shadow: 0 0 8px rgba(79, 240, 214, .45), 0 0 22px rgba(79, 240, 214, .18);
+}
+
+/* ── The Margins — Morpho's handwriting beside yours ── */
+.margins { margin: 18px 0 8px; max-width: 640px; }
+.margins-offer { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.margins-submit {
+  display: inline-flex; align-items: center; gap: 9px;
+  background: none; cursor: pointer;
+  border: 1px solid color-mix(in srgb, var(--teal-ink) 45%, transparent);
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-family: var(--font-mono);
+  font-size: 9.5px; letter-spacing: .28em; text-transform: uppercase;
+  color: var(--teal-ink);
+  text-shadow: 0 0 8px rgba(79, 240, 214, .35);
+  transition: border-color .25s, box-shadow .25s, opacity .25s;
+}
+.margins-submit:hover:not(:disabled) {
+  border-color: var(--teal-ink);
+  box-shadow: 0 0 14px rgba(79, 240, 214, .25);
+}
+.margins-submit:disabled { opacity: .35; cursor: default; }
+.margins-submit:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+
+.margins-notes { margin-top: 26px; padding-left: 22px; border-left: 1px solid color-mix(in srgb, var(--glow) 40%, transparent); }
+.margins-head {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 9px; letter-spacing: .3em; text-transform: uppercase;
+  color: var(--teal-ink);
+  text-shadow: 0 0 8px rgba(79, 240, 214, .4);
+  margin-bottom: 16px;
+}
+.margin-note {
+  margin-bottom: 18px;
+  opacity: 0;
+  filter: blur(6px);
+  animation: margin-bleed 1.1s cubic-bezier(.22,.6,.2,1) forwards;
+}
+@keyframes margin-bleed {
+  0% { opacity: 0; filter: blur(6px); transform: translateY(8px); }
+  60% { opacity: 1; }
+  100% { opacity: 1; filter: blur(0); transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .margin-note, .margin-invitation { animation: none; opacity: 1; filter: none; }
+}
+.margin-note-passage {
+  font-family: var(--font-script);
+  font-style: italic; font-size: 14.5px;
+  color: color-mix(in srgb, var(--ink) 60%, transparent);
+  margin-bottom: 4px;
+}
+.margin-note-insight {
+  font-family: var(--font-body);
+  font-size: 14.5px; line-height: 1.6;
+  color: var(--teal-ink);
+  text-shadow: 0 0 10px rgba(79, 240, 214, .28);
+}
+.margin-invitation {
+  margin-top: 20px;
+  font-family: var(--font-quote); font-style: italic;
+  font-size: 16.5px; line-height: 1.55;
+  color: var(--teal-ink);
+  text-shadow: 0 0 12px rgba(79, 240, 214, .35);
+  opacity: 0; filter: blur(6px);
+  animation: margin-bleed 1.1s cubic-bezier(.22,.6,.2,1) forwards;
+}
+.margins-again {
+  margin-top: 14px;
+  background: none; border: none; cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 8.5px; letter-spacing: .26em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--ink) 45%, transparent);
+  padding: 4px 0;
+  transition: color .2s;
+}
+.margins-again:hover { color: var(--teal-ink); }
+.margins-error {
+  font-family: var(--font-mono); font-size: 10px;
+  color: #c86050; margin-top: 8px;
+}
+
+/* ── The Weave — the Storyteller's chapter telling ── */
+.weave { margin-top: 56px; }
+.weave-gate { text-align: center; }
+.weave-request { margin-top: 12px; }
+.weave-story { max-width: 620px; margin: 0 auto; }
+.weave-story--fresh { animation: margin-bleed 1.4s cubic-bezier(.22,.6,.2,1); }
+.weave-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 9.5px; letter-spacing: .34em; text-transform: uppercase;
+  color: var(--teal-ink);
+  text-shadow: 0 0 8px rgba(79, 240, 214, .4);
+  text-align: center; margin-bottom: 18px;
+}
+.weave-title {
+  font-family: var(--font-quote);
+  font-size: clamp(26px, 3.4vw, 32px); line-height: 1.25;
+  text-align: center; text-wrap: balance;
+  margin-bottom: 34px;
+}
+.weave-para {
+  font-family: var(--font-body);
+  font-size: 18px; line-height: 1.8;
+  color: var(--ink);
+  margin-bottom: 22px;
+  text-wrap: pretty;
+}
+.weave-closing {
+  font-family: var(--font-quote); font-style: italic;
+  font-size: 20px; line-height: 1.5;
+  color: var(--accent);
+  text-align: center;
+  margin: 36px auto 8px; max-width: 32ch;
+}
+
+/* ── The Origin Story — the final telling ── */
+.originstory { margin: 48px auto 24px; max-width: 640px; text-align: left; }
+.originstory-gate { text-align: center; display: flex; flex-direction: column; gap: 14px; align-items: center; }
+.originstory-title {
+  font-family: var(--font-title);
+  font-size: clamp(34px, 4.5vw, 46px); line-height: 1.1;
+  text-align: center; text-wrap: balance;
+  margin-bottom: 44px;
+}
+.originstory-movement {
+  margin-bottom: 44px;
+  opacity: 0; filter: blur(6px);
+  animation: margin-bleed 1.2s cubic-bezier(.22,.6,.2,1) forwards;
+}
+.originstory-movement-head {
+  display: flex; align-items: baseline; gap: 14px;
+  margin-bottom: 16px;
+}
+.originstory-roman {
+  font-family: var(--font-title);
+  font-size: 26px; color: var(--accent);
+}
+.originstory-heading {
+  font-family: var(--font-quote); font-style: italic;
+  font-size: 19px; color: color-mix(in srgb, var(--ink) 75%, transparent);
+}
+.originstory-dedication {
+  font-family: var(--font-quote); font-style: italic;
+  font-size: 20px; line-height: 1.55;
+  color: var(--accent);
+  text-align: center;
+  margin: 40px auto 12px; max-width: 34ch;
+}
+
+/* ── Birth gate + pace choice (prelude) ── */
+.birthgate { max-width: 480px; margin: 0 auto; text-align: center; }
+.birthgate-lead {
+  font-family: var(--font-body);
+  font-size: 16px; line-height: 1.65;
+  color: color-mix(in srgb, var(--ink) 85%, transparent);
+  margin-bottom: 22px;
+}
+.birthgate-fields { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
+.birthgate-field { display: flex; flex-direction: column; gap: 6px; text-align: left; }
+.birthgate-field span {
+  font-family: var(--font-mono);
+  font-size: 9px; letter-spacing: .26em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
+}
+.birthgate-field input {
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
+  padding: 11px 14px;
+  font-family: var(--font-body); font-size: 15px;
+  color: var(--ink);
+  border-radius: 2px;
+  outline: none;
+  transition: border-color .2s;
+}
+.birthgate-field input:focus { border-color: var(--accent); }
+.birthgate-save { margin: 4px auto 0; }
+.birthgate-kept {
+  font-family: var(--font-quote); font-style: italic;
+  font-size: 17px; color: var(--accent);
+  margin-bottom: 8px;
+}
+.pace-choice { margin-top: 34px; }
+.pace-options { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.pace-option {
+  flex: 1 1 180px; max-width: 220px;
+  display: flex; flex-direction: column; gap: 6px;
+  background: none; cursor: pointer;
+  border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
+  border-radius: 2px;
+  padding: 16px 18px;
+  text-align: left;
+  color: var(--ink);
+  transition: border-color .25s, box-shadow .25s;
+}
+.pace-option:hover { border-color: color-mix(in srgb, var(--ink) 45%, transparent); }
+.pace-option.on {
+  border-color: var(--teal-ink);
+  box-shadow: 0 0 12px rgba(79, 240, 214, .2);
+}
+.pace-option:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+.pace-name {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: .22em; text-transform: uppercase;
+}
+.pace-option.on .pace-name { color: var(--teal-ink); text-shadow: 0 0 8px rgba(79, 240, 214, .35); }
+.pace-desc {
+  font-family: var(--font-body); font-size: 13px; line-height: 1.5;
+  color: color-mix(in srgb, var(--ink) 60%, transparent);
+}
+
+/* ── Day lock (daily pace) ── */
+.daylock {
+  display: inline-flex; align-items: center; gap: 10px;
+  margin-top: 26px;
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: .28em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
+}
+.daylock-mark { font-size: 15px; color: var(--teal-ink); text-shadow: 0 0 10px rgba(79, 240, 214, .4); }
+
+/* The desk label lives on the frame — don't clip it */
+.scene-practice .journal { overflow: visible; }
+
+/* ═══════════════════════════════════════════════════════════════
+   THE BEAT ENGINE — ported VERBATIM from the approved reference
+   (origin-scroll-melt.html, 2026-07-05, user-supplied CodePen source
+   by Giana, "Scrollnapping animations"). After a full session of
+   reinventing this from memory with a JS-driven approximation — which
+   drifted further from the real thing every pass and never felt right —
+   the actual file was recovered byte-for-byte from the session
+   transcript and the user confirmed it: "looks great." This is that
+   mechanism, not a reconstruction of it. Pure native CSS, zero JS:
+   progress IS scroll position, so it structurally cannot lag or feel
+   disconnected from the finger driving it.
+
+   `timeline-scope` hoists the `--beat` timeline name so it can be
+   referenced by animation-timeline; each `.beat` publishes its OWN
+   scroll progress as `--beat` via `view-timeline`, and its fixed content
+   reads that progress to melt. Verified live: `--beat` resolves
+   per-section, not ambiguously, even with 60+ beats sharing the name.
+
+   Browser support: native in Chrome/Edge/Safari — Firefox needs a
+   polyfill (flagged, not blocking; this is the user's explicit call). */
+
+/* NOT a scroll container — the document scrolls (html rule above).
+   MEASURED: making this element (or giving it a transform to become a
+   fixed-positioning containing block) a scroller either breaks native
+   scroll-snap physics or doesn't actually redirect fixed content's
+   positioning (verified directly: content still moved by exactly
+   -scrollTop, i.e. still anchored to the viewport, not this element). */
+.beat-stage {
+  position: relative;
+}
+.beat-stage::-webkit-scrollbar { width: 4px; }
+.beat-stage::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--ink) 18%, transparent); border-radius: 2px; }
+
+.beat {
+  height: 100dvh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  view-timeline: --beat;
+  position: relative;
+}
+
+/* The content is FIXED and melted by its OWN section's scroll progress —
+   coupled to the finger, not a clock. This is safe from the "swallows the
+   wheel" scroll-trap that broke earlier attempts ONLY because it has NO
+   overflow of its own (see .beat--tall below for content too long to fit
+   one screen, which does not use this fixed/melt treatment at all). */
+.beat-content {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 8vh 5vw;
+  box-sizing: border-box;
+  --melt-blur: .42rem;
+  --melt-contrast: 1.12;
+  /* BASE STATE = HIDDEN. Essential: a beat far from the viewport has an
+     INACTIVE view-timeline, and an inactive scroll timeline contributes no
+     styles at all (not even the animation's fill). Without a hidden base,
+     every one of those beats falls back to fully-opaque and all 179 fixed
+     layers paint on top of each other as an unreadable smear. The melt
+     overrides this the moment the timeline goes active. */
+  opacity: 0;
+  visibility: hidden;
+  animation: beat-melt linear both;
+  animation-timeline: --beat;
+}
+/* Exactly the approved reference values (46%/54%). A beat's view-timeline
+   spans 200vh of scroll; the snap point sits at 50%, so a landed beat is
+   sharp, and adjacent beats crossfade through each other on the way. Do
+   NOT widen this plateau: at ~22%/78% two neighbours are both fully opaque
+   at once and their text superimposes. */
+@keyframes beat-melt {
+  0%, 100% { filter: blur(var(--melt-blur)) contrast(var(--melt-contrast)); opacity: 0; visibility: hidden; }
+  46%, 54% { filter: blur(0) contrast(1); opacity: 1; visibility: visible; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .beat-content { animation: none; opacity: 1; visibility: visible; filter: none; }
+}
+
+/* ── CRITICAL FALLBACK — do not remove ──────────────────────────────
+   `animation-timeline` is not supported everywhere (Chromium yes; Safari
+   only very recently; Firefox needs a flag/polyfill). Where it is NOT
+   supported the declaration is dropped, which leaves `animation: beat-melt
+   linear both` with NO duration — so every beat instantly fills to its
+   100% keyframe: opacity 0, visibility hidden. Result: every beat renders
+   INVISIBLE and the whole book reads as endless blank paper ("scrolling
+   through dead space"). This guard turns the melt off entirely wherever it
+   can't be driven, so the content is always readable. */
+@supports not (animation-timeline: view()) {
+  /* Content is position:FIXED for the melt. Where the melt cannot run,
+     merely revealing it stacks ALL beats on top of each other in one
+     unreadable smear — it must be UN-PINNED back into normal flow so each
+     beat occupies its own screen. Degrades to clean snap-paging, no melt. */
+  .beat-content {
+    position: static !important;
+    height: 100% !important;
+    animation: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    filter: none !important;
+  }
+}
+
+/* A beat whose content genuinely can't fit one screen (a long invocation,
+   a long scene) can't be fixed-and-melted — there'd be nothing to scroll
+   it with. It reverts to plain normal flow: no melt, but real internal
+   scroll, and it still snaps at its own top. */
+.beat--tall {
+  height: auto;
+  min-height: 100dvh;
+}
+.beat--tall > .beat-content {
+  position: static;
+  animation: none;
+  opacity: 1; visibility: visible; filter: none;
+  width: 100%;
+  justify-content: flex-start;
+  padding: 8vh 5vw;
+}
+
+@media (max-width: 640px) {
+  .beat-content { padding: 7vh 22px; }
+}
+
+/* A single hairline progress line at the very bottom edge — quiet, not a
+   scatter of 67 dots. Fills left→right with journey progress. */
+.beat-progress {
+  position: fixed; bottom: 0; left: 0; right: 0; height: 2px;
+  background: color-mix(in srgb, var(--ink) 9%, transparent);
+  z-index: 60; pointer-events: none;
+}
+.beat-progress-fill {
+  display: block; height: 100%; width: 100%;
+  transform-origin: left center; transform: scaleX(0);
+  background: var(--accent); opacity: .5;
+  transition: transform .55s cubic-bezier(.4, 0, .2, 1);
+}
+
+.beat-back {
+  position: fixed; top: 18px; left: 20px; z-index: 60;
+  background: none; border: none; cursor: pointer;
+  color: var(--ink); font-family: var(--font-mono); font-size: 17px;
+  opacity: .3; transition: opacity .2s;
+}
+.beat-back:hover { opacity: .85; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   THE PORTAL SYSTEM — inline hypertext marks + three overlay registers.
+
+   Three portal types, each with its own visual register:
+     .portal.ety  → glowing word (etymology)  → crystal overlay
+     .portal.code → highlighter phrase (code) → dark lab overlay
+     .portal.lore → underscribbled sentence   → sepia page-within overlay
+
+   Marks are visible-by-default so no portal is ever hidden; the code/lore
+   DRAW-IN happens once when the mark first crosses the reading line
+   (JS-driven via IntersectionObserver, sets [data-drawn] on the portal).
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  --portal-highlighter: rgba(233, 199, 106, 0.55);    /* soft warm amber, not banana */
+  --portal-lore-ink: #2a4a44;                          /* fountain-pen charcoal-teal */
+}
+
+/* ─── ETYMOLOGY — the glowing word ────────────────────────────── */
+.portal.ety {
+  position: relative;
+  cursor: pointer;
+  color: inherit;
+  padding: 0 2px;
+  background: radial-gradient(closest-side,
+    color-mix(in srgb, var(--gold-0) 45%, transparent), transparent 78%);
+  animation: portal-ety-breathe 4.4s ease-in-out infinite;
+  transition: background 240ms;
+}
+.portal.ety::after {
+  content: "";
+  position: absolute; left: 8%; right: 8%; bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: .35;
+}
+.portal.ety:hover {
+  background: radial-gradient(closest-side,
+    color-mix(in srgb, var(--gold-0) 78%, transparent), transparent 82%);
+}
+@keyframes portal-ety-breathe {
+  0%, 100% { filter: drop-shadow(0 0 4px color-mix(in srgb, var(--gold-0) 20%, transparent)); }
+  50%      { filter: drop-shadow(0 0 12px color-mix(in srgb, var(--gold-0) 60%, transparent)); }
+}
+
+/* ─── CODE — the highlighter (draws on read) ──────────────────── */
+.portal.code {
+  cursor: pointer;
+  color: inherit;
+  padding: 1px 2px;
+  background:
+    linear-gradient(180deg,
+      transparent 12%,
+      var(--portal-highlighter) 14%,
+      var(--portal-highlighter) 88%,
+      transparent 90%) no-repeat;
+  background-size: var(--portal-draw, 0%) 100%;
+  transition: background-size 900ms cubic-bezier(.6, .05, .3, .95);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.portal.code[data-drawn="true"] { --portal-draw: 100%; }
+.portal.code:hover { filter: brightness(1.06); }
+
+/* ─── LORE — hand-drawn pen underline (draws on read) ────────── */
+.portal.lore {
+  cursor: pointer;
+  color: inherit;
+  padding-bottom: 8px;
+  position: relative;
+  background: transparent;
+}
+.portal.lore .lore-underscribble {
+  position: absolute; left: 0; right: 0; bottom: -3px;
+  width: 100%; height: 10px;
+  pointer-events: none;
+  overflow: visible;
+}
+.portal.lore .lore-underscribble path {
+  fill: none;
+  stroke: var(--portal-lore-ink);
+  stroke-width: 1.35;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: var(--path-length, 400);
+  stroke-dashoffset: var(--path-length, 400);
+  transition: stroke-dashoffset 1400ms cubic-bezier(.55, .1, .3, .95);
+  filter: drop-shadow(0 .5px 0 rgba(58, 60, 40, .12));
+  opacity: .82;
+}
+.portal.lore[data-drawn="true"] .lore-underscribble path { stroke-dashoffset: 0; }
+.portal.lore:hover .lore-underscribble path { opacity: 1; }
+
+/* Portal traces — after a portal has been opened once. */
+.portal[data-visited="true"]::before {
+  content: "•";
+  color: var(--accent);
+  font-size: .7em;
+  margin-right: 4px;
+  vertical-align: middle;
+  opacity: .8;
+}
+
+/* ─── OVERLAYS — three distinct rooms ─────────────────────────── */
+.portal-overlay {
+  position: fixed; inset: 0;
+  display: none;
+  align-items: center; justify-content: center;
+  padding: clamp(18px, 4vw, 40px);
+  z-index: 200;
+}
+.portal-overlay[data-open="true"] { display: flex; }
+.portal-overlay-close {
+  position: absolute; top: 12px; right: 12px;
+  width: 30px; height: 30px;
+  display: grid; place-items: center;
+  border: 1px solid color-mix(in srgb, var(--ink) 20%, transparent);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  color: var(--ink);
+  opacity: .7;
+  cursor: pointer;
+  z-index: 3;
+  transition: opacity .18s, color .18s, border-color .18s;
+}
+.portal-overlay-close:hover { opacity: 1; color: var(--accent); border-color: var(--accent); }
+
+/* Etymology overlay — small crystal card, jewel-like */
+.portal-overlay-ety { background: color-mix(in srgb, var(--bg) 55%, transparent); backdrop-filter: blur(6px) saturate(1.1); }
+.portal-overlay-ety .p-ety-root {
+  background: var(--bg);
+  border: 1px solid color-mix(in srgb, var(--ink) 20%, transparent);
+  padding: 44px 36px;
+  max-width: 460px; width: 100%;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  box-shadow: 0 40px 90px -30px rgba(50, 30, 5, .35);
+  position: relative;
+  animation: p-ety-in 340ms cubic-bezier(.22,.6,.2,1);
+}
+@keyframes p-ety-in {
+  from { transform: scale(.94); opacity: 0; filter: blur(6px); }
+  to   { transform: none;       opacity: 1; filter: blur(0); }
+}
+.p-ety-word {
+  font-family: var(--font-title);
+  font-size: clamp(44px, 7vw, 68px); line-height: 1;
+  color: var(--accent);
+  filter: drop-shadow(0 0 20px color-mix(in srgb, var(--gold-0) 40%, transparent));
+  padding-bottom: 8px;
+}
+.p-ety-arrow { font-family: var(--font-label); font-size: 16px; color: var(--accent); opacity: .7; }
+.p-ety-source { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+.p-ety-lang { font-family: var(--font-label); font-size: 9.5px; letter-spacing: .34em; text-transform: uppercase; opacity: .55; }
+.p-ety-form { font-family: var(--font-quote); font-style: italic; font-size: 24px; color: var(--ink); }
+.p-ety-gloss { font-family: var(--font-body); font-size: 14px; opacity: .72; font-style: italic; }
+.p-ety-note {
+  font-family: var(--font-quote);
+  font-size: 17px; line-height: 1.4;
+  color: var(--ink); margin-top: 18px; text-align: center;
+  max-width: 34ch; padding-top: 16px;
+  border-top: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+  text-wrap: balance;
+}
+
+/* Code overlay — dark glassmorphic lab */
+.portal-overlay-code { background: color-mix(in srgb, #000 60%, transparent); backdrop-filter: blur(10px) saturate(1.15); }
+.portal-overlay-code .portal-overlay-close { color: color-mix(in srgb, #fff 70%, transparent); border-color: #333; background: rgba(0,0,0,.5); }
+.portal-overlay-code .portal-overlay-close:hover { color: #7cf7d5; border-color: #7cf7d5; }
+.portal-overlay-code .p-code-scroll {
+  position: relative;
+  background: linear-gradient(180deg, #0b0d12 0%, #0d1015 50%, #0a0c11 100%);
+  border: 1px solid #262a33;
+  padding: 44px 40px 40px;
+  max-width: 620px; width: 100%;
+  color: #e5eaf1;
+  font-family: var(--font-body);
+  max-height: 80%; overflow-y: auto;
+  animation: p-code-in 380ms cubic-bezier(.22,.6,.2,1);
+  box-shadow: 0 40px 120px -20px rgba(124, 247, 213, .18),
+              inset 0 1px 0 rgba(255,255,255,.05);
+  scrollbar-width: thin; scrollbar-color: #34495a transparent;
+}
+.portal-overlay-code .p-code-scroll::-webkit-scrollbar { width: 4px; }
+.portal-overlay-code .p-code-scroll::-webkit-scrollbar-thumb { background: #34495a; }
+.portal-overlay-code .p-code-scroll::before {
+  content: ""; position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(124,247,213,.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124,247,213,.045) 1px, transparent 1px);
+  background-size: 32px 32px; pointer-events: none;
+}
+@keyframes p-code-in {
+  from { transform: scale(.96) translateY(12px); opacity: 0; }
+  to   { transform: none;                          opacity: 1; }
+}
+.p-code-crown { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; padding-bottom: 14px; border-bottom: 1px solid #202631; position: relative; }
+.p-code-kind { font-family: var(--font-label); font-size: 10px; letter-spacing: .34em; text-transform: uppercase; color: #7cf7d5; }
+.p-code-cite { font-family: var(--font-label); font-size: 9.5px; letter-spacing: .18em; text-transform: uppercase; color: #6b7684; }
+.p-code-title {
+  font-family: var(--font-quote);
+  font-size: clamp(22px, 3vw, 30px); line-height: 1.24;
+  color: #7cf7d5; margin: 0 0 8px;
+  text-wrap: balance;
+  filter: drop-shadow(0 0 24px color-mix(in srgb, #7cf7d5 25%, transparent));
+  position: relative;
+}
+.portal-overlay-code .p-code-scroll p {
+  font-family: var(--font-body); font-size: 15.5px; line-height: 1.72;
+  color: #d0d8e1; margin: 0 0 1em; text-wrap: pretty; position: relative;
+}
+/* Explore — the living-footnote citations inside a Code overlay */
+.p-code-explore {
+  position: relative;
+  margin-top: 28px; padding-top: 20px;
+  border-top: 1px solid #202631;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.p-code-explore-label {
+  font-family: var(--font-label);
+  font-size: 9.5px; letter-spacing: .34em; text-transform: uppercase;
+  color: #6b7684;
+}
+.p-code-ref-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.p-code-ref-who { font-family: var(--font-body); font-size: 14.5px; color: #cdd8e2; }
+.p-code-ref-where { font-family: var(--font-label); font-size: 9px; letter-spacing: .16em; text-transform: uppercase; color: #6b7684; white-space: nowrap; }
+.p-code-ref-what { font-family: var(--font-quote); font-style: italic; font-size: 15px; color: #9fb2c1; margin-top: 3px; }
+.p-code-ref-note { font-family: var(--font-body); font-size: 12.5px; line-height: 1.55; color: #7f8a98; margin-top: 5px; }
+
+/* v2 inline-portal prose — Optima reading column, portals sit inline */
+.scene-body--v2 .scene-body-p {
+  font-family: var(--font-body);
+  font-size: 20px; line-height: 1.82;
+  color: var(--ink); opacity: .92;
+  margin: 0 0 1.15em; max-width: 640px;
+  text-wrap: pretty;
+}
+.scene-body--v2 .scene-body-p:last-child { margin-bottom: 0; }
+@media (max-width: 640px) {
+  .scene-body--v2 .scene-body-p { font-size: 18.5px; }
+}
+
+/* ─── Threshold crossing — the ceremonial "do it in the world" step ── */
+.threshold-crossing {
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
+  margin: 44px auto 12px; text-align: center;
+}
+.threshold-orb {
+  position: relative;
+  width: 92px; height: 92px;
+  display: grid; place-items: center;
+  background: none; border: none; cursor: pointer;
+  color: var(--accent);
+}
+.threshold-orb-ring {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  animation: threshold-pulse 3.2s ease-in-out infinite;
+}
+.threshold-orb-core {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, var(--gold-0), var(--accent) 70%);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 60%, transparent);
+  transition: transform .3s;
+}
+.threshold-orb:hover .threshold-orb-core { transform: scale(1.15); }
+.threshold-orb-check { color: var(--accent); position: absolute; }
+@keyframes threshold-pulse {
+  0%, 100% { transform: scale(1); opacity: .5; }
+  50%      { transform: scale(1.12); opacity: 1; box-shadow: 0 0 26px color-mix(in srgb, var(--accent) 30%, transparent); }
+}
+.threshold-verb {
+  font-family: var(--font-label);
+  font-size: 11px; letter-spacing: .34em; text-transform: uppercase;
+  color: var(--accent);
+}
+.threshold-mark {
+  font-family: var(--font-body);
+  font-size: 15px; font-style: italic;
+  color: color-mix(in srgb, var(--ink) 62%, transparent);
+  background: none; border: none; cursor: pointer;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
+  padding-bottom: 3px; transition: color .2s, border-color .2s;
+}
+.threshold-mark:hover { color: var(--ink); border-color: var(--accent); }
+.threshold-crossing.is-done .threshold-orb-ring { animation: none; opacity: .9; border-color: var(--accent); }
+.threshold-crossing.is-done .threshold-orb-core { display: none; }
+
+/* Lore overlay — page-within-a-page (page A, matching the reference) */
+.portal-overlay-lore { background: color-mix(in srgb, var(--bg) 60%, transparent); backdrop-filter: blur(8px) saturate(1.05); }
+.portal-overlay-lore .p-lore-mat {
+  position: relative;
+  /* real scanned vintage paper (public/textures/lore-paper.jpg), warmed by
+     a soft gradient so type stays readable over the fibers */
+  background-image:
+    linear-gradient(180deg, rgba(236,220,176,.32) 0%, rgba(229,208,156,.42) 100%),
+    url('/textures/lore-paper.jpg');
+  background-size: cover, cover;
+  background-position: center, center;
+  color: #3d2a12;
+  max-width: 560px; width: 100%;
+  padding: 44px clamp(24px, 4vw, 44px);
+  max-height: 88%; overflow-y: auto;
+  box-shadow:
+    0 30px 80px -20px rgba(80, 50, 10, .35),
+    inset 0 1px 0 rgba(255, 240, 200, .5),
+    inset 0 -1px 0 rgba(80, 50, 10, .15);
+  font-family: var(--font-body);
+  animation: p-lore-in 420ms cubic-bezier(.22,.6,.2,1);
+  scrollbar-width: thin; scrollbar-color: rgba(80,50,10,.3) transparent;
+}
+.portal-overlay-lore .p-lore-mat::-webkit-scrollbar { width: 3px; }
+.portal-overlay-lore .p-lore-mat::-webkit-scrollbar-thumb { background: rgba(80,50,10,.3); }
+@keyframes p-lore-in {
+  from { transform: translateY(14px); opacity: 0; }
+  to   { transform: none;              opacity: 1; }
+}
+.portal-overlay-lore .portal-overlay-close { color: #6b4a1c; border-color: rgba(90,60,10,.25); background: rgba(240,222,180,.5); }
+.portal-overlay-lore .portal-overlay-close:hover { color: #3d2a10; border-color: #3d2a10; }
+.p-lore-crown {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding-bottom: 12px; margin-bottom: 26px;
+  border-bottom: 1px solid rgba(120, 80, 20, .28);
+  font-family: var(--font-label); font-size: 9.5px; letter-spacing: .3em;
+  text-transform: uppercase; color: #7c5a20; gap: 12px; flex-wrap: wrap;
+}
+.p-lore-highlight {
+  font-family: var(--font-quote);
+  font-size: clamp(22px, 3.2vw, 30px); line-height: 1.32; font-style: italic;
+  color: #3d2a12; text-wrap: balance;
+  background: linear-gradient(180deg, transparent 8%, rgba(233, 199, 106, .5) 12%, rgba(233, 199, 106, .5) 92%, transparent 96%);
+  padding: 3px 4px; margin: 0 -4px 24px;
+  display: inline; box-decoration-break: clone; -webkit-box-decoration-break: clone;
+}
+.portal-overlay-lore .p-lore-mat p {
+  font-family: var(--font-body); font-size: 16.5px; line-height: 1.78;
+  color: #3d2a12; margin: 0 0 1em; text-wrap: pretty;
+}
+
+/* Portal entry card — the essence line sitting quietly in the prose,
+   ready to be tapped. The mark's own gold-highlight or teal-underline
+   IS the invitation; the surrounding block just gives it breathing room. */
+.scene-portal-entry {
+  margin: 32px 0;
+  max-width: 640px;
+  font-family: var(--font-quote);
+  font-size: clamp(19px, 2.2vw, 22px);
+  line-height: 1.4;
+  color: var(--ink);
+  text-wrap: balance;
+}
+.scene-portal-entry .portal { display: inline; }
+
+/* focus + reduced motion */
+.portal:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  .portal.ety { animation: none; }
+  .portal.code { background-size: 100% 100%; transition: none; }
+  .portal.lore .lore-underscribble path { stroke-dashoffset: 0; transition: none; }
+  .portal-overlay-ety .p-ety-root,
+  .portal-overlay-code .p-code-scroll,
+  .portal-overlay-lore .p-lore-mat { animation: none; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   THE WRITING PAGE — full-screen writing surface (WritingPage.tsx)
+
+   When the writer commits to answering, the whole screen becomes the
+   page. A small box implies a small answer; this implies a real one.
+   The question shrinks to a quiet line at the top, and the chrome
+   fades while the fingers are moving ([data-typing]).
+   ═══════════════════════════════════════════════════════════════ */
+.writing-page {
+  position: fixed; inset: 0; z-index: 120;
+  display: flex; flex-direction: column;
+  background: var(--bg);
+  /* the same paper the book is printed on */
+  background-image:
+    linear-gradient(180deg, rgba(255,252,244,.5) 0%, rgba(246,240,226,.6) 100%),
+    url('/textures/lore-paper.jpg');
+  background-size: cover, cover;
+  background-position: center, center;
+  animation: wp-rise 300ms cubic-bezier(.22,.7,.2,1);
+}
+@keyframes wp-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.writing-page-surface {
+  flex: 1 1 auto; min-height: 0;
+  overflow-y: auto;
+  width: 100%; max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(28px, 6vh, 64px) clamp(22px, 5vw, 44px) 20px;
+  box-sizing: border-box;
+  display: flex; flex-direction: column;
+}
+
+.wp-head {
+  transition: opacity 500ms ease;
+  margin-bottom: clamp(18px, 3.4vh, 34px);
+  flex: 0 0 auto;
+}
+/* recede while the hand is moving */
+.writing-page[data-typing="true"] .wp-head { opacity: .34; }
+
+.wp-eyebrow {
+  font-family: var(--font-label);
+  font-size: 11px; letter-spacing: .26em; text-transform: uppercase;
+  color: var(--glow); margin-bottom: 12px;
+}
+.wp-question {
+  font-family: var(--font-quote);
+  font-size: clamp(24px, 3.4vh, 36px); line-height: 1.2;
+  color: var(--accent); margin: 0; font-weight: 400;
+  text-wrap: pretty;
+}
+.wp-detail {
+  font-family: var(--font-body);
+  font-size: 17px; line-height: 1.7;
+  color: color-mix(in srgb, var(--ink) 74%, transparent);
+  margin: 14px 0 0; text-wrap: pretty;
+}
+
+/* the page itself — no box, no border, just ink on paper */
+.wp-area {
+  flex: 1 1 auto;
+  width: 100%; min-height: 44vh;
+  border: 0; outline: 0; resize: none; background: transparent;
+  font-family: var(--font-body);
+  font-size: clamp(17px, 2.2vh, 20px); line-height: 1.85;
+  color: var(--ink);
+  padding: 0;
+  caret-color: var(--accent);
+}
+.wp-area::placeholder {
+  color: color-mix(in srgb, var(--ink) 30%, transparent);
+  font-style: italic;
+}
+
+.wp-photo { position: relative; margin: 20px 0 8px; align-self: flex-start; max-width: 320px; }
+.wp-photo img {
+  width: 100%; height: auto; display: block;
+  border-radius: 2px;
+  box-shadow: 0 14px 36px -12px rgba(60,40,10,.4);
+  transform: rotate(-.7deg);
+}
+.wp-photo-drop {
+  position: absolute; top: -10px; right: -10px;
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--ink) 20%, transparent);
+  background: var(--bg); color: var(--ink);
+  font-size: 15px; line-height: 1; cursor: pointer;
+}
+
+/* tools sit at the bottom edge — in reach, out of the way */
+.wp-bar {
+  flex: 0 0 auto;
+  display: flex; align-items: center; gap: 16px;
+  width: 100%; max-width: 720px; margin: 0 auto;
+  padding: 12px clamp(22px, 5vw, 44px) max(16px, env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  border-top: 1px solid color-mix(in srgb, var(--ink) 9%, transparent);
+  transition: opacity 500ms ease;
+}
+.writing-page[data-typing="true"] .wp-bar { opacity: .42; }
+.wp-bar:hover, .wp-bar:focus-within { opacity: 1 !important; }
+
+.wp-tools { display: flex; align-items: center; gap: 6px; }
+.wp-tool {
+  display: inline-flex; align-items: center; justify-content: center;
+  /* Fitts: a real target, not a 20px dot */
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 0; background: transparent; cursor: pointer;
+  color: color-mix(in srgb, var(--ink) 62%, transparent);
+  transition: color 200ms ease, background 200ms ease;
+}
+.wp-tool:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 7%, transparent); }
+.wp-tool--live {
+  color: #c0392b;
+  background: color-mix(in srgb, #c0392b 12%, transparent);
+  animation: wp-pulse 1.6s ease-in-out infinite;
+}
+@keyframes wp-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(192,57,43,.34); }
+  50%      { box-shadow: 0 0 0 7px rgba(192,57,43,0); }
+}
+
+.wp-status {
+  flex: 1 1 auto; text-align: center;
+  font-family: var(--font-label);
+  font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--ink) 42%, transparent);
+}
+.wp-live { color: #c0392b; }
+
+.wp-done {
+  font-family: var(--font-label);
+  font-size: 12px; letter-spacing: .2em; text-transform: uppercase;
+  padding: 12px 22px; min-height: 44px;
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent);
+  border-radius: 2px; background: transparent;
+  color: var(--accent); cursor: pointer;
+  transition: background 200ms ease, border-color 200ms ease;
+}
+.wp-done:hover {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border-color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .writing-page { animation: none; }
+  .wp-tool--live { animation: none; }
 }

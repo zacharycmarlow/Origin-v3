@@ -1,0 +1,15 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "origin-app",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@workspace/origin-app", "run", "dev"],
+      "port": 5173,
+      "env": {
+        "PORT": "5173",
+        "BASE_PATH": "/"
+      }
+    }
+  ]
+}

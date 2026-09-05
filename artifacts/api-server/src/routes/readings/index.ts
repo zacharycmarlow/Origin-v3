@@ -8,6 +8,9 @@ import {
   SAGE_CUMULATIVE_APPENDIX,
   HORIZON_SYSTEM,
   HORIZON_CUMULATIVE_APPENDIX,
+  MARGINS_SYSTEM,
+  STORYTELLER_SYSTEM,
+  STORYTELLER_ORIGIN_APPENDIX,
 } from "./prompts";
 
 const router: IRouter = Router();
@@ -163,6 +166,140 @@ router.post("/sage", async (req, res, next) => {
 
     const data = await callAnthropic({
       system,
+      userContent,
+      model: SONNET,
+      maxTokens: 8192,
+    });
+
+    res.json({ data });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/* ── Margins — Morpho reads one submitted page ─────────────── */
+const marginsBodySchema = z.object({
+  chapterNumber: z.number().int().min(1).max(7),
+  chapterTitle: z.string(),
+  movementTitle: z.string(),
+  question: z.string().optional().default(""),
+  text: z.string().min(1),
+  archetypeContext: z.string().optional().default(""),
+});
+
+router.post("/margins", async (req, res, next) => {
+  try {
+    const body = marginsBodySchema.parse(req.body);
+
+    let userContent = `Chapter ${body.chapterNumber}: ${body.chapterTitle}
+Movement (page): ${body.movementTitle}
+What the page asked of them: ${body.question || "[open writing]"}
+
+What they wrote:
+${body.text}`;
+
+    if (body.archetypeContext) {
+      userContent += `\n\n---\nPRIVATE BACKGROUND SKETCH (never name or reference any system behind this; seasoning only):\n${body.archetypeContext}`;
+    }
+
+    const data = await callAnthropic({
+      system: MARGINS_SYSTEM,
+      userContent,
+      model: SONNET,
+      maxTokens: 2048,
+    });
+
+    res.json({ data });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/* ── Storyteller — weaves a chapter's beats into one telling ── */
+const synthesisBodySchema = z.object({
+  chapterNumber: z.number().int().min(1).max(7),
+  chapterTitle: z.string(),
+  beats: z.array(beatSchema).min(1),
+  morpho: z.unknown().optional(),
+  previousSyntheses: z
+    .array(
+      z.object({
+        chapterNumber: z.number(),
+        title: z.string(),
+        story: z.string(),
+      })
+    )
+    .optional()
+    .default([]),
+  archetypeContext: z.string().optional().default(""),
+});
+
+router.post("/synthesis", async (req, res, next) => {
+  try {
+    const body = synthesisBodySchema.parse(req.body);
+
+    let userContent = `Chapter ${body.chapterNumber}: ${body.chapterTitle}\n\n${formatBeats(body.beats)}`;
+
+    if (body.morpho) {
+      userContent += `\n\n---\nMorpho reading (compass only — never quote):\n${JSON.stringify(body.morpho)}`;
+    }
+    if (body.previousSyntheses.length > 0) {
+      userContent += `\n\n---\nPREVIOUS CHAPTER TELLINGS (for continuity of image and thread):\n`;
+      for (const ps of body.previousSyntheses) {
+        userContent += `\n## Chapter ${ps.chapterNumber} — ${ps.title}\n${ps.story}\n`;
+      }
+    }
+    if (body.archetypeContext) {
+      userContent += `\n\n---\nPRIVATE BACKGROUND SKETCH (never name or reference any system behind this; seasoning only):\n${body.archetypeContext}`;
+    }
+
+    const data = await callAnthropic({
+      system: STORYTELLER_SYSTEM,
+      userContent,
+      model: SONNET,
+      maxTokens: 4096,
+    });
+
+    res.json({ data });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/* ── Storyteller — the full origin story, all seven chapters ── */
+const originStoryBodySchema = z.object({
+  chapters: z
+    .array(
+      z.object({
+        chapterNumber: z.number(),
+        chapterTitle: z.string(),
+        beats: z.array(beatSchema),
+        synthesis: z
+          .object({ title: z.string(), story: z.string() })
+          .optional(),
+      })
+    )
+    .min(7),
+  archetypeContext: z.string().optional().default(""),
+});
+
+router.post("/originstory", async (req, res, next) => {
+  try {
+    const body = originStoryBodySchema.parse(req.body);
+
+    let userContent = `THE FULL MATERIAL — all seven chapters:\n`;
+    for (const ch of body.chapters) {
+      userContent += `\n=== Chapter ${ch.chapterNumber}: ${ch.chapterTitle} ===\n${formatBeats(ch.beats)}\n`;
+      if (ch.synthesis) {
+        userContent += `\nChapter telling already woven — "${ch.synthesis.title}":\n${ch.synthesis.story}\n`;
+      }
+    }
+    if (body.archetypeContext) {
+      userContent += `\n\n---\nPRIVATE BACKGROUND SKETCH (never name or reference any system behind this; seasoning only):\n${body.archetypeContext}`;
+    }
+
+    const data = await callAnthropic({
+      system: STORYTELLER_SYSTEM + STORYTELLER_ORIGIN_APPENDIX,
       userContent,
       model: SONNET,
       maxTokens: 8192,

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { load, save } from '../storage';
+import WritingPage from './WritingPage';
 
 interface Props {
   sceneKey: string;
@@ -7,17 +8,24 @@ interface Props {
   rows?: number;
   big?: boolean;
   onSave?: () => void;
+  /* the question + elaboration, carried into the full-screen page */
+  question?: string;
+  detail?: string;
+  eyebrow?: string;
 }
 
 const speechAvailable =
   typeof window !== 'undefined' &&
   !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
 
-export default function Journal({ sceneKey, placeholder, rows = 4, big, onSave }: Props) {
+export default function Journal({
+  sceneKey, placeholder, rows = 4, big, onSave, question, detail, eyebrow,
+}: Props) {
   const [val, setVal] = useState<string>(() => {
     const stored = load()[sceneKey];
     return typeof stored === 'string' ? stored : '';
   });
+  const [pageOpen, setPageOpen] = useState(false);
   const [listening, setListening] = useState(false);
   const recognitionRef = useRef<any>(null);
   const finalBaseRef = useRef<string>('');
@@ -77,15 +85,35 @@ export default function Journal({ sceneKey, placeholder, rows = 4, big, onSave }
     setListening(true);
   };
 
+  const openPage = () => setPageOpen(true);
+  const closePage = () => {
+    setPageOpen(false);
+    const stored = load()[sceneKey];
+    const next = typeof stored === 'string' ? stored : '';
+    setVal(next);
+    finalBaseRef.current = next;
+    if (next.trim()) onSave?.();
+  };
+
   return (
     <div className={'journal' + (big ? ' journal-big' : '')}>
+      <WritingPage
+        open={pageOpen}
+        onClose={closePage}
+        sceneKey={sceneKey}
+        question={question}
+        detail={detail}
+        eyebrow={eyebrow}
+        placeholder={placeholder}
+      />
       <div className="journal-textarea-wrap">
+        {/* Touching the desk opens the full page — the writing happens
+            on a whole screen, never inside a cramped box. */}
         <textarea
           value={val}
-          onChange={e => {
-            finalBaseRef.current = e.target.value;
-            setVal(e.target.value);
-          }}
+          onFocus={openPage}
+          onClick={openPage}
+          readOnly
           placeholder={placeholder || 'write here…'}
           rows={rows}
         />

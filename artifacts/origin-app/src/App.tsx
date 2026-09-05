@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useUser } from '@clerk/react';
 import CHAPTERS, { Chapter } from './chapters';
+import CHAPTERS_V2 from './chapters-v2';
+import { adaptV2Chapter } from './chaptersAdapter';
 import {
   getTileIdx, setTileIdx as saveTileIdx,
   isChapterComplete, getCumulative, saveCumulative,
@@ -16,7 +18,7 @@ import AuthBar from './components/AuthBar';
 import JournalOverlay from './components/JournalOverlay';
 import HorizonOverlay from './components/HorizonOverlay';
 import SharingConsent from './components/SharingConsent';
-import ScrollJournal, { ScrollJournalHandle } from './components/ScrollJournal';
+import BeatStage, { BeatStageHandle } from './components/BeatStage';
 import { ButterflyIcon, CompassIcon } from './components/MorphoCompassIcons';
 
 /* ─── Tile types (kept for server-sync position mapping) ─────── */
@@ -106,13 +108,19 @@ function Spine({ chapters, current, onJump }: {
 
 /* ─── App ─────────────────────────────────────────────────────── */
 export default function App() {
-  const chapters = CHAPTERS;
+  /* All seven chapters now run on the v2 worksheet model, migrated verbatim
+     from the FINAL markdown. Chapter I additionally carries the authored
+     Codex + etymology hypertext; II–VII await that inline-tagging pass. */
+  const chapters = useMemo<Chapter[]>(
+    () => CHAPTERS_V2.map(adaptV2Chapter),
+    [],
+  );
   const { user, isLoaded: authLoaded } = useUser();
 
   /* Navigation state */
   const [activeChapterIdx, setActiveChapterIdx] = useState<number>(0);
   const [activeSectionKind, setActiveSectionKind] = useState<'prelude' | 'in-journey' | 'epilogue'>('prelude');
-  const scrollJournalRef = useRef<ScrollJournalHandle>(null);
+  const scrollJournalRef = useRef<BeatStageHandle>(null);
 
   /* Track max chapter reached (for JournalOverlay reachedCh) */
   const maxChapterReachedRef = useRef<number>(activeChapterIdx);
@@ -123,6 +131,16 @@ export default function App() {
 
   /* Overlay states */
   const [journalOpen, setJournalOpen] = useState(false);
+  const [mode, setMode] = useState<'color' | 'paper'>(
+    () => (localStorage.getItem('origin.mode') === 'paper' ? 'paper' : 'color'),
+  );
+  const toggleMode = useCallback(() => {
+    setMode(m => {
+      const next = m === 'color' ? 'paper' : 'color';
+      localStorage.setItem('origin.mode', next);
+      return next;
+    });
+  }, []);
   const [journalInitialTab, setJournalInitialTab] = useState<'readings' | 'work' | 'codex' | undefined>(undefined);
   const [horizonTarget, setHorizonTarget] = useState<{ chapterIdx: number } | null>(null);
 
@@ -334,13 +352,21 @@ export default function App() {
   const hasMorpho = !!getReading(activeChapterIdx).morpho;
   const reachedCh = maxChapterReachedRef.current;
 
+  /* Two moods, one system:
+     color — the chapter palettes bleed as you scroll (the cinematic world)
+     paper — one clean papery-white ground; chapters speak through accent only */
+  const paperGround = { bg: '#f7f2e6', ink: '#3c3226', veil: '#ede5d1' };
+  const effective = mode === 'paper'
+    ? { ...palette, ...paperGround, dark: false }
+    : palette;
+
   const rootStyle = {
-    '--bg': palette.bg,
-    '--ink': palette.ink,
-    '--accent': palette.accent,
-    '--veil': palette.veil,
-    '--glow': palette.glow,
-    '--shadow': palette.shadow || '#6b1e28',
+    '--bg': effective.bg,
+    '--ink': effective.ink,
+    '--accent': effective.accent,
+    '--veil': effective.veil,
+    '--glow': effective.glow,
+    '--shadow': mode === 'paper' ? '#8a6f42' : (palette.shadow || '#6b1e28'),
   } as React.CSSProperties;
 
   /* ── Restore initial chapter from persisted tile index ─────── */
@@ -360,7 +386,8 @@ export default function App() {
       style={rootStyle}
       data-chapter={activeChapterIdx}
       data-stage={activeSectionKind}
-      data-dark={palette.dark ? 'true' : 'false'}
+      data-dark={effective.dark ? 'true' : 'false'}
+      data-mode={mode}
     >
       <Backdrop territoryKey="scroll" />
 
@@ -383,6 +410,16 @@ export default function App() {
             </div>
           )}
           <button
+            className="mode-toggle"
+            onClick={toggleMode}
+            aria-label={mode === 'color' ? 'Switch to paper mode' : 'Switch to color mode'}
+            title={mode === 'color' ? 'paper mode' : 'color mode'}
+          >
+            <span className={`mode-dot mode-dot--color${mode === 'color' ? ' on' : ''}`} />
+            <span className={`mode-dot mode-dot--paper${mode === 'paper' ? ' on' : ''}`} />
+            <span className="mode-label">{mode}</span>
+          </button>
+          <button
             className={`instr-btn topbar-journal-btn${hasMorpho ? ' instr-btn--lit' : ''}`}
             onClick={() => { setJournalInitialTab(undefined); setJournalOpen(true); }}
             aria-label="Open journal archive"
@@ -398,7 +435,7 @@ export default function App() {
       </header>
 
       <main className="stage">
-        <ScrollJournal
+        <BeatStage
           ref={scrollJournalRef}
           chapters={chapters}
           initialChapterIdx={initialChapterIdx}

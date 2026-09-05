@@ -11,6 +11,8 @@ import InlineStreamSection from './sections/InlineStreamSection';
 import InlineBodySection from './sections/InlineBodySection';
 import { ButterflyIcon, CompassIcon } from './MorphoCompassIcons';
 import MetamythInvite from './MetamythInvite';
+import OriginStoryReveal from './OriginStoryReveal';
+import BirthGate from './BirthGate';
 import { isChapterComplete, getReading } from '../storage';
 
 /* ─── Section data model ─────────────────────────────────────── */
@@ -109,9 +111,13 @@ function PreludeSection({ onScrollToJourney }: { onScrollToJourney: () => void }
       <div className="prelude-note-block">
         <p className="prelude-note-heading">A note before you begin</p>
         <p className="prelude-body">
-          Stories make the world and they can break it too. Everyone who has walked this path has been changed by it. The only thing between you and that power is shame, doubt, and your own resistance to the size of what you actually are. Name it. Keep going.
+          Stories make the world and they can break it too. Everyone who has walked this path has been changed by it. The power you are about to access runs on the same science as psychedelic experiences, religious conversion, and full nervous system rewiring. People have wept through these pages. Screamed. Found their purpose. Restructured their lives. Take it seriously.
+        </p>
+        <p className="prelude-body">
+          The only thing between you and that power is shame, doubt, and your own resistance to the size of what you actually are. Shame will show up in every chapter wearing a different costume: minimizing, performing prior healing, retreating into privacy, collapsing into nihilism. Each time, it is the old story's immune system doing its job. Each time, it is proof you are close. Name it. Keep going.
         </p>
       </div>
+      <BirthGate />
       <div className="prelude-rule" />
       <div className="prelude-road-block">
         <p className="prelude-road-heading">The Road</p>
@@ -120,7 +126,7 @@ function PreludeSection({ onScrollToJourney }: { onScrollToJourney: () => void }
           <li><span className="prelude-road-roman">II</span><span className="prelude-road-text prelude-road-locked">The Conflict — Face the challenges that make the story interesting.</span></li>
           <li><span className="prelude-road-roman">III</span><span className="prelude-road-text prelude-road-locked">The Twist — Turn everything you survived into gold.</span></li>
           <li><span className="prelude-road-roman">IV</span><span className="prelude-road-text prelude-road-locked">The Source — Touch the source code of what you are.</span></li>
-          <li><span className="prelude-road-roman">V</span><span className="prelude-road-text prelude-road-locked">The Reality — See through the mythology and rewrite it.</span></li>
+          <li><span className="prelude-road-roman">V</span><span className="prelude-road-text prelude-road-locked">The Reveal — See through the mythology and rewrite it.</span></li>
           <li><span className="prelude-road-roman">VI</span><span className="prelude-road-text prelude-road-locked">The Dream — Enter the adventure of your own future.</span></li>
           <li><span className="prelude-road-roman">VII</span><span className="prelude-road-text prelude-road-locked">The Return — Bring the story back and make it real.</span></li>
         </ol>
@@ -134,8 +140,9 @@ function PreludeSection({ onScrollToJourney }: { onScrollToJourney: () => void }
 
 /* ─── Epilogue section ──────────────────────────────────────── */
 function EpilogueSection({
-  onRestart, onCumulative, hasCumulative, generatingCumulative, sharingShown,
+  chapters, onRestart, onCumulative, hasCumulative, generatingCumulative, sharingShown,
 }: {
+  chapters: Chapter[];
   onRestart: () => void;
   onCumulative: () => void;
   hasCumulative: boolean;
@@ -176,6 +183,7 @@ function EpilogueSection({
           </p>
         </div>
         <p className="prelude-body epilogue-tagline">The future we dream is one story away.</p>
+        <OriginStoryReveal chapters={chapters} />
         <div className="epilogue-actions">
           <button
             className="primary-btn"
@@ -558,6 +566,7 @@ const ScrollJournal = forwardRef<ScrollJournalHandle, Props>(({
                 ref={(el) => { epilogueRef.current = el; }}
               >
                 <EpilogueSection
+                  chapters={chapters}
                   onRestart={onRestart}
                   onCumulative={onCumulative}
                   hasCumulative={hasCumulative}

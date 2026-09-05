@@ -1,4 +1,13 @@
-import type { Beat, MorphoReading, SageReading, HorizonReading, ChapterReading } from "../storage";
+import type {
+  Beat,
+  MorphoReading,
+  SageReading,
+  HorizonReading,
+  ChapterReading,
+  PageMargins,
+  ChapterSynthesis,
+  OriginStory,
+} from "../storage";
 
 const BASE = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
 
@@ -60,6 +69,79 @@ export async function fetchSage(req: SageRequest): Promise<SageReading> {
 export async function fetchHorizon(req: HorizonRequest): Promise<HorizonReading> {
   const data = await post<{ whisper?: string; text?: string }>("/horizon", req);
   return { whisper: data.whisper || data.text || "", generatedAt: Date.now() };
+}
+
+/* ── Margins — Morpho reads one submitted page ── */
+
+interface MarginsRequest {
+  chapterNumber: number;
+  chapterTitle: string;
+  movementTitle: string;
+  question?: string;
+  text: string;
+  archetypeContext?: string;
+}
+
+export async function fetchMargins(req: MarginsRequest): Promise<PageMargins> {
+  const data = await post<{ marginalNotes: PageMargins["marginalNotes"]; invitation?: string }>(
+    "/margins",
+    req,
+  );
+  return {
+    marginalNotes: data.marginalNotes || [],
+    invitation: data.invitation || "",
+    generatedAt: Date.now(),
+  };
+}
+
+/* ── The Storyteller — chapter synthesis ── */
+
+interface SynthesisRequest {
+  chapterNumber: number;
+  chapterTitle: string;
+  beats: Beat[];
+  morpho?: MorphoReading;
+  previousSyntheses?: { chapterNumber: number; title: string; story: string }[];
+  archetypeContext?: string;
+}
+
+export async function fetchSynthesis(req: SynthesisRequest): Promise<ChapterSynthesis> {
+  const data = await post<{ title: string; story: string; closing?: string }>(
+    "/synthesis",
+    req,
+  );
+  return {
+    title: data.title || "",
+    story: data.story || "",
+    closing: data.closing || "",
+    generatedAt: Date.now(),
+  };
+}
+
+/* ── The Storyteller — the full origin story ── */
+
+interface OriginStoryRequest {
+  chapters: {
+    chapterNumber: number;
+    chapterTitle: string;
+    beats: Beat[];
+    synthesis?: { title: string; story: string };
+  }[];
+  archetypeContext?: string;
+}
+
+export async function fetchOriginStory(req: OriginStoryRequest): Promise<OriginStory> {
+  const data = await post<{
+    title: string;
+    movements: OriginStory["movements"];
+    dedication?: string;
+  }>("/originstory", req);
+  return {
+    title: data.title || "",
+    movements: data.movements || [],
+    dedication: data.dedication || "",
+    generatedAt: Date.now(),
+  };
 }
 
 export type { ChapterReading, PreviousChapterPayload };

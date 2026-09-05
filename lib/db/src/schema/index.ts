@@ -5,3 +5,5 @@ export * from "./readings";
 export * from "./archive_unlocks";
 export * from "./submissions";
 export * from "./waitlist";
+export * from "./fellowship";
+export * from "./birth_data";
