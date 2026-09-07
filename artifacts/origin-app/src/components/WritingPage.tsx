@@ -143,7 +143,7 @@ export default function WritingPage({
   }, [editor]);
 
   const {
-    listening, error: speechError, modelLoading,
+    listening, error: speechError, modelLoading, transcribing,
     toggle: toggleSpeech, stop: stopSpeech,
   } = useLocalSpeechRecognition(handleSpeechResult, {
     language: speechLang || undefined,
@@ -297,7 +297,7 @@ export default function WritingPage({
           <button
             className={'wp-tool' + (listening ? ' wp-tool--live' : '')}
             onClick={() => toggleSpeech()}
-            disabled={modelLoading}
+            disabled={modelLoading || transcribing}
             aria-label={listening ? 'stop dictation' : 'speak'}
             title={listening ? 'stop dictation' : 'speak'}
           >
@@ -366,6 +366,8 @@ export default function WritingPage({
         <div className="wp-status">
           {speechError ? (
             <span className="wp-error">{speechError}</span>
+          ) : transcribing ? (
+            <span className="wp-live">transcribing…</span>
           ) : modelLoading ? (
             <span className="wp-live">loading speech model…</span>
           ) : listening ? (

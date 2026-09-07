@@ -75,6 +75,7 @@ export interface UseLocalSpeechRecognitionResult {
   listening: boolean;
   error: string | null;
   modelLoading: boolean;
+  transcribing: boolean;
   start: () => void;
   stop: () => void;
   toggle: () => void;
@@ -87,11 +88,16 @@ export function useLocalSpeechRecognition(
   const [listening, setListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [modelLoading, setModelLoading] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const wantListeningRef = useRef(false);
+  // cancelledRef distinguishes "user stopped to transcribe" (false)
+  // from "user cancelled / component unmounted" (true). The onstop
+  // handler uses this to decide whether to run transcription.
+  const cancelledRef = useRef(false);
   const onResultRef = useRef(onResult);
   const optionsRef = useRef(options);
 
@@ -102,6 +108,7 @@ export function useLocalSpeechRecognition(
   });
 
   const cleanup = useCallback(() => {
+    cancelledRef.current = true;
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       try { mediaRecorderRef.current.stop(); } catch { /* noop */ }
     }
@@ -112,10 +119,10 @@ export function useLocalSpeechRecognition(
   }, []);
 
   const stop = useCallback(() => {
+    // User intentionally stopped — we WANT to transcribe the audio.
+    // Do NOT set cancelledRef; the onstop handler will run transcription.
     wantListeningRef.current = false;
 
-    // If recording, stop the MediaRecorder — this triggers onstop
-    // which will transcribe the collected audio.
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       try { mediaRecorderRef.current.stop(); } catch { /* noop */ }
     }
@@ -125,6 +132,7 @@ export function useLocalSpeechRecognition(
   const start = useCallback(async () => {
     setError(null);
     wantListeningRef.current = true;
+    cancelledRef.current = false;
 
     try {
       // 1. Load the Whisper model (lazy, cached after first load)
@@ -158,7 +166,9 @@ export function useLocalSpeechRecognition(
           streamRef.current = null;
         }
 
-        if (!wantListeningRef.current) return;
+        // If the component was unmounted or recording was cancelled
+        // (not a normal stop), skip transcription.
+        if (cancelledRef.current) return;
 
         // 5. Combine chunks into a single blob and transcribe
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
@@ -167,6 +177,7 @@ export function useLocalSpeechRecognition(
           return;
         }
 
+        setTranscribing(true);
         try {
           // Convert blob to AudioContext for Whisper input
           const arrayBuffer = await audioBlob.arrayBuffer();
@@ -210,6 +221,8 @@ export function useLocalSpeechRecognition(
         } catch (err) {
           console.error('Transcription error:', err);
           setError('Could not transcribe audio. Please try again.');
+        } finally {
+          setTranscribing(false);
         }
       };
 
@@ -246,5 +259,5 @@ export function useLocalSpeechRecognition(
     };
   }, [cleanup]);
 
-  return { listening, error, modelLoading, start, stop, toggle };
+  return { listening, error, modelLoading, transcribing, start, stop, toggle };
 }
