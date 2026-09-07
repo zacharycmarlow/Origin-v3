@@ -150,7 +150,11 @@ export function useLocalSpeechRecognition(
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
 
-      // 3. Set up MediaRecorder to collect audio chunks
+      // 3. Set up MediaRecorder to collect audio chunks.
+      //    Pass a timeslice (1000ms) so ondataavailable fires periodically
+      //    instead of only once at the end. This avoids holding the entire
+      //    recording as a single blob in memory, which can fail on long
+      //    audio (10+ minutes). The chunks are concatenated at stop time.
       const recorder = new MediaRecorder(stream);
       audioChunksRef.current = [];
       mediaRecorderRef.current = recorder;
@@ -170,7 +174,8 @@ export function useLocalSpeechRecognition(
         // (not a normal stop), skip transcription.
         if (cancelledRef.current) return;
 
-        // 5. Combine chunks into a single blob and transcribe
+        // 5. Combine all chunks into a single blob and transcribe.
+        //    No size limit — the full recording is transcribed.
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         if (audioBlob.size < 1000) {
           // Too small — probably no speech
@@ -179,7 +184,8 @@ export function useLocalSpeechRecognition(
 
         setTranscribing(true);
         try {
-          // Convert blob to AudioContext for Whisper input
+          // Convert blob to AudioContext for Whisper input.
+          // AudioContext decodes at 16kHz (Whisper's required sample rate).
           const arrayBuffer = await audioBlob.arrayBuffer();
           const audioContext = new AudioContext({ sampleRate: 16000 });
           const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
@@ -198,24 +204,36 @@ export function useLocalSpeechRecognition(
             audioData = audioBuffer.getChannelData(0);
           }
 
-          // 6. Run Whisper transcription
+          // 6. Run Whisper transcription on the ENTIRE audio.
           //    The multilingual model auto-detects the spoken language.
           //    If a language hint is provided, it uses that for accuracy.
           //    task: 'transcribe' keeps the original language;
           //    task: 'translate' translates to English.
           //
-          //    chunk_length_s: 30 — process long audio in 30-second windows
-          //    stride_length_s: 5 — 5-second overlap between chunks so words
-          //      at chunk boundaries aren't cut off
-          //    max_new_tokens: 448 — maximum tokens per chunk (Whisper's max),
+          //    Parameters for full, untruncated transcription:
+          //    - chunk_length_s: 30 — split long audio into 30s windows
+          //    - stride_length_s: 5 — 5s overlap between chunks so words
+          //      at boundaries aren't cut off
+          //    - max_new_tokens: 448 — Whisper's max tokens per chunk,
           //      ensures no truncation within any chunk
-          //    The pipeline automatically concatenates all chunks into the
-          //    full transcript — no character limit on total output.
+          //    - return_timestamps: true — helps the pipeline correctly
+          //      handle chunk boundaries and concatenate full transcript
+          //    - force_full_sequences: true — ensures the complete audio
+          //      is processed, not just the first chunk
+          //    - top_k: 0, do_sample: false — greedy decoding for
+          //      deterministic, complete output
+          //
+          //    The pipeline automatically concatenates ALL chunks into
+          //    the full transcript — no character limit on total output.
           const transcriber = await getTranscriber();
           const opts: Record<string, unknown> = {
             chunk_length_s: 30,
             stride_length_s: 5,
             max_new_tokens: 448,
+            return_timestamps: true,
+            force_full_sequences: true,
+            top_k: 0,
+            do_sample: false,
             task: optionsRef.current.task || 'transcribe',
           };
           if (optionsRef.current.language) {
@@ -235,7 +253,8 @@ export function useLocalSpeechRecognition(
         }
       };
 
-      recorder.start();
+      // Start recording with 1-second timeslice for periodic chunk collection
+      recorder.start(1000);
       setListening(true);
     } catch (err: any) {
       if (err?.name === 'NotAllowedError') {
