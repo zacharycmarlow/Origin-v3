@@ -484,18 +484,24 @@ const BeatStage = forwardRef<BeatStageHandle, Props>(({
           content.style.opacity = '0';
           content.style.visibility = 'hidden';
           content.style.filter = '';
+          content.style.pointerEvents = 'none';
           continue;
         }
         content.style.visibility = 'visible';
         if (reduce || ap < 0.02) {
           content.style.opacity = '1';
           content.style.filter = '';
+          // Only the fully-landed beat receives pointer events.
+          // Adjacent melting beats have pointer-events:none (set in CSS)
+          // so they don't block clicks on the active beat's content.
+          content.style.pointerEvents = 'auto';
           continue;
         }
         const e = clamp01(ap);                 // 0 sharp → 1 fully melted
         const eased = e * e * (3 - 2 * e);      // smoothstep
         content.style.opacity = String(1 - eased);
         content.style.filter = `blur(${(BLUR * eased).toFixed(3)}rem) contrast(${1 + (CONTRAST - 1) * eased})`;
+        content.style.pointerEvents = 'none';
       }
     };
 

@@ -6733,6 +6733,14 @@ input, textarea, select { font-family: inherit; color: inherit; }
   opacity: 0;
   visibility: hidden;
   will-change: opacity, filter;
+  /* Adjacent beats within the melt threshold (1.05vh) are still
+     visibility:visible for the dissolve transition, but they must
+     NOT intercept pointer events — only the fully-landed beat should
+     receive clicks. The JS melt sets pointer-events:auto on the
+     active beat. Without this, the next beat's fixed overlay sits
+     on top and swallows clicks on textareas/buttons in the current
+     beat. */
+  pointer-events: none;
 }
 /* The melt keyframe is now applied by JS directly as inline
    opacity/filter (see BeatStage.tsx) — no CSS animation/keyframes here.
@@ -6750,6 +6758,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   position: static;
   animation: none;
   opacity: 1; visibility: visible; filter: none;
+  pointer-events: auto;
   width: 100%;
   justify-content: flex-start;
   padding: 8vh 5vw;
