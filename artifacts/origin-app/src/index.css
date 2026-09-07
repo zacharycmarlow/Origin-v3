@@ -7649,6 +7649,9 @@ input, textarea, select { font-family: inherit; color: inherit; }
   border-radius: 4px; padding: 4px 6px; cursor: pointer;
 }
 .wp-fmt-select option { background: #1a1510; color: #e8dcc6; }
+.wp-font-select { max-width: 160px; }
+.wp-font-select optgroup { background: #1a1510; color: #c89838; font-style: normal; font-weight: 600; }
+.wp-font-select option { padding-left: 12px; }
 .wp-lang-select {
   background: transparent; border: 1px solid rgba(255,255,255,0.12);
   color: #e8dcc6; font-size: 12px; font-family: inherit;

@@ -31,10 +31,42 @@ import VideoRecorder from './VideoRecorder';
    ═══════════════════════════════════════════════════════════════ */
 
 const FONT_OPTIONS = [
-  { label: 'Serif', value: 'Georgia, "Times New Roman", serif' },
-  { label: 'Sans', value: 'Inter, system-ui, sans-serif' },
-  { label: 'Mono', value: '"SF Mono", "Cascadia Code", monospace' },
-  { label: 'Script', value: '"Brush Script MT", cursive' },
+  // ── System fonts (no download needed) ──
+  { label: 'System Sans', value: 'system-ui, sans-serif' },
+  { label: 'Georgia', value: 'Georgia, serif' },
+  { label: 'Times', value: '"Times New Roman", serif' },
+  { label: 'Courier', value: '"Courier New", monospace' },
+  // ── Sans-serif (Google Fonts, OFL/MIT) ──
+  { label: 'Inter', value: 'Inter, sans-serif' },
+  { label: 'DM Sans', value: '"DM Sans", sans-serif' },
+  { label: 'Work Sans', value: '"Work Sans", sans-serif' },
+  { label: 'Manrope', value: 'Manrope, sans-serif' },
+  { label: 'Outfit', value: 'Outfit, sans-serif' },
+  { label: 'Sora', value: 'Sora, sans-serif' },
+  { label: 'Space Grotesk', value: '"Space Grotesk", sans-serif' },
+  // ── Serif (Google Fonts, OFL) ──
+  { label: 'Lora', value: 'Lora, serif' },
+  { label: 'Playfair Display', value: '"Playfair Display", serif' },
+  { label: 'Crimson Pro', value: '"Crimson Pro", serif' },
+  { label: 'EB Garamond', value: '"EB Garamond", serif' },
+  { label: 'Cormorant', value: '"Cormorant Garamond", serif' },
+  { label: 'Merriweather', value: 'Merriweather, serif' },
+  { label: 'Spectral', value: 'Spectral, serif' },
+  { label: 'Source Serif', value: '"Source Serif 4", serif' },
+  { label: 'Fraunces', value: 'Fraunces, serif' },
+  { label: 'Newsreader', value: 'Newsreader, serif' },
+  { label: 'Libre Bodoni', value: '"Libre Bodoni", serif' },
+  { label: 'Bitter', value: 'Bitter, serif' },
+  // ── Handwriting / Script (Google Fonts, OFL) ──
+  { label: 'Caveat', value: 'Caveat, cursive' },
+  { label: 'Dancing Script', value: '"Dancing Script", cursive' },
+  { label: 'Sacramento', value: 'Sacramento, cursive' },
+  { label: 'Homemade Apple', value: '"Homemade Apple", cursive' },
+  { label: 'Shadows Into Light', value: '"Shadows Into Light", cursive' },
+  // ── Monospace (Google Fonts, OFL) ──
+  { label: 'JetBrains Mono', value: '"JetBrains Mono", monospace' },
+  { label: 'Fira Code', value: '"Fira Code", monospace' },
+  { label: 'Space Mono', value: '"Space Mono", monospace' },
 ];
 
 const COLOR_OPTIONS = ['#4a3a24', '#c89838', '#8a5a24', '#4ff0d6', '#888888'];
@@ -281,15 +313,37 @@ export default function WritingPage({
           </button>
           <div className="wp-fmt-divider" />
           <select
-            className="wp-fmt-select"
+            className="wp-fmt-select wp-font-select"
             value={editor.getAttributes('fontFamily').fontFamily || ''}
             onChange={e => editor.chain().focus().setFontFamily(e.target.value).run()}
             title="Font"
           >
             <option value="">Default font</option>
-            {FONT_OPTIONS.map(f => (
-              <option key={f.label} value={f.value}>{f.label}</option>
-            ))}
+            <optgroup label="System">
+              {FONT_OPTIONS.filter(f => ['System Sans','Georgia','Times','Courier'].includes(f.label)).map(f => (
+                <option key={f.label} value={f.value}>{f.label}</option>
+              ))}
+            </optgroup>
+            <optgroup label="Sans-serif">
+              {FONT_OPTIONS.filter(f => ['Inter','DM Sans','Work Sans','Manrope','Outfit','Sora','Space Grotesk'].includes(f.label)).map(f => (
+                <option key={f.label} value={f.value}>{f.label}</option>
+              ))}
+            </optgroup>
+            <optgroup label="Serif">
+              {FONT_OPTIONS.filter(f => ['Lora','Playfair Display','Crimson Pro','EB Garamond','Cormorant','Merriweather','Spectral','Source Serif','Fraunces','Newsreader','Libre Bodoni','Bitter'].includes(f.label)).map(f => (
+                <option key={f.label} value={f.value}>{f.label}</option>
+              ))}
+            </optgroup>
+            <optgroup label="Handwriting">
+              {FONT_OPTIONS.filter(f => ['Caveat','Dancing Script','Sacramento','Homemade Apple','Shadows Into Light'].includes(f.label)).map(f => (
+                <option key={f.label} value={f.value}>{f.label}</option>
+              ))}
+            </optgroup>
+            <optgroup label="Monospace">
+              {FONT_OPTIONS.filter(f => ['JetBrains Mono','Fira Code','Space Mono'].includes(f.label)).map(f => (
+                <option key={f.label} value={f.value}>{f.label}</option>
+              ))}
+            </optgroup>
           </select>
           <select
             className="wp-fmt-select"
