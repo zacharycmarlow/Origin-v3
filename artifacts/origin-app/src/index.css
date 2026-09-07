@@ -7669,6 +7669,15 @@ input, textarea, select { font-family: inherit; color: inherit; }
   border: 1px solid rgba(255,255,255,0.2);
   font-size: 14px; line-height: 1;
 }
+/* Format bar: scroll if too many controls on small screens */
+.wp-format-bar {
+  overflow-x: auto; scrollbar-width: thin;
+}
+/* Highlight marks in editor content */
+.wp-editor mark { border-radius: 2px; padding: 0 1px; }
+.wp-editor[data-text-align="left"] { text-align: left; }
+.wp-editor[data-text-align="center"] { text-align: center; }
+.wp-editor[data-text-align="right"] { text-align: right; }
 
 /* Video preview in writing page */
 .wp-video {

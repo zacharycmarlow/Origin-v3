@@ -4,9 +4,9 @@ import { load, save } from '../storage';
 import { useLocalSpeechRecognition } from '../hooks/useLocalSpeechRecognition';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { TextStyle } from '@tiptap/extension-text-style';
-import { Color } from '@tiptap/extension-color';
-import { FontFamily } from '@tiptap/extension-font-family';
+import { TextStyleKit } from '@tiptap/extension-text-style';
+import { Highlight } from '@tiptap/extension-highlight';
+import { TextAlign } from '@tiptap/extension-text-align';
 import { Placeholder } from '@tiptap/extension-placeholder';
 import VideoRecorder from './VideoRecorder';
 
@@ -38,6 +38,7 @@ const FONT_OPTIONS = [
 ];
 
 const COLOR_OPTIONS = ['#4a3a24', '#c89838', '#8a5a24', '#4ff0d6', '#888888'];
+const HIGHLIGHT_OPTIONS = ['#f5e6c8', '#ffd54f', '#c8e6c9', '#b3e5fc', '#f8bbd0'];
 
 /* Languages for the multilingual Whisper model.
    '' = auto-detect — Whisper identifies the spoken language. */
@@ -108,9 +109,13 @@ export default function WritingPage({
   const editor = useEditor({
     extensions: [
       StarterKit,
-      TextStyle,
-      Color,
-      FontFamily,
+      // TextStyleKit bundles TextStyle, Color, FontFamily, FontSize,
+      // BackgroundColor, and LineHeight — all MIT, all from TipTap core.
+      TextStyleKit.configure({
+        fontSize: { types: ['heading', 'paragraph'] },
+      }),
+      Highlight.configure({ multicolor: true }),
+      TextAlign.configure({ types: ['heading', 'paragraph'] }),
       Placeholder.configure({
         placeholder: placeholder || 'write here…',
       }),
@@ -258,6 +263,22 @@ export default function WritingPage({
           >
             <em>I</em>
           </button>
+          <button
+            className={'wp-fmt-btn' + (editor.isActive('underline') ? ' wp-fmt-btn--active' : '')}
+            onClick={() => editor.chain().focus().toggleUnderline().run()}
+            title="Underline"
+            aria-label="Underline"
+          >
+            <u>U</u>
+          </button>
+          <button
+            className={'wp-fmt-btn' + (editor.isActive('strike') ? ' wp-fmt-btn--active' : '')}
+            onClick={() => editor.chain().focus().toggleStrike().run()}
+            title="Strikethrough"
+            aria-label="Strikethrough"
+          >
+            <s>S</s>
+          </button>
           <div className="wp-fmt-divider" />
           <select
             className="wp-fmt-select"
@@ -269,6 +290,28 @@ export default function WritingPage({
             {FONT_OPTIONS.map(f => (
               <option key={f.label} value={f.value}>{f.label}</option>
             ))}
+          </select>
+          <select
+            className="wp-fmt-select"
+            value={editor.getAttributes('fontSize').fontSize || ''}
+            onChange={e => {
+              const v = e.target.value;
+              if (v) editor.chain().focus().setFontSize(v).run();
+              else editor.chain().focus().unsetFontSize().run();
+            }}
+            title="Font size"
+          >
+            <option value="">Size</option>
+            <option value="12px">12</option>
+            <option value="14px">14</option>
+            <option value="16px">16</option>
+            <option value="18px">18</option>
+            <option value="20px">20</option>
+            <option value="24px">24</option>
+            <option value="28px">28</option>
+            <option value="32px">32</option>
+            <option value="40px">40</option>
+            <option value="48px">48</option>
           </select>
           <div className="wp-fmt-divider" />
           {COLOR_OPTIONS.map(color => (
@@ -288,6 +331,50 @@ export default function WritingPage({
             aria-label="Reset color"
           >
             ×
+          </button>
+          <div className="wp-fmt-divider" />
+          {HIGHLIGHT_OPTIONS.map(color => (
+            <button
+              key={color}
+              className={'wp-fmt-color' + (editor.isActive('highlight', { color }) ? ' wp-fmt-color--active' : '')}
+              style={{ background: color }}
+              onClick={() => editor.chain().focus().toggleHighlight({ color }).run()}
+              title={`Highlight ${color}`}
+              aria-label={`Highlight ${color}`}
+            />
+          ))}
+          <button
+            className="wp-fmt-color wp-fmt-color--reset"
+            onClick={() => editor.chain().focus().unsetHighlight().run()}
+            title="Reset highlight"
+            aria-label="Reset highlight"
+          >
+            ×
+          </button>
+          <div className="wp-fmt-divider" />
+          <button
+            className={'wp-fmt-btn' + (editor.isActive({ textAlign: 'left' }) ? ' wp-fmt-btn--active' : '')}
+            onClick={() => editor.chain().focus().setTextAlign('left').run()}
+            title="Align left"
+            aria-label="Align left"
+          >
+            ⬅
+          </button>
+          <button
+            className={'wp-fmt-btn' + (editor.isActive({ textAlign: 'center' }) ? ' wp-fmt-btn--active' : '')}
+            onClick={() => editor.chain().focus().setTextAlign('center').run()}
+            title="Align center"
+            aria-label="Align center"
+          >
+            ⬄
+          </button>
+          <button
+            className={'wp-fmt-btn' + (editor.isActive({ textAlign: 'right' }) ? ' wp-fmt-btn--active' : '')}
+            onClick={() => editor.chain().focus().setTextAlign('right').run()}
+            title="Align right"
+            aria-label="Align right"
+          >
+            ➡
           </button>
         </div>
       )}
