@@ -17,17 +17,23 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "origin-db"
-database_id = "e0cca45d-30e1-41f5-b9ad-e94fe1a5c2c0"
+database_id = "dc8eb31d-2cb3-40b1-a733-2fa729edef9d"
 migrations_dir = "../../lib/db/drizzle-d1"
 
 # R2 bucket binding for media storage
-[[r2_buckets]]
-binding = "R2"
-bucket_name = "origin-media"
+# NOTE: R2 must be enabled on the Cloudflare account first.
+# Enable via Cloudflare Dashboard → R2, then uncomment this binding.
+# [[r2_buckets]]
+# binding = "R2"
+# bucket_name = "origin-media"
 
 # AI Gateway for Anthropic (optional — routes AI through Cloudflare)
 # [ai]
 # binding = "AI"
+
+# AI Gateway for Anthropic (optional — enables caching, rate limiting, analytics)
+# Create a gateway in Cloudflare Dashboard → AI → AI Gateway, then set the URL:
+# ANTHROPIC_BASE_URL = "https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_id}/anthropic"
 
 # Environment variables (set via wrangler secret or dashboard)
 # ANTHROPIC_API_KEY — set via `wrangler secret put ANTHROPIC_API_KEY`

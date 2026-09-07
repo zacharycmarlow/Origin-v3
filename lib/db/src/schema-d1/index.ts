@@ -47,13 +47,14 @@ export const journalEntriesTable = sqliteTable("journal_entries", {
   chapter: integer("chapter").notNull(),
   content: text("content").notNull(), // JSON string
   createdAt: text("created_at").notNull().default(new Date().toISOString()),
+  updatedAt: text("updated_at").notNull().default(new Date().toISOString()),
 }, (table) => [
   index("journal_entries_user_id_idx").on(table.userId),
   index("journal_entries_user_chapter_idx").on(table.userId, table.chapter),
   index("journal_entries_kind_idx").on(table.kind),
 ]);
 
-export const insertJournalEntrySchema = createInsertSchema(journalEntriesTable).omit({ createdAt: true });
+export const insertJournalEntrySchema = createInsertSchema(journalEntriesTable).omit({ createdAt: true, updatedAt: true });
 export type InsertJournalEntry = z.infer<typeof insertJournalEntrySchema>;
 export type JournalEntry = typeof journalEntriesTable.$inferSelect;
 
@@ -66,12 +67,13 @@ export const readingsTable = sqliteTable("readings", {
   cumulative: integer("cumulative", { mode: "boolean" }).notNull().default(false),
   data: text("data").notNull(), // JSON string
   createdAt: text("created_at").notNull().default(new Date().toISOString()),
+  updatedAt: text("updated_at").notNull().default(new Date().toISOString()),
 }, (table) => [
   index("readings_user_id_idx").on(table.userId),
   index("readings_user_chapter_kind_idx").on(table.userId, table.chapter, table.kind),
 ]);
 
-export const insertReadingSchema = createInsertSchema(readingsTable).omit({ createdAt: true });
+export const insertReadingSchema = createInsertSchema(readingsTable).omit({ createdAt: true, updatedAt: true });
 export type InsertReading = z.infer<typeof insertReadingSchema>;
 export type Reading = typeof readingsTable.$inferSelect;
 
@@ -205,3 +207,17 @@ export const mediaTable = sqliteTable("media", {
 export const insertMediaSchema = createInsertSchema(mediaTable).omit({ createdAt: true });
 export type InsertMedia = z.infer<typeof insertMediaSchema>;
 export type Media = typeof mediaTable.$inferSelect;
+
+/* ── Audit Log ─────────────────────────────────────────────────── */
+export const auditLogTable = sqliteTable("audit_log", {
+  id: text("id").primaryKey(),
+  userId: text("user_id"),
+  action: text("action").notNull(),
+  resourceType: text("resource_type").notNull(),
+  resourceId: text("resource_id"),
+  createdAt: text("created_at").notNull().default(new Date().toISOString()),
+}, (table) => [
+  index("audit_log_user_id_idx").on(table.userId),
+]);
+
+export type AuditLog = typeof auditLogTable.$inferSelect;

@@ -59,7 +59,7 @@ export default function SharePrompt({ open, onClose, text, title, eyebrow, accen
 
           {previewUrl && (
             <div className="share-prompt-preview">
-              <img src={previewUrl} alt="Share card preview" />
+              <img src={previewUrl} alt="Share card preview" loading="lazy" />
             </div>
           )}
 

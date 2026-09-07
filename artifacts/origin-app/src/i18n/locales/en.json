@@ -1,0 +1,22 @@
+{
+  "app": {
+    "title": "Origin · A Metamyth Journey",
+    "tagline": "A seven-chapter guided self-discovery and journaling experience."
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "dismiss": "dismiss"
+  },
+  "auth": {
+    "signIn": "sign in",
+    "signOut": "Sign out of The Origin?"
+  },
+  "nav": {
+    "journal": "Journal & readings",
+    "openJournal": "Open journal archive"
+  }
+}

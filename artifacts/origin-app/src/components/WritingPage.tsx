@@ -313,7 +313,7 @@ export default function WritingPage({
 
         {photo && (
           <div className="wp-photo">
-            <img src={photo} alt="the page you photographed" />
+            <img src={photo} alt="the page you photographed" loading="lazy" />
             <button className="wp-photo-drop" onClick={() => setPhoto(null)} aria-label="remove photo">×</button>
           </div>
         )}

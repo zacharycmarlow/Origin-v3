@@ -96,6 +96,16 @@ async function extractFromDocx(file: File): Promise<ExtractResult> {
   return { text: result.value.trim() };
 }
 
+/** Extract text from office formats (PPTX, XLSX, ODT, RTF, EPUB, etc.)
+ *  using officeparser as a fallback for formats not handled by
+ *  pdfjs/mammoth. officeparser is MIT-licensed. */
+async function extractFromOffice(file: File): Promise<ExtractResult> {
+  const { parseOfficeAsync } = await import('officeparser');
+  const arrayBuffer = await file.arrayBuffer();
+  const text = await parseOfficeAsync(Buffer.from(arrayBuffer));
+  return { text: text.trim() };
+}
+
 /** Extract audio from a video or audio file and transcribe it with Whisper.
  *  Works with any format the browser can decode (MP4, WebM, MP3, WAV, OGG, etc.).
  *  The audio track is extracted via AudioContext, converted to 16kHz mono

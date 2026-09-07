@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useAuth } from './auth/AuthContext';
 import { useStorageNamespace, migrateGuestToUser } from './hooks/useUserStorage';
 import CHAPTERS, { Chapter } from './chapters';
@@ -397,6 +398,14 @@ export default function App() {
       data-dark={effective.dark ? 'true' : 'false'}
       data-mode={mode}
     >
+      <Helmet>
+        <title>Origin · A Metamyth Journey</title>
+        <meta name="description" content="A seven-chapter guided self-discovery and journaling experience." />
+        <meta property="og:title" content="Origin · A Metamyth Journey" />
+        <meta property="og:description" content="A seven-chapter guided self-discovery and journaling experience." />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+      </Helmet>
       <Backdrop territoryKey="scroll" />
 
       {!isOutside && (

@@ -10,12 +10,19 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "catalog:",
+    "@sentry/cloudflare": "^10.73.0",
+    "@types/web-push": "^3.6.4",
     "@workspace/db": "workspace:*",
     "@workspace/integrations-anthropic-ai": "workspace:*",
     "@workspace/prompts": "workspace:*",
     "drizzle-orm": "catalog:",
+    "googleapis": "^178.0.0",
     "hono": "^4.13.7",
+    "hono-rate-limiter": "^0.5.4",
     "jose": "^5.9.6",
+    "podcast": "^2.0.1",
+    "resend": "^6.26.0",
+    "web-push": "^3.6.7",
     "zod": "catalog:"
   },
   "devDependencies": {

@@ -3,9 +3,12 @@ import { PrivyProvider } from "@privy-io/react-auth";
 import { Router as WouterRouter, Switch, Route, useLocation } from "wouter";
 import { ErrorBoundary } from "react-error-boundary";
 import { lazy, Suspense } from "react";
+import { HelmetProvider } from "react-helmet-async";
 import App from "./App";
 import { AuthProvider } from "./auth/AuthContext";
 import { BrowserLLMProvider } from "./api/BrowserLLMProvider";
+import { reportWebVitals } from "./lib/webVitals";
+import "./i18n";
 import "./index.css";
 
 const basePath = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
@@ -59,8 +62,9 @@ function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetError
 
 createRoot(document.getElementById("root")!).render(
   <ErrorBoundary FallbackComponent={ErrorFallback}>
-    <WouterRouter base={basePath}>
-      <PrivyProvider
+    <HelmetProvider>
+      <WouterRouter base={basePath}>
+        <PrivyProvider
         appId={privyAppId}
         config={{
           // Create embedded wallets for users who don't have a wallet
@@ -84,6 +88,10 @@ createRoot(document.getElementById("root")!).render(
           </BrowserLLMProvider>
         </AuthProvider>
       </PrivyProvider>
-    </WouterRouter>
+      </WouterRouter>
+    </HelmetProvider>
   </ErrorBoundary>,
 );
+
+// Report Core Web Vitals in development.
+reportWebVitals();
