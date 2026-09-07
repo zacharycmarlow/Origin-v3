@@ -8,6 +8,9 @@ import type { Editor } from '@tiptap/react';
    - Images (JPG, PNG, etc.) → OCR via tesseract.js (Apache 2.0)
    - PDF → text extraction via pdfjs-dist (Apache 2.0)
    - DOCX → text extraction via mammoth (BSD-2-Clause)
+   - Video (MP4, WebM, etc.) → extract audio track, then transcribe
+     via Whisper (Transformers.js, Apache 2.0)
+   - Audio (MP3, WAV, etc.) → transcribe via Whisper
    - Plain text files → direct read
 
    All processing happens in-browser. No files leave the device.
@@ -93,6 +96,56 @@ async function extractFromDocx(file: File): Promise<ExtractResult> {
   return { text: result.value.trim() };
 }
 
+/** Extract audio from a video or audio file and transcribe it with Whisper.
+ *  Works with any format the browser can decode (MP4, WebM, MP3, WAV, OGG, etc.).
+ *  The audio track is extracted via AudioContext, converted to 16kHz mono
+ *  Float32Array, and run through the Whisper pipeline — same as live speech
+ *  recognition. No character limit, no duration limit. */
+async function extractFromAudioOrVideo(file: File): Promise<ExtractResult> {
+  const { pipeline } = await import('@huggingface/transformers');
+
+  // Create the Whisper pipeline (same model as live speech recognition)
+  const transcriber = await pipeline(
+    'automatic-speech-recognition',
+    'Xenova/whisper-tiny',
+    {
+      dtype: 'q8',
+      session_options: { graphOptimizationLevel: 'basic' },
+    },
+  );
+
+  // Decode the file's audio track via AudioContext at 16kHz
+  const arrayBuffer = await file.arrayBuffer();
+  const audioContext = new AudioContext({ sampleRate: 16000 });
+  const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+  // Get mono channel data at 16kHz (Whisper requirement)
+  let audioData: Float32Array;
+  if (audioBuffer.numberOfChannels > 1) {
+    const channel0 = audioBuffer.getChannelData(0);
+    const channel1 = audioBuffer.getChannelData(1);
+    audioData = new Float32Array(channel0.length);
+    for (let i = 0; i < channel0.length; i++) {
+      audioData[i] = (channel0[i] + channel1[i]) / 2;
+    }
+  } else {
+    audioData = audioBuffer.getChannelData(0);
+  }
+
+  // Transcribe with full-document parameters (no truncation)
+  const output = await transcriber(audioData, {
+    chunk_length_s: 30,
+    stride_length_s: 5,
+    max_new_tokens: 448,
+    return_timestamps: true,
+    force_full_sequences: true,
+    top_k: 0,
+    do_sample: false,
+  });
+
+  return { text: (output?.text || '').trim() };
+}
+
 /** Extract text from a plain text file. */
 async function extractFromText(file: File): Promise<ExtractResult> {
   const text = await file.text();
@@ -104,12 +157,15 @@ export async function extractTextFromFile(file: File): Promise<ExtractResult> {
   const name = file.name.toLowerCase();
   const type = file.type;
 
+  // Images → OCR
   if (type.startsWith('image/') || /\.(jpg|jpeg|png|gif|bmp|webp|tiff?)$/.test(name)) {
     return extractFromImage(file);
   }
+  // PDF → text extraction (with OCR fallback for scanned pages)
   if (type === 'application/pdf' || name.endsWith('.pdf')) {
     return extractFromPdf(file);
   }
+  // DOCX → text extraction
   if (
     type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
     name.endsWith('.docx')
@@ -118,6 +174,20 @@ export async function extractTextFromFile(file: File): Promise<ExtractResult> {
   }
   if (name.endsWith('.doc')) {
     throw new Error('Legacy .doc files are not supported. Please convert to .docx.');
+  }
+  // Video files → extract audio and transcribe with Whisper
+  if (
+    type.startsWith('video/') ||
+    /\.(mp4|webm|mov|avi|mkv|ogv|m4v|3gp)$/.test(name)
+  ) {
+    return extractFromAudioOrVideo(file);
+  }
+  // Audio files → transcribe with Whisper
+  if (
+    type.startsWith('audio/') ||
+    /\.(mp3|wav|ogg|oga|flac|m4a|aac|opus|weba)$/.test(name)
+  ) {
+    return extractFromAudioOrVideo(file);
   }
   // Fallback: try as plain text
   return extractFromText(file);

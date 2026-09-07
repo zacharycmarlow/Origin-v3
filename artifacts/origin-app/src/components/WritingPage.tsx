@@ -289,6 +289,13 @@ export default function WritingPage({
     setShowVideoRecorder(false);
   }, []);
 
+  /* When video audio is transcribed, insert the text into the editor. */
+  const handleVideoTranscribed = useCallback((text: string) => {
+    if (editor && text) {
+      editor.chain().focus().insertContent(text + ' ').run();
+    }
+  }, [editor]);
+
   if (!open) return null;
 
   return createPortal(
@@ -526,7 +533,7 @@ export default function WritingPage({
 
           <label
             className={'wp-tool' + (fileExtracting ? ' wp-tool--live' : '')}
-            title="upload a file (PDF, DOCX, image of handwritten notes)"
+            title="upload a file (PDF, DOCX, image, video, or audio)"
             aria-label="upload a file"
           >
             <svg width="19" height="19" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -535,7 +542,7 @@ export default function WritingPage({
             </svg>
             <input
               type="file"
-              accept=".pdf,.docx,.txt,.md,image/*"
+              accept=".pdf,.docx,.txt,.md,image/*,video/*,audio/*"
               onChange={onFileUpload}
               hidden
             />
@@ -590,6 +597,7 @@ export default function WritingPage({
           open={showVideoRecorder}
           onClose={() => setShowVideoRecorder(false)}
           onRecorded={handleVideoRecorded}
+          onTranscribed={handleVideoTranscribed}
         />
       )}
     </div>,

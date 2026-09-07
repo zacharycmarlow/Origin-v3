@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { useReactMediaRecorder } from 'react-media-recorder';
+import { extractTextFromFile } from '../utils/fileTextExtractor';
 
 /* ═══════════════════════════════════════════════════════════════
    VideoRecorder — video recording via react-media-recorder (MIT).
@@ -7,7 +8,8 @@ import { useReactMediaRecorder } from 'react-media-recorder';
    Uses the MediaRecorder API through react-media-recorder for all
    recording logic: start/stop/pause/resume, camera preview, blob
    generation. The resulting blob is uploaded to R2 via the presigned
-   URL flow.
+   URL flow. After recording, the user can transcribe the video's
+   audio track to text using Whisper (Transformers.js).
 
    Custom code: ~2% (hook call + upload to R2).
    ═══════════════════════════════════════════════════════════════ */
@@ -16,13 +18,16 @@ interface VideoRecorderProps {
   open: boolean;
   onClose: () => void;
   onRecorded?: (blob: Blob, url: string) => void;
+  onTranscribed?: (text: string) => void;
 }
 
-export default function VideoRecorder({ open, onClose, onRecorded }: VideoRecorderProps) {
+export default function VideoRecorder({ open, onClose, onRecorded, onTranscribed }: VideoRecorderProps) {
   const { status, startRecording, stopRecording, mediaBlobUrl, previewStream } =
     useReactMediaRecorder({ video: true, audio: true });
   const [uploading, setUploading] = useState(false);
   const [uploaded, setUploaded] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
+  const [transcribed, setTranscribed] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // Show camera preview when recording
@@ -81,6 +86,28 @@ export default function VideoRecorder({ open, onClose, onRecorded }: VideoRecord
     }
   }, [mediaBlobUrl, onRecorded]);
 
+  /* Transcribe the video's audio track using Whisper (Transformers.js).
+     Extracts the audio, runs it through the same Whisper pipeline as
+     live speech recognition, and passes the text back to WritingPage
+     to insert into the editor. No character or duration limit. */
+  const handleTranscribe = useCallback(async () => {
+    if (!mediaBlobUrl) return;
+    setTranscribing(true);
+    try {
+      const blob = await fetch(mediaBlobUrl).then(r => r.blob());
+      const file = new File([blob], 'recording.webm', { type: blob.type || 'video/webm' });
+      const result = await extractTextFromFile(file);
+      if (result.text && onTranscribed) {
+        onTranscribed(result.text);
+        setTranscribed(true);
+      }
+    } catch (err) {
+      console.error('Video transcription failed:', err);
+    } finally {
+      setTranscribing(false);
+    }
+  }, [mediaBlobUrl, onTranscribed]);
+
   if (!open) return null;
 
   return (
@@ -125,6 +152,14 @@ export default function VideoRecorder({ open, onClose, onRecorded }: VideoRecord
                 ↺ re-record
               </button>
               <button
+                className="recorder-btn recorder-btn--transcribe"
+                onClick={handleTranscribe}
+                disabled={transcribing}
+                title="transcribe the audio from this video to text"
+              >
+                {transcribing ? 'transcribing…' : transcribed ? 'transcribed ✓' : 'transcribe'}
+              </button>
+              <button
                 className="recorder-btn recorder-btn--save"
                 onClick={handleUpload}
                 disabled={uploading}
@@ -134,7 +169,19 @@ export default function VideoRecorder({ open, onClose, onRecorded }: VideoRecord
             </>
           )}
           {uploaded && (
-            <span className="recorder-saved">saved ✓</span>
+            <>
+              {!transcribed && (
+                <button
+                  className="recorder-btn recorder-btn--transcribe"
+                  onClick={handleTranscribe}
+                  disabled={transcribing}
+                  title="transcribe the audio from this video to text"
+                >
+                  {transcribing ? 'transcribing…' : 'transcribe to text'}
+                </button>
+              )}
+              <span className="recorder-saved">saved ✓</span>
+            </>
           )}
         </div>
       </div>

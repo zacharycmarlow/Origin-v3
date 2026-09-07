@@ -7460,6 +7460,8 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .recorder-btn--record { border-color: #c89838; color: #c89838; }
 .recorder-btn--stop { border-color: #c44545; color: #c44545; }
 .recorder-btn--save { border-color: #c89838; color: #c89838; }
+.recorder-btn--transcribe { border-color: #4ff0d6; color: #4ff0d6; }
+.recorder-btn--transcribe:disabled { opacity: 0.5; }
 
 .recorder-saved {
   color: #c89838;
