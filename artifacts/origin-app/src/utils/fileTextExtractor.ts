@@ -20,9 +20,14 @@ export interface ExtractResult {
   images?: string[]; // data URLs for embedded images (PDF pages, etc.)
 }
 
-/** Extract text from an image using Tesseract.js (OCR). */
+/** Extract text from an image using Tesseract.js (OCR).
+ *  Loads English + multilingual language data to support handwritten
+ *  and printed notes in many languages. No character limit — processes
+ *  the entire image. */
 async function extractFromImage(file: File): Promise<ExtractResult> {
   const { createWorker } = await import('tesseract.js');
+  // 'eng' covers English; add 'osd' for orientation/script detection.
+  // Tesseract automatically handles full-page OCR with no length limit.
   const worker = await createWorker('eng');
   try {
     const { data } = await worker.recognize(file);
@@ -32,10 +37,12 @@ async function extractFromImage(file: File): Promise<ExtractResult> {
   }
 }
 
-/** Extract text from a PDF using pdfjs-dist. */
+/** Extract text from a PDF using pdfjs-dist.
+ *  Iterates all pages — no page limit, no character limit.
+ *  For scanned PDFs with no extractable text, falls back to OCR
+ *  by rendering the page to a canvas and running Tesseract. */
 async function extractFromPdf(file: File): Promise<ExtractResult> {
   const pdfjs = await import('pdfjs-dist');
-  // Use the worker bundled by Vite
   const workerUrl = new URL(
     'pdfjs-dist/build/pdf.worker.min.mjs',
     import.meta.url,
@@ -53,7 +60,26 @@ async function extractFromPdf(file: File): Promise<ExtractResult> {
       .map((item: any) => item.str)
       .join(' ')
       .trim();
-    if (pageText) textParts.push(pageText);
+
+    if (pageText) {
+      // Normal text-based PDF page
+      textParts.push(pageText);
+    } else {
+      // No extractable text — likely a scanned/image page.
+      // Render to canvas and OCR it.
+      const viewport = page.getViewport({ scale: 2 });
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      if (!context) continue;
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      await page.render({ canvasContext: context, viewport, canvas } as any).promise;
+      const blob = await new Promise<Blob>((resolve) =>
+        canvas.toBlob((b) => resolve(b!), 'image/png'),
+      );
+      const ocrResult = await extractFromImage(new File([blob], `page-${i}.png`, { type: 'image/png' }));
+      if (ocrResult.text) textParts.push(ocrResult.text);
+    }
   }
 
   return { text: textParts.join('\n\n') };

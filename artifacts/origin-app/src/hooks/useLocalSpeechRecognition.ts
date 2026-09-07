@@ -203,10 +203,19 @@ export function useLocalSpeechRecognition(
           //    If a language hint is provided, it uses that for accuracy.
           //    task: 'transcribe' keeps the original language;
           //    task: 'translate' translates to English.
+          //
+          //    chunk_length_s: 30 — process long audio in 30-second windows
+          //    stride_length_s: 5 — 5-second overlap between chunks so words
+          //      at chunk boundaries aren't cut off
+          //    max_new_tokens: 448 — maximum tokens per chunk (Whisper's max),
+          //      ensures no truncation within any chunk
+          //    The pipeline automatically concatenates all chunks into the
+          //    full transcript — no character limit on total output.
           const transcriber = await getTranscriber();
           const opts: Record<string, unknown> = {
             chunk_length_s: 30,
-            stride_chunk_size: 0,
+            stride_length_s: 5,
+            max_new_tokens: 448,
             task: optionsRef.current.task || 'transcribe',
           };
           if (optionsRef.current.language) {
