@@ -73,6 +73,12 @@
   "dependencies": {
     "@clerk/react": "^6.6.0",
     "@clerk/themes": "^2.4.57",
+    "@tiptap/extension-color": "^3.31.3",
+    "@tiptap/extension-font-family": "^3.31.3",
+    "@tiptap/extension-placeholder": "^3.31.3",
+    "@tiptap/extension-text-style": "^3.31.3",
+    "@tiptap/react": "^3.31.3",
+    "@tiptap/starter-kit": "^3.31.3",
     "@uppy/aws-s3": "^6.0.0",
     "@uppy/core": "^6.0.0",
     "@uppy/dashboard": "^6.0.0",

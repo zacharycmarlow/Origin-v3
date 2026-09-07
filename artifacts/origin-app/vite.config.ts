@@ -47,6 +47,8 @@ export default defineConfig({
         manualChunks: {
           'clerk': ['@clerk/react', '@clerk/themes'],
           'react-vendor': ['react', 'react-dom', 'wouter'],
+          'tiptap': ['@tiptap/react', '@tiptap/starter-kit', '@tiptap/extension-text-style', '@tiptap/extension-color', '@tiptap/extension-font-family', '@tiptap/extension-placeholder'],
+          'media': ['react-media-recorder', 'html-to-image'],
         },
       },
     },

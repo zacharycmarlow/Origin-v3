@@ -15,6 +15,10 @@ import { useState, useRef, useCallback, useEffect } from 'react';
      WritingPage uses this for long dictation.
    • autoRestart=false: recognition stops when the browser ends it.
      StreamOverlay/InlineStreamSection/Journal use this.
+
+   Error handling: exposes `error` state so callers can show the user
+   what went wrong (mic denied, no speech detected, network error,
+   etc.) instead of silently failing.
    ═══════════════════════════════════════════════════════════════ */
 
 export const speechAvailable =
@@ -24,10 +28,13 @@ export const speechAvailable =
 export interface UseSpeechRecognitionOptions {
   /** Restart recognition automatically when the browser ends it. */
   autoRestart?: boolean;
+  /** Language for recognition (default: browser language). */
+  lang?: string;
 }
 
 export interface UseSpeechRecognitionResult {
   listening: boolean;
+  error: string | null;
   start: (currentText: string) => void;
   stop: () => void;
   toggle: (currentText: string) => void;
@@ -35,12 +42,24 @@ export interface UseSpeechRecognitionResult {
   baseRef: React.RefObject<string>;
 }
 
+const ERROR_MESSAGES: Record<string, string> = {
+  'not-allowed': 'Microphone access denied. Allow microphone permission to use voice input.',
+  'service-not-allowed': 'Speech service not available in this browser.',
+  'no-speech': 'No speech detected. Try speaking closer to the microphone.',
+  'network': 'Speech recognition network error. Check your connection.',
+  'audio-capture': 'No microphone found. Connect a microphone and try again.',
+  'aborted': 'Speech recognition was interrupted.',
+  'bad-grammar': 'Speech recognition grammar error.',
+  'language-not-supported': 'This language is not supported for speech recognition.',
+};
+
 export function useSpeechRecognition(
   onResult: (text: string) => void,
   options: UseSpeechRecognitionOptions = {},
 ): UseSpeechRecognitionResult {
-  const { autoRestart = true } = options;
+  const { autoRestart = true, lang } = options;
   const [listening, setListening] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
   const baseRef = useRef<string>('');
   const wantListeningRef = useRef(false);
@@ -53,8 +72,13 @@ export function useSpeechRecognition(
 
   const start = useCallback((currentText: string) => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) return;
+    if (!SR) {
+      setError('Speech recognition is not supported in this browser.');
+      return;
+    }
 
+    // Clear any previous error
+    setError(null);
     baseRef.current = currentText;
     wantListeningRef.current = true;
     setListening(true);
@@ -62,6 +86,7 @@ export function useSpeechRecognition(
     const recognition = new SR();
     recognition.continuous = true;
     recognition.interimResults = true;
+    if (lang) recognition.lang = lang;
     recognitionRef.current = recognition;
 
     recognition.onresult = (event: any) => {
@@ -93,14 +118,28 @@ export function useSpeechRecognition(
     };
 
     recognition.onerror = (e: any) => {
-      if (e?.error === 'not-allowed' || e?.error === 'service-not-allowed') {
+      const errType = e?.error || 'unknown';
+      const msg = ERROR_MESSAGES[errType] || `Speech recognition error: ${errType}`;
+
+      if (errType === 'not-allowed' || errType === 'service-not-allowed' || errType === 'audio-capture') {
         wantListeningRef.current = false;
         setListening(false);
+        setError(msg);
+      } else if (errType === 'no-speech') {
+        // no-speech is transient — don't show an error, just let autoRestart handle it
+        // unless autoRestart is off, in which case we stop
+        if (!autoRestart) {
+          wantListeningRef.current = false;
+          setListening(false);
+        }
+      } else {
+        // For network, aborted, etc. — show the error but keep trying if autoRestart
+        setError(msg);
       }
     };
 
     try { recognition.start(); } catch { /* already running */ }
-  }, [onResult, autoRestart]);
+  }, [onResult, autoRestart, lang]);
 
   const toggle = useCallback((currentText: string) => {
     if (listening) {
@@ -118,5 +157,5 @@ export function useSpeechRecognition(
     };
   }, []);
 
-  return { listening, start, stop, toggle, baseRef };
+  return { listening, error, start, stop, toggle, baseRef };
 }

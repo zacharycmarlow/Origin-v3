@@ -7584,3 +7584,108 @@ input, textarea, select { font-family: inherit; color: inherit; }
   .share-prompt-overlay { animation: none; }
   .recorder-pulse-dot { animation: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   Rich text editor (TipTap) + format bar + video preview
+   ═══════════════════════════════════════════════════════════════ */
+
+/* The TipTap editor replaces the old textarea. */
+.wp-editor-wrap {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto;
+  width: 100%; max-width: 720px; margin: 0 auto;
+  padding: 0 clamp(22px, 5vw, 44px) 20px;
+  box-sizing: border-box;
+}
+.wp-editor {
+  min-height: 300px;
+  font-family: var(--font-body);
+  font-size: 18px; line-height: 1.75;
+  color: var(--ink);
+  outline: none;
+}
+.wp-editor:empty::before {
+  content: attr(data-placeholder);
+  color: color-mix(in srgb, var(--ink) 35%, transparent);
+  font-family: var(--font-script); font-style: italic;
+  pointer-events: none;
+}
+.wp-editor p { margin: 0 0 0.6em; }
+.wp-editor strong { font-weight: 700; }
+.wp-editor em { font-style: italic; }
+.wp-editor:focus { outline: none; }
+
+/* Format bar — slides in above the bottom toolbar */
+.wp-format-bar {
+  position: fixed; bottom: 56px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 4px;
+  background: rgba(26, 21, 16, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(200, 150, 60, 0.2);
+  border-radius: 8px;
+  padding: 6px 8px;
+  z-index: 130;
+  animation: wp-fmt-rise 200ms ease;
+}
+@keyframes wp-fmt-rise {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.wp-fmt-btn {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent; border: none;
+  color: #e8dcc6; font-size: 15px;
+  border-radius: 4px; cursor: pointer;
+  transition: background 150ms;
+}
+.wp-fmt-btn:hover { background: rgba(255,255,255,0.08); }
+.wp-fmt-btn--active { background: rgba(200,150,60,0.25); color: #c89838; }
+.wp-fmt-divider {
+  width: 1px; height: 20px; background: rgba(255,255,255,0.12); margin: 0 2px;
+}
+.wp-fmt-select {
+  background: transparent; border: 1px solid rgba(255,255,255,0.12);
+  color: #e8dcc6; font-size: 12px; font-family: inherit;
+  border-radius: 4px; padding: 4px 6px; cursor: pointer;
+}
+.wp-fmt-select option { background: #1a1510; color: #e8dcc6; }
+.wp-fmt-color {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid transparent; cursor: pointer;
+  transition: border-color 150ms;
+}
+.wp-fmt-color:hover { border-color: rgba(255,255,255,0.3); }
+.wp-fmt-color--active { border-color: #c89838; }
+.wp-fmt-color--reset {
+  background: transparent !important; color: #e8dcc6;
+  border: 1px solid rgba(255,255,255,0.2);
+  font-size: 14px; line-height: 1;
+}
+
+/* Video preview in writing page */
+.wp-video {
+  position: relative; margin: 16px auto; max-width: 640px;
+  border-radius: 4px; overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+}
+.wp-video video { width: 100%; display: block; border-radius: 4px; }
+
+/* Speech error display */
+.wp-error {
+  color: #e88; font-size: 11px; max-width: 200px;
+  text-overflow: ellipsis; overflow: hidden; white-space: nowrap;
+}
+
+/* Format tool active state */
+.wp-tool--active {
+  color: var(--glow);
+  background: rgba(79, 240, 214, 0.08);
+}
+
+/* TipTap placeholder — the extension adds a data attribute */
+.wp-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left; color: color-mix(in srgb, var(--ink) 35%, transparent);
+  pointer-events: none; height: 0;
+  font-family: var(--font-script); font-style: italic;
+}
