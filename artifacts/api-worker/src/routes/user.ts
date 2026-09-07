@@ -1,10 +1,13 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { eq, and, inArray } from "drizzle-orm";
-import { createD1Db, journeyStateTable, journalEntriesTable, readingsTable, archiveUnlocksTable, mediaTable, usersTable } from "@workspace/db";
+import { createD1Db, journeyStateTable, journalEntriesTable, readingsTable, archiveUnlocksTable, mediaTable, usersTable, pushSubscriptionsTable } from "@workspace/db";
 import { requireAuth, type AuthVars } from "../middleware/auth";
 import { sanitizeObject } from "../lib/sanitize";
 import { auditLog } from "../lib/audit";
+import { sendWelcomeEmail } from "../lib/email";
+import { sendNotification } from "../lib/push";
+import type webpush from "web-push";
 import type { Env } from "../index";
 
 const app = new Hono<{ Bindings: Env; Variables: AuthVars }>();
@@ -40,11 +43,15 @@ app.put("/state", async (c) => {
   const body = putStateSchema.parse(await c.req.json());
   const now = new Date().toISOString();
 
+  // Detect whether this is a new user (no existing journey state).
+  // Used to trigger the welcome email after a successful sync.
+  const existingState = await db.select().from(journeyStateTable).where(eq(journeyStateTable.userId, userId)).limit(1);
+  const isNewUser = existingState.length === 0;
+
   // Conflict resolution (5.6): compare client updatedAt with server's
   if (body.updatedAt) {
-    const existing = await db.select().from(journeyStateTable).where(eq(journeyStateTable.userId, userId)).limit(1);
-    if (existing[0] && existing[0].updatedAt > body.updatedAt) {
-      return c.json({ error: "Conflict", serverData: existing[0] }, 409);
+    if (existingState[0] && existingState[0].updatedAt > body.updatedAt) {
+      return c.json({ error: "Conflict", serverData: existingState[0] }, 409);
     }
   }
 
@@ -56,6 +63,31 @@ app.put("/state", async (c) => {
     id: respId, userId, kind: "response", chapter: 0, content: JSON.stringify(sanitizeObject(body.responses)),
     updatedAt: now,
   }).onConflictDoUpdate({ target: journalEntriesTable.id, set: { content: JSON.stringify(sanitizeObject(body.responses)), updatedAt: now } });
+
+  // Send a welcome email on the user's first state sync (registration).
+  if (isNewUser) {
+    try {
+      const userRow = await db.select({ email: usersTable.email }).from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+      const email = userRow[0]?.email;
+      if (email) {
+        await sendWelcomeEmail(c.env, email);
+        await auditLog(db, {
+          userId,
+          action: "user.welcome_email_sent",
+          resourceType: "user",
+          resourceId: userId,
+        });
+      }
+    } catch (err) {
+      console.error("[email] welcome email failed:", err);
+      await auditLog(db, {
+        userId,
+        action: "user.welcome_email_failed",
+        resourceType: "user",
+        resourceId: userId,
+      });
+    }
+  }
 
   return c.json({ ok: true });
 });
@@ -267,6 +299,101 @@ app.post("/archive", async (c) => {
   return c.json({ ok: true }, 201);
 });
 
+/* ─── Push Subscriptions ─── */
+/* web-push PushSubscription JSON shape:
+   { endpoint: string, keys: { p256dh: string, auth: string } } */
+const pushSubscriptionSchema = z.object({
+  endpoint: z.string().url(),
+  keys: z.object({
+    p256dh: z.string(),
+    auth: z.string(),
+  }),
+});
+
+app.post("/push/subscribe", async (c) => {
+  const db = createD1Db(c.env.DB);
+  const userId = c.get("userId");
+  const sub = pushSubscriptionSchema.parse(await c.req.json());
+  const id = crypto.randomUUID();
+  const now = new Date().toISOString();
+
+  // Upsert by endpoint — a device re-subscribing should replace its old keys.
+  await db.insert(pushSubscriptionsTable).values({
+    id,
+    userId,
+    endpoint: sub.endpoint,
+    subscription: JSON.stringify(sub),
+    createdAt: now,
+  }).onConflictDoNothing({ target: pushSubscriptionsTable.endpoint });
+
+  await auditLog(db, {
+    userId,
+    action: "push.subscribed",
+    resourceType: "push_subscription",
+    resourceId: sub.endpoint,
+  });
+
+  return c.json({ ok: true }, 201);
+});
+
+app.post("/push/unsubscribe", async (c) => {
+  const db = createD1Db(c.env.DB);
+  const userId = c.get("userId");
+  const { endpoint } = z.object({ endpoint: z.string() }).parse(await c.req.json());
+
+  await db.delete(pushSubscriptionsTable).where(and(
+    eq(pushSubscriptionsTable.userId, userId),
+    eq(pushSubscriptionsTable.endpoint, endpoint),
+  ));
+
+  await auditLog(db, {
+    userId,
+    action: "push.unsubscribed",
+    resourceType: "push_subscription",
+    resourceId: endpoint,
+  });
+
+  return c.json({ ok: true });
+});
+
+app.post("/push/test", async (c) => {
+  const db = createD1Db(c.env.DB);
+  const userId = c.get("userId");
+
+  const rows = await db.select().from(pushSubscriptionsTable).where(eq(pushSubscriptionsTable.userId, userId));
+  if (rows.length === 0) {
+    return c.json({ error: "No push subscription found" }, 404);
+  }
+
+  const payload = JSON.stringify({
+    title: "Origin · Test notification",
+    body: "This is a test push notification from Origin.",
+    timestamp: new Date().toISOString(),
+  });
+
+  let sent = 0;
+  let failed = 0;
+  for (const row of rows) {
+    try {
+      const subscription = JSON.parse(row.subscription) as webpush.PushSubscription;
+      await sendNotification(c.env, subscription, payload);
+      sent++;
+    } catch (err) {
+      console.error("[push] test notification failed:", err);
+      failed++;
+    }
+  }
+
+  await auditLog(db, {
+    userId,
+    action: "push.test_sent",
+    resourceType: "push_subscription",
+    resourceId: userId,
+  });
+
+  return c.json({ ok: true, sent, failed });
+});
+
 /* ─── Account Deletion (4.8) ─── */
 app.delete("/account", async (c) => {
   const db = createD1Db(c.env.DB);
@@ -288,6 +415,7 @@ app.delete("/account", async (c) => {
   await db.delete(readingsTable).where(eq(readingsTable.userId, userId));
   await db.delete(archiveUnlocksTable).where(eq(archiveUnlocksTable.userId, userId));
   await db.delete(mediaTable).where(eq(mediaTable.userId, userId));
+  await db.delete(pushSubscriptionsTable).where(eq(pushSubscriptionsTable.userId, userId));
   await db.delete(usersTable).where(eq(usersTable.id, userId));
 
   // Audit log the account deletion (4.12)

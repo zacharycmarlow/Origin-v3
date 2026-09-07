@@ -28,6 +28,25 @@ export const insertUserSchema = createInsertSchema(usersTable).omit({ createdAt:
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof usersTable.$inferSelect;
 
+/* ── Push Subscriptions ────────────────────────────────────────── */
+/* Stores web-push PushSubscription JSON per user (one row per device/
+   browser). The full PushSubscription object is stored as a JSON
+   string in `subscription`. */
+export const pushSubscriptionsTable = sqliteTable("push_subscriptions", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  endpoint: text("endpoint").notNull(),
+  subscription: text("subscription").notNull(), // JSON string
+  createdAt: text("created_at").notNull().default(new Date().toISOString()),
+}, (table) => [
+  index("push_subscriptions_user_id_idx").on(table.userId),
+  index("push_subscriptions_endpoint_idx").on(table.endpoint),
+]);
+
+export const insertPushSubscriptionSchema = createInsertSchema(pushSubscriptionsTable).omit({ createdAt: true });
+export type InsertPushSubscription = z.infer<typeof insertPushSubscriptionSchema>;
+export type PushSubscriptionRow = typeof pushSubscriptionsTable.$inferSelect;
+
 /* ── Journey State ─────────────────────────────────────────────── */
 export const journeyStateTable = sqliteTable("journey_state", {
   userId: text("user_id").primaryKey(),

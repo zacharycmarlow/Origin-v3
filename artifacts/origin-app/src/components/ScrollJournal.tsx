@@ -300,7 +300,7 @@ function TransitionSection({
 
   return (
     <div id={section.id} className={`${baseClass} sj-section--transition`}>
-      <ChapterTransition chapter={chapter} />
+      <ChapterTransition chapter={chapter} chapterIdx={ci} />
       {(complete || hasReading) && (
         <div className="sj-horizon-cta">
           <button

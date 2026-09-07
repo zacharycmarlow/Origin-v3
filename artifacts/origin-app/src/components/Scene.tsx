@@ -21,6 +21,7 @@ interface Props {
   chapterIdx: number;
   instantReveal?: boolean;
   onSaveJournal?: () => void;
+  onShare?: (text: string, title?: string) => void;
 }
 
 // Kinds that show everything at once (no progressive reveal)
@@ -379,7 +380,7 @@ function ThresholdCrossing({ sceneKey, onSave }: {
   );
 }
 
-export default function Scene({ scene, idx, chapterIdx, instantReveal, onSaveJournal }: Props) {
+export default function Scene({ scene, idx, chapterIdx, instantReveal, onSaveJournal, onShare }: Props) {
   const { phase, advance } = useSceneReveal(scene);
 
   const effectivePhase = instantReveal ? 99 : phase;
@@ -512,6 +513,7 @@ export default function Scene({ scene, idx, chapterIdx, instantReveal, onSaveJou
                 placeholder=""
                 rows={scene.rows || 4}
                 onSave={onSaveJournal}
+                onShare={onShare}
                 question={scene.closing}
                 detail={scene.ask}
                 eyebrow="the chapter asks"
@@ -540,6 +542,7 @@ export default function Scene({ scene, idx, chapterIdx, instantReveal, onSaveJou
                     rows={scene.prompt.rows}
                     big={scene.prompt.big}
                     onSave={onSaveJournal}
+                    onShare={onShare}
                   />
                   <MarginNotes
                     sceneKey={scene.prompt.key}

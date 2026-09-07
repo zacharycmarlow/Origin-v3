@@ -265,8 +265,8 @@ function EpilogueBeat({
 }
 
 /* ─── Scene beat ──────────────────────────────────────────────── */
-function SceneBeat({ chapterIdx, sceneIdx, chapters }: {
-  chapterIdx: number; sceneIdx: number; chapters: Chapter[];
+function SceneBeat({ chapterIdx, sceneIdx, chapters, onShare }: {
+  chapterIdx: number; sceneIdx: number; chapters: Chapter[]; onShare?: (text: string, title?: string) => void;
 }) {
   const [savedTrigger, setSavedTrigger] = useState(0);
   const handleSave = useCallback(() => setSavedTrigger(t => t + 1), []);
@@ -292,6 +292,7 @@ function SceneBeat({ chapterIdx, sceneIdx, chapters }: {
           chapterIdx={chapterIdx}
           instantReveal
           onSaveJournal={handleSave}
+          onShare={onShare}
         />
       </div>
       <div className="sj-scene-footer">
@@ -311,7 +312,7 @@ function TransitionBeat({ chapterIdx, chapters, onHorizon }: {
 
   return (
     <>
-      <ChapterTransition chapter={chapter} />
+      <ChapterTransition chapter={chapter} chapterIdx={chapterIdx} />
       {(complete || hasReading) && (
         <div className="sj-horizon-cta">
           <button className="sj-horizon-btn" onClick={() => onHorizon(chapterIdx)} title="Coherence breath between chapters">
@@ -340,6 +341,7 @@ interface Props {
   generatingCumulative: boolean;
   sharingShown: boolean;
   onHorizon: (chapterIdx: number) => void;
+  onShare: (text: string, title?: string, eyebrow?: string) => void;
 }
 
 /* Beat kinds whose content can outgrow one screen — these scroll
@@ -365,6 +367,7 @@ const BeatStage = forwardRef<BeatStageHandle, Props>(({
   generatingCumulative,
   sharingShown,
   onHorizon,
+  onShare,
 }, ref) => {
   const stageRef = useRef<HTMLDivElement>(null);
   const beatEls = useRef<Map<string, HTMLElement>>(new Map());
@@ -605,7 +608,7 @@ const BeatStage = forwardRef<BeatStageHandle, Props>(({
             return (
               <section key={beat.id} id={beat.id} className={cls} ref={setBeatRef(beat.id)}>
                 <div className="beat-content">
-                  <SceneBeat chapterIdx={beat.chapterIdx} sceneIdx={beat.sceneIdx} chapters={chapters} />
+                  <SceneBeat chapterIdx={beat.chapterIdx} sceneIdx={beat.sceneIdx} chapters={chapters} onShare={onShare} />
                 </div>
               </section>
             );
@@ -627,7 +630,7 @@ const BeatStage = forwardRef<BeatStageHandle, Props>(({
           case 'ai-reading':
             return (
               <section key={beat.id} id={beat.id} className={cls} ref={setBeatRef(beat.id)}>
-                <div className="beat-content"><AiReadingSection chapters={chapters} chapterIdx={beat.chapterIdx} /></div>
+                <div className="beat-content"><AiReadingSection chapters={chapters} chapterIdx={beat.chapterIdx} onShare={onShare} /></div>
               </section>
             );
 

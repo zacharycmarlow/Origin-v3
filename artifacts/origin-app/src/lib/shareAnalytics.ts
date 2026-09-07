@@ -12,3 +12,19 @@ export function logShareGenerated(cardType: string): void {
 export function logSharePlatform(platform: string): void {
   console.debug('[share] platform:', platform);
 }
+
+/**
+ * Unified share-event tracker. Records the destination a user shared to
+ * (e.g. "web-share", "download", "bluesky") plus optional metadata such as
+ * the card type. Never tracks content, text, or user-identifiable data.
+ */
+export function trackShare(
+  destination: string,
+  metadata?: { cardType?: string; [key: string]: unknown },
+): void {
+  logSharePlatform(destination);
+  if (metadata?.cardType) {
+    logShareGenerated(metadata.cardType);
+  }
+  console.debug('[share] tracked:', destination, metadata ?? {});
+}

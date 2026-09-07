@@ -3,6 +3,7 @@ import { z } from "zod";
 import { eq, and } from "drizzle-orm";
 import { createD1Db, mediaTable } from "@workspace/db";
 import { requireAuth, type AuthVars } from "../middleware/auth";
+import { auditLog } from "../lib/audit";
 import type { Env } from "../index";
 
 /* ═══════════════════════════════════════════════════════════════
@@ -69,6 +70,14 @@ app.post("/", async (c) => {
     kind, originalName: file.name,
   });
 
+  await auditLog(db, {
+    userId,
+    action: "media.upload",
+    resourceType: "media",
+    resourceId: id,
+    metadata: { key, originalName: file.name, contentType: file.type, size: file.size, kind },
+  });
+
   return c.json({ data: { id, key, kind, contentType: file.type, size: file.size } }, 201);
 });
 
@@ -113,6 +122,14 @@ app.delete("/:id", async (c) => {
 
   await c.env.R2.delete(media.r2Key);
   await db.delete(mediaTable).where(and(eq(mediaTable.id, id), eq(mediaTable.userId, userId)));
+
+  await auditLog(db, {
+    userId,
+    action: "media.delete",
+    resourceType: "media",
+    resourceId: id,
+    metadata: { key: media.r2Key, originalName: media.originalName },
+  });
 
   return c.json({ data: { deleted: true } });
 });

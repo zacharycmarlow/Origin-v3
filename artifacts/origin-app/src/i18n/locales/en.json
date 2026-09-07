@@ -1,7 +1,8 @@
 {
   "app": {
     "title": "Origin · A Metamyth Journey",
-    "tagline": "A seven-chapter guided self-discovery and journaling experience."
+    "tagline": "A seven-chapter guided self-discovery and journaling experience.",
+    "brand": "THE · ORIGIN"
   },
   "common": {
     "save": "Save",
@@ -17,6 +18,16 @@
   },
   "nav": {
     "journal": "Journal & readings",
-    "openJournal": "Open journal archive"
+    "openJournal": "Open journal archive",
+    "chapters": "chapters"
+  },
+  "mode": {
+    "color": "color",
+    "paper": "paper",
+    "switchToPaper": "Switch to paper mode",
+    "switchToColor": "Switch to color mode"
+  },
+  "errors": {
+    "dismiss": "dismiss"
   }
 }

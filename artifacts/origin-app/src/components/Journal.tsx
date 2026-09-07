@@ -8,6 +8,7 @@ interface Props {
   rows?: number;
   big?: boolean;
   onSave?: () => void;
+  onShare?: (text: string, title?: string) => void;
   /* the question + elaboration, carried into the full-screen page */
   question?: string;
   detail?: string;
@@ -23,7 +24,7 @@ function htmlToText(html: string): string {
 }
 
 export default function Journal({
-  sceneKey, placeholder, rows = 4, big, onSave, question, detail, eyebrow,
+  sceneKey, placeholder, rows = 4, big, onSave, onShare, question, detail, eyebrow,
 }: Props) {
   const [val, setVal] = useState<string>(() => {
     const stored = load()[sceneKey];
@@ -90,6 +91,23 @@ export default function Journal({
       </div>
       <div className="journal-meta">
         {val ? <span>{`saved · ${wordCount} words`}</span> : null}
+        {val && onShare && (
+          <button
+            className="journal-share-btn"
+            onClick={() => onShare(previewText, question)}
+            title="Share this reflection"
+            aria-label="Share this reflection"
+          >
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <circle cx="6" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.2" />
+              <circle cx="14" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.2" />
+              <circle cx="14" cy="15" r="2.5" stroke="currentColor" strokeWidth="1.2" />
+              <line x1="8" y1="9" x2="12" y2="6" stroke="currentColor" strokeWidth="1.2" />
+              <line x1="8" y1="11" x2="12" y2="14" stroke="currentColor" strokeWidth="1.2" />
+            </svg>
+            <span>share</span>
+          </button>
+        )}
       </div>
     </div>
   );

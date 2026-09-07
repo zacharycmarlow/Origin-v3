@@ -50,6 +50,10 @@
   font-display: swap;
 }
 
+/* ─── Skip-to-content link (accessibility) ──────────────── */
+.skip-link { position: absolute; top: -40px; left: 0; background: var(--bg, #1a1a2e); color: var(--ink, #e8dcc6); padding: 8px 16px; z-index: 9999; transition: top 0.2s; }
+.skip-link:focus { top: 0; }
+
 /* ─── Animated CSS Custom Properties ─────────────────────── */
 /* @property enables smooth color transitions on custom properties */
 @property --bg    { syntax: '<color>'; inherits: true; initial-value: #ece1c3; }
@@ -7539,13 +7543,27 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .share-prompt-btn--private:hover { opacity: 1; }
 
 .share-prompt-btn--preview,
-.share-prompt-btn--share {
+.share-prompt-btn--share,
+.share-prompt-btn--bluesky {
   border-color: #c89838;
   color: #c89838;
 }
 .share-prompt-btn--preview:hover,
-.share-prompt-btn--share:hover {
+.share-prompt-btn--share:hover,
+.share-prompt-btn--bluesky:hover {
   background: rgba(200, 152, 56, 0.1);
+}
+
+.share-prompt-btn--bluesky:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.share-prompt-error {
+  font-size: 0.8rem;
+  color: #d98a7a;
+  margin: 0 0 1rem;
+  text-align: center;
 }
 
 .share-prompt-footnote {
@@ -7862,4 +7880,137 @@ input, textarea, select { font-family: inherit; color: inherit; }
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Chapter Completion Gate — blocks advancing until all writing is done
+   ═══════════════════════════════════════════════════════════ */
+.sj-transition--gated {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+.sj-gate-notice {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+.sj-gate-notice-icon {
+  color: var(--accent, #c89838);
+  opacity: 0.6;
+  margin-bottom: 0.75rem;
+}
+.sj-gate-notice-title {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.1rem;
+  color: var(--ink, #e8dcc6);
+  margin: 0 0 0.5rem;
+  font-style: italic;
+}
+.sj-gate-notice-body {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.85rem;
+  color: var(--ink, #e8dcc6);
+  opacity: 0.6;
+  line-height: 1.6;
+  margin: 0 0 1rem;
+}
+.sj-gate-notice-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.sj-gate-notice-count {
+  font-size: 0.75rem;
+  color: var(--accent, #c89838);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.sj-gate-notice-bar {
+  flex: 1;
+  height: 2px;
+  background: rgba(200, 152, 56, 0.15);
+  border-radius: 1px;
+  overflow: hidden;
+  display: block;
+}
+.sj-gate-notice-bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--accent, #c89838);
+  transition: width 0.4s ease;
+}
+.sj-gate-notice-hint {
+  font-size: 0.7rem;
+  color: var(--ink, #e8dcc6);
+  opacity: 0.35;
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Share buttons — journal, readings, synthesis
+   ═══════════════════════════════════════════════════════════ */
+.journal-share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: var(--accent, #c89838);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.7rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 2px;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+.journal-share-btn:hover {
+  opacity: 1;
+}
+.journal-share-btn svg {
+  flex-shrink: 0;
+}
+
+.reading-share-btn {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  color: var(--accent, #c89838);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 2px;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+}
+.reading-share-btn:hover {
+  opacity: 1;
+}
+
+.weave-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+.weave-share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid rgba(200, 152, 56, 0.3);
+  color: var(--accent, #c89838);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 4px 12px;
+  border-radius: 2px;
+  opacity: 0.7;
+  transition: opacity 0.2s ease, border-color 0.2s ease;
+}
+.weave-share-btn:hover {
+  opacity: 1;
+  border-color: var(--accent, #c89838);
 }

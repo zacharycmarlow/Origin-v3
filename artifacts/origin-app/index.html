@@ -10,6 +10,36 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
+
+    <!-- Preconnect to Google Fonts for faster font delivery -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Preload the critical body text font (OptimaLTPro) -->
+    <link rel="preload" href="/fonts/OptimaLTPro-Medium.otf" as="font" type="font/otf" crossorigin />
+
+    <!-- Static Open Graph / Twitter fallback meta tags -->
+    <meta property="og:title" content="Origin · A Metamyth Journey" />
+    <meta property="og:description" content="A seven-chapter guided self-discovery and journaling experience." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/favicon.svg" />
+    <meta property="og:url" content="https://mymetamyth.templeearth.cc" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Origin · A Metamyth Journey" />
+    <meta name="twitter:description" content="A seven-chapter guided self-discovery and journaling experience." />
+    <meta name="twitter:image" content="/favicon.svg" />
+
+    <!-- JSON-LD structured data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Origin · A Metamyth Journey",
+      "description": "A seven-chapter guided self-discovery and journaling experience.",
+      "url": "https://mymetamyth.templeearth.cc",
+      "applicationCategory": "MultimediaApplication"
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
