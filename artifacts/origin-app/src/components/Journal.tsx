@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { load, save } from '../storage';
 import WritingPage from './WritingPage';
+import { useSpeechRecognition, speechAvailable } from '../hooks/useSpeechRecognition';
 
 interface Props {
   sceneKey: string;
@@ -14,10 +15,6 @@ interface Props {
   eyebrow?: string;
 }
 
-const speechAvailable =
-  typeof window !== 'undefined' &&
-  !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
-
 export default function Journal({
   sceneKey, placeholder, rows = 4, big, onSave, question, detail, eyebrow,
 }: Props) {
@@ -26,9 +23,8 @@ export default function Journal({
     return typeof stored === 'string' ? stored : '';
   });
   const [pageOpen, setPageOpen] = useState(false);
-  const [listening, setListening] = useState(false);
-  const recognitionRef = useRef<any>(null);
-  const finalBaseRef = useRef<string>('');
+
+  const { listening, toggle, baseRef, stop } = useSpeechRecognition(setVal, { autoRestart: false });
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -40,60 +36,15 @@ export default function Journal({
 
   const wordCount = val.trim().split(/\s+/).filter(Boolean).length;
 
-  const toggleMic = () => {
-    if (listening) {
-      recognitionRef.current?.stop();
-      setListening(false);
-      return;
-    }
-
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    const recognition = new SR();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognitionRef.current = recognition;
-    finalBaseRef.current = val;
-
-    recognition.onresult = (event: any) => {
-      let finalChunk = '';
-      let interimChunk = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const text = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          finalChunk += text;
-        } else {
-          interimChunk += text;
-        }
-      }
-      if (finalChunk) {
-        const separator = finalBaseRef.current ? ' ' : '';
-        finalBaseRef.current = finalBaseRef.current + separator + finalChunk.trim();
-      }
-      const display = finalBaseRef.current + (interimChunk ? ' ' + interimChunk : '');
-      setVal(display);
-    };
-
-    recognition.onend = () => {
-      setListening(false);
-    };
-
-    recognition.onerror = () => {
-      setListening(false);
-    };
-
-    recognition.start();
-    setListening(true);
-  };
-
   const openPage = () => setPageOpen(true);
-  const closePage = () => {
+  const closePage = useCallback(() => {
     setPageOpen(false);
     const stored = load()[sceneKey];
     const next = typeof stored === 'string' ? stored : '';
     setVal(next);
-    finalBaseRef.current = next;
+    baseRef.current = next;
     if (next.trim()) onSave?.();
-  };
+  }, [sceneKey, onSave, baseRef]);
 
   return (
     <div className={'journal' + (big ? ' journal-big' : '')}>
@@ -120,7 +71,7 @@ export default function Journal({
         {speechAvailable && (
           <button
             className={'mic-btn' + (listening ? ' mic-btn--active' : '')}
-            onClick={toggleMic}
+            onClick={() => toggle(val)}
             title={listening ? 'stop recording' : 'speak your response'}
             aria-label={listening ? 'stop recording' : 'start voice input'}
           >

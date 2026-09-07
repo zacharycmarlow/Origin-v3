@@ -7,3 +7,4 @@ export * from "./submissions";
 export * from "./waitlist";
 export * from "./fellowship";
 export * from "./birth_data";
+export * from "./media";

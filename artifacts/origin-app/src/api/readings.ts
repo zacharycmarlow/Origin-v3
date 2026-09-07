@@ -9,8 +9,6 @@ import type {
   OriginStory,
 } from "../storage";
 
-const BASE = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
-
 interface PreviousChapterPayload {
   chapterNumber: number;
   chapterTitle: string;
@@ -45,17 +43,29 @@ async function post<T>(path: string, body: unknown): Promise<T> {
   // The artifact's BASE_URL prefix doesn't apply to /api calls — they go to the
   // shared proxy directly.
   const url = `/api/readings${path}`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`Reading request failed (${res.status}): ${text}`);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 60_000);
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`Reading request failed (${res.status}): ${text}`);
+    }
+    const json = await res.json();
+    return (json.data ?? json) as T;
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw new Error('The reading is taking longer than expected. Please try again.');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
   }
-  const json = await res.json();
-  return (json.data ?? json) as T;
 }
 
 export async function fetchMorpho(req: MorphoRequest): Promise<MorphoReading> {
@@ -145,6 +155,3 @@ export async function fetchOriginStory(req: OriginStoryRequest): Promise<OriginS
 }
 
 export type { ChapterReading, PreviousChapterPayload };
-// Suppress "unused" warning; BASE is intentionally unused in URL above
-// (kept here for future absolute-URL escape hatch).
-void BASE;

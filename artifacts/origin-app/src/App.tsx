@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense } from 'react';
 import { useUser } from '@clerk/react';
 import CHAPTERS, { Chapter } from './chapters';
 import CHAPTERS_V2 from './chapters-v2';
@@ -15,11 +15,12 @@ import {
   type LocalSnapshot,
 } from './api/userApi';
 import AuthBar from './components/AuthBar';
-import JournalOverlay from './components/JournalOverlay';
-import HorizonOverlay from './components/HorizonOverlay';
-import SharingConsent from './components/SharingConsent';
 import BeatStage, { BeatStageHandle } from './components/BeatStage';
 import { ButterflyIcon, CompassIcon } from './components/MorphoCompassIcons';
+
+const JournalOverlay = lazy(() => import('./components/JournalOverlay'));
+const HorizonOverlay = lazy(() => import('./components/HorizonOverlay'));
+const SharingConsent = lazy(() => import('./components/SharingConsent'));
 
 /* ─── Tile types (kept for server-sync position mapping) ─────── */
 interface PreludeTile { kind: 'prelude' }
@@ -457,30 +458,36 @@ export default function App() {
       )}
 
       {horizonTarget && (
-        <HorizonOverlay
-          chapter={chapters[horizonTarget.chapterIdx]}
-          chapterIdx={horizonTarget.chapterIdx}
-          cycles={6}
-          onComplete={() => setHorizonTarget(null)}
-          onCancel={() => setHorizonTarget(null)}
-        />
+        <Suspense fallback={null}>
+          <HorizonOverlay
+            chapter={chapters[horizonTarget.chapterIdx]}
+            chapterIdx={horizonTarget.chapterIdx}
+            cycles={6}
+            onComplete={() => setHorizonTarget(null)}
+            onCancel={() => setHorizonTarget(null)}
+          />
+        </Suspense>
       )}
 
       {journalOpen && (
-        <JournalOverlay
-          onClose={() => { setJournalOpen(false); setJournalInitialTab(undefined); }}
-          chapters={chapters}
-          currentCh={activeChapterIdx}
-          reachedCh={reachedCh}
-          initialTab={journalInitialTab}
-        />
+        <Suspense fallback={null}>
+          <JournalOverlay
+            onClose={() => { setJournalOpen(false); setJournalInitialTab(undefined); }}
+            chapters={chapters}
+            currentCh={activeChapterIdx}
+            reachedCh={reachedCh}
+            initialTab={journalInitialTab}
+          />
+        </Suspense>
       )}
 
       {showSharing && (
-        <SharingConsent
-          onDone={() => setSharingShown(true)}
-          onSkip={() => setSharingShown(true)}
-        />
+        <Suspense fallback={null}>
+          <SharingConsent
+            onDone={() => setSharingShown(true)}
+            onSkip={() => setSharingShown(true)}
+          />
+        </Suspense>
       )}
     </div>
   );

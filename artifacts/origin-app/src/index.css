@@ -7296,3 +7296,282 @@ input, textarea, select { font-family: inherit; color: inherit; }
   .writing-page { animation: none; }
   .wp-tool--live { animation: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   Media recorder + share/publish prompts
+   ═══════════════════════════════════════════════════════════════ */
+
+.recorder-overlay,
+.share-prompt-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  background: rgba(10, 8, 6, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: share-fade-in 0.2s ease;
+}
+
+@keyframes share-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.recorder-shell,
+.share-prompt-shell {
+  background: #1a1510;
+  border: 1px solid rgba(200, 152, 56, 0.2);
+  border-radius: 6px;
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  color: #e8dcc6;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.recorder-shell--audio { max-width: 420px; }
+
+.recorder-topbar,
+.share-prompt-close {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(200, 152, 56, 0.1);
+}
+
+.recorder-title {
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #c89838;
+}
+
+.recorder-close,
+.share-prompt-close {
+  background: none;
+  border: none;
+  color: #e8dcc6;
+  font-size: 1.5rem;
+  cursor: pointer;
+  opacity: 0.5;
+  padding: 0.25rem 0.5rem;
+  line-height: 1;
+}
+.recorder-close:hover,
+.share-prompt-close:hover { opacity: 1; }
+
+.share-prompt-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 1;
+  border: none;
+  background: none;
+}
+
+.recorder-stage {
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+  background: #0f0c08;
+}
+
+.recorder-stage--audio { min-height: 160px; }
+
+.recorder-preview,
+.recorder-playback {
+  max-width: 100%;
+  max-height: 360px;
+  border-radius: 4px;
+}
+
+.recorder-placeholder {
+  text-align: center;
+  color: #e8dcc6;
+  opacity: 0.4;
+}
+.recorder-placeholder p {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.recorder-pulse {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #c89838;
+  font-size: 0.9rem;
+}
+
+.recorder-pulse-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #c89838;
+  animation: recorder-pulse-anim 1.4s ease infinite;
+}
+
+@keyframes recorder-pulse-anim {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+.recorder-audio-playback { width: 100%; }
+
+.recorder-controls {
+  padding: 1rem 1.25rem;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.recorder-btn {
+  background: transparent;
+  border: 1px solid rgba(200, 152, 56, 0.3);
+  color: #e8dcc6;
+  padding: 0.5rem 1.25rem;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  transition: all 0.15s;
+}
+.recorder-btn:hover { border-color: #c89838; color: #c89838; }
+.recorder-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.recorder-btn--record { border-color: #c89838; color: #c89838; }
+.recorder-btn--stop { border-color: #c44545; color: #c44545; }
+.recorder-btn--save { border-color: #c89838; color: #c89838; }
+
+.recorder-saved {
+  color: #c89838;
+  font-size: 0.85rem;
+  padding: 0.5rem;
+}
+
+/* Share / Record / Publish prompt content */
+.share-prompt-content {
+  padding: 2rem 1.5rem 1.5rem;
+  text-align: center;
+}
+
+.share-prompt-eyebrow {
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #c89838;
+  opacity: 0.7;
+  margin: 0 0 0.75rem;
+}
+
+.share-prompt-title {
+  font-size: 1.3rem;
+  font-weight: 400;
+  margin: 0 0 0.75rem;
+  color: #e8dcc6;
+  line-height: 1.3;
+}
+
+.share-prompt-body {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #e8dcc6;
+  opacity: 0.7;
+  margin: 0 0 1.5rem;
+}
+
+.share-prompt-preview {
+  margin: 0 0 1.5rem;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(200, 152, 56, 0.15);
+}
+.share-prompt-preview img {
+  width: 100%;
+  display: block;
+}
+
+.share-prompt-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.share-prompt-btn {
+  background: transparent;
+  border: 1px solid rgba(232, 220, 198, 0.2);
+  color: #e8dcc6;
+  padding: 0.6rem 1.25rem;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  transition: all 0.15s;
+}
+.share-prompt-btn:hover { border-color: #c89838; }
+
+.share-prompt-btn--private {
+  border-color: rgba(232, 220, 198, 0.15);
+  opacity: 0.6;
+}
+.share-prompt-btn--private:hover { opacity: 1; }
+
+.share-prompt-btn--preview,
+.share-prompt-btn--share {
+  border-color: #c89838;
+  color: #c89838;
+}
+.share-prompt-btn--preview:hover,
+.share-prompt-btn--share:hover {
+  background: rgba(200, 152, 56, 0.1);
+}
+
+.share-prompt-footnote {
+  font-size: 0.75rem;
+  color: #e8dcc6;
+  opacity: 0.4;
+  font-style: italic;
+  margin: 0;
+}
+
+.publish-privacy {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.publish-privacy-label {
+  font-size: 0.8rem;
+  color: #e8dcc6;
+  opacity: 0.6;
+}
+
+.publish-privacy-select {
+  background: #0f0c08;
+  border: 1px solid rgba(200, 152, 56, 0.3);
+  color: #e8dcc6;
+  padding: 0.4rem 0.75rem;
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.publish-privacy-select:focus { outline: none; border-color: #c89838; }
+
+@media (prefers-reduced-motion: reduce) {
+  .share-prompt-overlay { animation: none; }
+  .recorder-pulse-dot { animation: none; }
+}

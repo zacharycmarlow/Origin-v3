@@ -1,5 +1,6 @@
 import express, { type Express } from "express";
 import cors from "cors";
+import compression from "compression";
 import pinoHttp from "pino-http";
 import { clerkMiddleware } from "@clerk/express";
 import { publishableKeyFromHost } from "@clerk/shared/keys";
@@ -12,6 +13,12 @@ import router from "./routes";
 import { logger } from "./lib/logger";
 
 const app: Express = express();
+
+// Trust proxy — required for correct IP detection behind Cloudflare/Replit proxies.
+app.set("trust proxy", 1);
+
+// Compress responses.
+app.use(compression());
 
 app.use(
   pinoHttp({
@@ -39,10 +46,8 @@ app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 // origin: true (dynamic reflection) + credentials: true is a security hole —
 // any site could make authenticated cross-origin requests with session cookies.
 const trustedOrigins = new Set<string>([
-  // Replit preview/production domains injected by the platform
-  ...(process.env.REPLIT_DOMAINS?.split(",").map((d) => `https://${d.trim()}`) ?? []),
-  // Replit dev proxy domain (used during development)
-  ...(process.env.REPLIT_DEV_DOMAIN ? [`https://${process.env.REPLIT_DEV_DOMAIN}`] : []),
+  // Configurable allowed origins (comma-separated)
+  ...(process.env.CORS_ALLOWED_ORIGINS?.split(",").map((d) => d.trim()) ?? []),
   // Localhost variants for local curl/testing (no credentials at risk here)
   "http://localhost",
   "http://localhost:80",
@@ -65,14 +70,25 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(
-  clerkMiddleware((req) => ({
-    publishableKey: publishableKeyFromHost(
-      getClerkProxyHost(req) ?? "",
-      process.env.CLERK_PUBLISHABLE_KEY,
-    ),
-  })),
-);
+// Clerk middleware is only applied when a secret key is configured.
+// In local dev without Clerk, the API server runs in "guest mode" —
+// auth-protected routes will return 401, but public routes (healthz,
+// readings, waitlist) work without a Clerk instance.
+const hasClerkSecret = Boolean(process.env.CLERK_SECRET_KEY);
+if (hasClerkSecret) {
+  app.use(
+    clerkMiddleware((req) => ({
+      publishableKey: publishableKeyFromHost(
+        getClerkProxyHost(req) ?? "",
+        process.env.CLERK_PUBLISHABLE_KEY,
+      ),
+    })),
+  );
+} else {
+  logger.warn(
+    "CLERK_SECRET_KEY not set — running in guest mode (auth-protected routes will 401)",
+  );
+}
 
 app.use("/api", router);
 

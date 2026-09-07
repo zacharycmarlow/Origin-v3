@@ -108,7 +108,13 @@ async function callAnthropic(opts: {
   const message = await anthropic.messages.create({
     model: opts.model,
     max_tokens: opts.maxTokens,
-    system: opts.system,
+    system: [
+      {
+        type: "text",
+        text: opts.system,
+        cache_control: { type: "ephemeral" },
+      },
+    ],
     messages: [{ role: "user", content: opts.userContent }],
   });
   const block = message.content[0];

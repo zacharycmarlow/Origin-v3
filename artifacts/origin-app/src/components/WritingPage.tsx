@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { load, save } from '../storage';
+import { useSpeechRecognition, speechAvailable } from '../hooks/useSpeechRecognition';
 
 /* ═══════════════════════════════════════════════════════════════
    THE WRITING PAGE — the full-screen writing surface.
@@ -29,10 +30,6 @@ interface Props {
   onMorpho?: () => void;
 }
 
-const speechAvailable =
-  typeof window !== 'undefined' &&
-  !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
-
 export default function WritingPage({
   open, onClose, sceneKey, question, detail, placeholder, eyebrow, onMorpho,
 }: Props) {
@@ -40,15 +37,14 @@ export default function WritingPage({
     const stored = load()[sceneKey];
     return typeof stored === 'string' ? stored : '';
   });
-  const [listening, setListening] = useState(false);
   const [typing, setTyping] = useState(false);
   const [photo, setPhoto] = useState<string | null>(null);
 
   const areaRef = useRef<HTMLTextAreaElement>(null);
-  const recognitionRef = useRef<any>(null);
-  const finalBaseRef = useRef<string>('');
-  const wantListeningRef = useRef(false);
   const typingTimer = useRef<number | undefined>(undefined);
+
+  /* Speech recognition with autoRestart=true for long dictation. */
+  const { listening, toggle, stop, baseRef } = useSpeechRecognition(setVal, { autoRestart: true });
 
   /* autosave */
   useEffect(() => {
@@ -63,10 +59,10 @@ export default function WritingPage({
     const stored = load()[sceneKey];
     const next = typeof stored === 'string' ? stored : '';
     setVal(next);
-    finalBaseRef.current = next;
+    baseRef.current = next;
     const t = setTimeout(() => areaRef.current?.focus(), 60);
     return () => clearTimeout(t);
-  }, [open, sceneKey]);
+  }, [open, sceneKey, baseRef]);
 
   /* lock the page behind it; Esc closes */
   useEffect(() => {
@@ -81,67 +77,8 @@ export default function WritingPage({
     };
   }, [open, onClose]);
 
-  const stopListening = useCallback(() => {
-    wantListeningRef.current = false;
-    try { recognitionRef.current?.stop(); } catch { /* already stopped */ }
-    setListening(false);
-  }, []);
-
   /* stop dictation when the page closes */
-  useEffect(() => { if (!open) stopListening(); }, [open, stopListening]);
-
-  /* Voice. The known failure mode is the browser silently ending the
-     session after a pause (or ~60s), which drops dictation mid-thought.
-     onend restarts it whenever the writer hasn't actually asked to stop. */
-  const startRecognition = useCallback(() => {
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) return;
-    const recognition = new SR();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognitionRef.current = recognition;
-
-    recognition.onresult = (event: any) => {
-      let finalChunk = '';
-      let interimChunk = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const text = event.results[i][0].transcript;
-        if (event.results[i].isFinal) finalChunk += text;
-        else interimChunk += text;
-      }
-      if (finalChunk) {
-        const sep = finalBaseRef.current && !/\s$/.test(finalBaseRef.current) ? ' ' : '';
-        finalBaseRef.current = finalBaseRef.current + sep + finalChunk.trim();
-      }
-      setVal(finalBaseRef.current + (interimChunk ? ' ' + interimChunk : ''));
-    };
-
-    recognition.onend = () => {
-      if (wantListeningRef.current) {
-        // session ended on its own — stitch a new one on so long
-        // dictation doesn't silently die mid-sentence
-        try { recognition.start(); } catch { setListening(false); }
-      } else {
-        setListening(false);
-      }
-    };
-    recognition.onerror = (e: any) => {
-      if (e?.error === 'not-allowed' || e?.error === 'service-not-allowed') {
-        wantListeningRef.current = false;
-        setListening(false);
-      }
-    };
-
-    try { recognition.start(); } catch { /* already running */ }
-  }, []);
-
-  const toggleMic = () => {
-    if (listening) { stopListening(); return; }
-    finalBaseRef.current = val;
-    wantListeningRef.current = true;
-    setListening(true);
-    startRecognition();
-  };
+  useEffect(() => { if (!open) stop(); }, [open, stop]);
 
   const onPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -176,7 +113,7 @@ export default function WritingPage({
           className="wp-area"
           value={val}
           onChange={e => {
-            finalBaseRef.current = e.target.value;
+            baseRef.current = e.target.value;
             setVal(e.target.value);
             markTyping();
           }}
@@ -197,7 +134,7 @@ export default function WritingPage({
           {speechAvailable && (
             <button
               className={'wp-tool' + (listening ? ' wp-tool--live' : '')}
-              onClick={toggleMic}
+              onClick={() => toggle(val)}
               aria-label={listening ? 'stop dictation' : 'speak'}
               title={listening ? 'stop dictation' : 'speak'}
             >

@@ -1,15 +1,12 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { getStreamEntries, addStreamEntry, deleteStreamEntry, StreamEntry } from '../../storage';
 import { Chapter } from '../../chapters';
+import { useSpeechRecognition, speechAvailable } from '../../hooks/useSpeechRecognition';
 
 interface Props {
   chapterIdx: number;
   chapters: Chapter[];
 }
-
-const speechAvailable =
-  typeof window !== 'undefined' &&
-  !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
 
 function formatRelative(ts: number): string {
   const diff = Date.now() - ts;
@@ -23,66 +20,21 @@ function formatRelative(ts: number): string {
 
 export default function InlineStreamSection({ chapterIdx, chapters }: Props) {
   const [text, setText] = useState('');
-  const [listening, setListening] = useState(false);
   const [entries, setEntries] = useState<StreamEntry[]>(() => getStreamEntries());
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
-  const recognitionRef = useRef<any>(null);
-  const baseRef = useRef<string>('');
+  const { listening, toggle, stop, baseRef } = useSpeechRecognition(setText, { autoRestart: false });
 
   const sortedEntries = useMemo(
     () => [...entries].sort((a, b) => b.timestamp - a.timestamp),
     [entries]
   );
 
-  useEffect(() => {
-    return () => {
-      try { recognitionRef.current?.stop(); } catch { /* noop */ }
-    };
-  }, []);
-
-  const toggleMic = () => {
-    if (listening) {
-      recognitionRef.current?.stop();
-      setListening(false);
-      return;
-    }
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) return;
-    const recognition = new SR();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognitionRef.current = recognition;
-    baseRef.current = text;
-
-    recognition.onresult = (event: any) => {
-      let finalChunk = '';
-      let interimChunk = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const t = event.results[i][0].transcript;
-        if (event.results[i].isFinal) finalChunk += t;
-        else interimChunk += t;
-      }
-      if (finalChunk) {
-        const sep = baseRef.current && !/\s$/.test(baseRef.current) ? ' ' : '';
-        baseRef.current = baseRef.current + sep + finalChunk.trim();
-      }
-      setText(baseRef.current + (interimChunk ? ' ' + interimChunk : ''));
-    };
-    recognition.onend = () => setListening(false);
-    recognition.onerror = () => setListening(false);
-    recognition.start();
-    setListening(true);
-  };
-
   const handleSave = () => {
     const trimmed = text.trim();
     if (!trimmed) return;
-    if (listening) {
-      try { recognitionRef.current?.stop(); } catch { /* noop */ }
-      setListening(false);
-    }
+    if (listening) stop();
     addStreamEntry(chapterIdx, trimmed);
     setText('');
     baseRef.current = '';
@@ -128,7 +80,7 @@ export default function InlineStreamSection({ chapterIdx, chapters }: Props) {
           {speechAvailable && (
             <button
               className={'inline-stream-mic' + (listening ? ' is-listening' : '')}
-              onClick={toggleMic}
+              onClick={() => toggle(text)}
               aria-label={listening ? 'Stop listening' : 'Speak'}
             >
               {listening ? (
