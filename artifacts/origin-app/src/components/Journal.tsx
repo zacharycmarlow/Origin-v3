@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { load, save } from '../storage';
 import WritingPage from './WritingPage';
-import { speechAvailable } from '../hooks/useSpeechRecognition';
 
 interface Props {
   sceneKey: string;
@@ -75,13 +74,12 @@ export default function Journal({
           placeholder={placeholder || 'write here…'}
           rows={rows}
         />
-        {speechAvailable && (
-          <button
-            className={'mic-btn'}
-            onClick={openPage}
-            title="speak your response"
-            aria-label="start voice input"
-          >
+        <button
+          className={'mic-btn'}
+          onClick={openPage}
+          title="speak your response"
+          aria-label="start voice input"
+        >
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
               <rect x="7" y="1" width="6" height="11" rx="3" fill="currentColor" />
               <path d="M4 10a6 6 0 0 0 12 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" />
@@ -89,7 +87,6 @@ export default function Journal({
               <line x1="7" y1="19" x2="13" y2="19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           </button>
-        )}
       </div>
       <div className="journal-meta">
         {val ? <span>{`saved · ${wordCount} words`}</span> : null}

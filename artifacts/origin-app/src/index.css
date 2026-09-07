@@ -7649,6 +7649,14 @@ input, textarea, select { font-family: inherit; color: inherit; }
   border-radius: 4px; padding: 4px 6px; cursor: pointer;
 }
 .wp-fmt-select option { background: #1a1510; color: #e8dcc6; }
+.wp-lang-select {
+  background: transparent; border: 1px solid rgba(255,255,255,0.12);
+  color: #e8dcc6; font-size: 12px; font-family: inherit;
+  border-radius: 4px; padding: 4px 6px; cursor: pointer;
+  margin-left: 4px; max-width: 110px;
+}
+.wp-lang-select option { background: #1a1510; color: #e8dcc6; }
+.wp-lang-select:disabled { opacity: 0.5; cursor: not-allowed; }
 .wp-fmt-color {
   width: 22px; height: 22px; border-radius: 50%;
   border: 2px solid transparent; cursor: pointer;

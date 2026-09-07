@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { load, save } from '../storage';
-import { useSpeechRecognition, speechAvailable } from '../hooks/useSpeechRecognition';
+import { useLocalSpeechRecognition } from '../hooks/useLocalSpeechRecognition';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { TextStyle } from '@tiptap/extension-text-style';
@@ -39,6 +39,40 @@ const FONT_OPTIONS = [
 
 const COLOR_OPTIONS = ['#4a3a24', '#c89838', '#8a5a24', '#4ff0d6', '#888888'];
 
+/* Languages for the multilingual Whisper model.
+   '' = auto-detect — Whisper identifies the spoken language. */
+const SPEECH_LANGS: { label: string; value: string }[] = [
+  { label: 'Auto-detect', value: '' },
+  { label: 'English', value: 'en' },
+  { label: 'Español', value: 'es' },
+  { label: 'Français', value: 'fr' },
+  { label: 'Deutsch', value: 'de' },
+  { label: 'Português', value: 'pt' },
+  { label: 'Italiano', value: 'it' },
+  { label: 'Nederlands', value: 'nl' },
+  { label: 'Polski', value: 'pl' },
+  { label: 'Svenska', value: 'sv' },
+  { label: 'Türkçe', value: 'tr' },
+  { label: 'Русский', value: 'ru' },
+  { label: 'Українська', value: 'uk' },
+  { label: 'Čeština', value: 'cs' },
+  { label: '日本語', value: 'ja' },
+  { label: '한국어', value: 'ko' },
+  { label: '中文', value: 'zh' },
+  { label: 'हिन्दी', value: 'hi' },
+  { label: 'العربية', value: 'ar' },
+  { label: 'עברית', value: 'he' },
+  { label: ' فارسی', value: 'fa' },
+  { label: 'اردو', value: 'ur' },
+  { label: 'বাংলা', value: 'bn' },
+  { label: 'Tiếng Việt', value: 'vi' },
+  { label: 'ไทย', value: 'th' },
+  { label: 'Indonesia', value: 'id' },
+  { label: 'Filipino', value: 'tl' },
+  { label: 'Swahili', value: 'sw' },
+  { label: 'Yorùbá', value: 'yo' },
+];
+
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -59,6 +93,7 @@ export default function WritingPage({
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [showFormatBar, setShowFormatBar] = useState(false);
   const [savedWordCount, setSavedWordCount] = useState(0);
+  const [speechLang, setSpeechLang] = useState('');
 
   const typingTimer = useRef<number | undefined>(undefined);
   const editorRef = useRef<HTMLDivElement>(null);
@@ -96,16 +131,24 @@ export default function WritingPage({
     },
   }, [sceneKey, placeholder]);
 
-  /* Speech recognition — appends text to the editor. */
+  /* Speech recognition — uses local Whisper model (Transformers.js)
+     so it works in Brave and other privacy-focused browsers that block
+     the Web Speech API's remote server calls. Audio never leaves the
+     device. The model (~40MB) loads lazily on first use and caches. */
   const handleSpeechResult = useCallback((text: string) => {
     if (editor) {
       // Insert text at current cursor position, replacing any selection
-      editor.chain().focus().insertContent(text).run();
+      editor.chain().focus().insertContent(text + ' ').run();
     }
   }, [editor]);
 
-  const { listening, error: speechError, toggle: toggleSpeech, stop: stopSpeech } =
-    useSpeechRecognition(handleSpeechResult, { autoRestart: true });
+  const {
+    listening, error: speechError, modelLoading,
+    toggle: toggleSpeech, stop: stopSpeech,
+  } = useLocalSpeechRecognition(handleSpeechResult, {
+    language: speechLang || undefined,
+    task: 'transcribe',
+  });
 
   /* Re-read stored value whenever the page opens. */
   useEffect(() => {
@@ -251,20 +294,31 @@ export default function WritingPage({
 
       <div className="wp-bar">
         <div className="wp-tools">
-          {speechAvailable && (
-            <button
-              className={'wp-tool' + (listening ? ' wp-tool--live' : '')}
-              onClick={() => toggleSpeech(editor?.getText() || '')}
-              aria-label={listening ? 'stop dictation' : 'speak'}
-              title={listening ? 'stop dictation' : 'speak'}
-            >
-              <svg width="19" height="19" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <rect x="7" y="1" width="6" height="11" rx="3" fill="currentColor" />
-                <path d="M4 10a6 6 0 0 0 12 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" />
-                <line x1="10" y1="16" x2="10" y2="19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              </svg>
-            </button>
-          )}
+          <button
+            className={'wp-tool' + (listening ? ' wp-tool--live' : '')}
+            onClick={() => toggleSpeech()}
+            disabled={modelLoading}
+            aria-label={listening ? 'stop dictation' : 'speak'}
+            title={listening ? 'stop dictation' : 'speak'}
+          >
+            <svg width="19" height="19" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <rect x="7" y="1" width="6" height="11" rx="3" fill="currentColor" />
+              <path d="M4 10a6 6 0 0 0 12 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+              <line x1="10" y1="16" x2="10" y2="19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          </button>
+          <select
+            className="wp-lang-select"
+            value={speechLang}
+            onChange={e => setSpeechLang(e.target.value)}
+            disabled={listening || modelLoading}
+            title="Speech language"
+            aria-label="Speech language"
+          >
+            {SPEECH_LANGS.map(l => (
+              <option key={l.value || 'auto'} value={l.value}>{l.label}</option>
+            ))}
+          </select>
 
           <button
             className={'wp-tool' + (showFormatBar ? ' wp-tool--active' : '')}
@@ -312,8 +366,10 @@ export default function WritingPage({
         <div className="wp-status">
           {speechError ? (
             <span className="wp-error">{speechError}</span>
+          ) : modelLoading ? (
+            <span className="wp-live">loading speech model…</span>
           ) : listening ? (
-            <span className="wp-live">listening</span>
+            <span className="wp-live">recording — tap to stop &amp; transcribe</span>
           ) : savedWordCount > 0 ? (
             <span>{`saved · ${savedWordCount} words`}</span>
           ) : null}

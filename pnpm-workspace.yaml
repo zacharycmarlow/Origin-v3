@@ -154,5 +154,8 @@ overrides:
 allowBuilds:
   '@clerk/shared': true
   esbuild: true
+  onnxruntime-node: true
+  protobufjs: true
+  sharp: true
   tesseract.js: true
   workerd: true
