@@ -72,7 +72,9 @@
   },
   "dependencies": {
     "@huggingface/transformers": "^4.2.0",
+    "@mlc-ai/web-llm": "^0.2.79",
     "@privy-io/react-auth": "^3.40.0",
+    "@workspace/prompts": "workspace:*",
     "@stripe/stripe-js": "^9.15.0",
     "@tiptap/extension-color": "^3.31.3",
     "@tiptap/extension-font-family": "^3.31.3",

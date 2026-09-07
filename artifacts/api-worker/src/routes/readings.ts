@@ -6,7 +6,7 @@ import {
   SAGE_SYSTEM, SAGE_CUMULATIVE_APPENDIX,
   HORIZON_SYSTEM, HORIZON_CUMULATIVE_APPENDIX,
   MARGINS_SYSTEM, STORYTELLER_SYSTEM, STORYTELLER_ORIGIN_APPENDIX,
-} from "../../../api-server/src/routes/readings/prompts";
+} from "@workspace/prompts";
 import type { Env } from "../index";
 
 /* ═══════════════════════════════════════════════════════════════

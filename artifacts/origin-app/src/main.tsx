@@ -5,6 +5,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { lazy, Suspense } from "react";
 import App from "./App";
 import { AuthProvider } from "./auth/AuthContext";
+import { BrowserLLMProvider } from "./api/BrowserLLMProvider";
 import "./index.css";
 
 const basePath = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
@@ -78,7 +79,9 @@ createRoot(document.getElementById("root")!).render(
         }}
       >
         <AuthProvider>
-          <AppWithRoutes />
+          <BrowserLLMProvider>
+            <AppWithRoutes />
+          </BrowserLLMProvider>
         </AuthProvider>
       </PrivyProvider>
     </WouterRouter>

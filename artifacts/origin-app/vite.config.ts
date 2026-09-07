@@ -51,6 +51,7 @@ export default defineConfig({
           'pdfjs': ['pdfjs-dist'],
           'tesseract': ['tesseract.js'],
           'mammoth': ['mammoth'],
+          'webllm': ['@mlc-ai/web-llm'],
         },
       },
     },
