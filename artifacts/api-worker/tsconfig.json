@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022"],
+    "types": ["@cloudflare/workers-types"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@workspace/db": ["../../lib/db/src/d1.ts"],
+      "@workspace/db/*": ["../../lib/db/src/*"],
+      "@workspace/integrations-anthropic-ai": ["../../lib/integrations-anthropic-ai/src/index.ts"],
+      "@workspace/integrations-anthropic-ai/*": ["../../lib/integrations-anthropic-ai/src/*"]
+    },
+    "baseUrl": "."
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
+}
