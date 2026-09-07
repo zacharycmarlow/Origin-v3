@@ -4,7 +4,7 @@
  * ones like /api/user/state) are forwarded to the Worker. Non-API
  * paths fall through to the static assets. */
 
-const DEFAULT_WORKER_URL = "https://origin-api.terexmaps.workers.dev";
+const DEFAULT_WORKER_URL = "https://origin-api.hardwoodstablecoin.workers.dev";
 
 export const onRequest: PagesFunction = async (c) => {
   const reqUrl = new URL(c.request.url);

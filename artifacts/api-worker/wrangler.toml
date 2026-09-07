@@ -17,13 +17,13 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "origin-db"
-database_id = "dc8eb31d-2cb3-40b1-a733-2fa729edef9d"
+database_id = "e0cca45d-30e1-41f5-b9ad-e94fe1a5c2c0"
 migrations_dir = "../../lib/db/drizzle-d1"
 
-# R2 bucket binding for media storage (enable R2 in Cloudflare Dashboard first)
-# [[r2_buckets]]
-# binding = "R2"
-# bucket_name = "origin-media"
+# R2 bucket binding for media storage
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "origin-media"
 
 # AI Gateway for Anthropic (optional — routes AI through Cloudflare)
 # [ai]
