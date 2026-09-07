@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "91870492-a45e-491d-9349-8f11a398e713",
+  "id": "77b6f8ba-d588-4112-97c5-476d6e526cfa",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "archive_unlocks": {
@@ -48,7 +48,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'2026-09-07T19:33:24.153Z'"
+          "default": "'2026-09-07T21:15:00.503Z'"
         }
       },
       "indexes": {
@@ -124,7 +124,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'2026-09-07T19:33:24.153Z'"
+          "default": "'2026-09-07T21:15:00.503Z'"
         },
         "updated_at": {
           "name": "updated_at",
@@ -132,7 +132,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'2026-09-07T19:33:24.153Z'"
+          "default": "'2026-09-07T21:15:00.503Z'"
         }
       },
       "indexes": {},
@@ -185,7 +185,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'2026-09-07T19:33:24.152Z'"
+          "default": "'2026-09-07T21:15:00.502Z'"
         }
       },
       "indexes": {
@@ -241,7 +241,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'2026-09-07T19:33:24.152Z'"
+          "default": "'2026-09-07T21:15:00.501Z'"
         }
       },
       "indexes": {},
@@ -330,7 +330,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'2026-09-07T19:33:24.154Z'"
+          "default": "'2026-09-07T21:15:00.504Z'"
         }
       },
       "indexes": {
@@ -399,7 +399,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'2026-09-07T19:33:24.153Z'"
+          "default": "'2026-09-07T21:15:00.503Z'"
         }
       },
       "indexes": {
@@ -468,7 +468,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'2026-09-07T19:33:24.153Z'"
+          "default": "'2026-09-07T21:15:00.503Z'"
         }
       },
       "indexes": {
@@ -529,7 +529,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'2026-09-07T19:33:24.153Z'"
+          "default": "'2026-09-07T21:15:00.503Z'"
         }
       },
       "indexes": {
@@ -599,7 +599,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'2026-09-07T19:33:24.153Z'"
+          "default": "'2026-09-07T21:15:00.503Z'"
         }
       },
       "indexes": {
@@ -675,7 +675,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'2026-09-07T19:33:24.153Z'"
+          "default": "'2026-09-07T21:15:00.502Z'"
         }
       },
       "indexes": {
@@ -718,8 +718,8 @@
           "notNull": false,
           "autoincrement": false
         },
-        "clerk_id": {
-          "name": "clerk_id",
+        "privy_id": {
+          "name": "privy_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -731,7 +731,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'2026-09-07T19:33:24.153Z'"
+          "default": "'2026-09-07T21:15:00.503Z'"
         },
         "payload": {
           "name": "payload",
@@ -756,10 +756,10 @@
           ],
           "isUnique": false
         },
-        "submissions_clerk_id_idx": {
-          "name": "submissions_clerk_id_idx",
+        "submissions_privy_id_idx": {
+          "name": "submissions_privy_id_idx",
           "columns": [
-            "clerk_id"
+            "privy_id"
           ],
           "isUnique": false
         }
@@ -779,8 +779,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "clerk_id": {
-          "name": "clerk_id",
+        "privy_id": {
+          "name": "privy_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -799,7 +799,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'2026-09-07T19:33:24.151Z'"
+          "default": "'2026-09-07T21:15:00.500Z'"
         },
         "updated_at": {
           "name": "updated_at",
@@ -807,14 +807,14 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'2026-09-07T19:33:24.151Z'"
+          "default": "'2026-09-07T21:15:00.500Z'"
         }
       },
       "indexes": {
-        "users_clerk_id_unique": {
-          "name": "users_clerk_id_unique",
+        "users_privy_id_unique": {
+          "name": "users_privy_id_unique",
           "columns": [
-            "clerk_id"
+            "privy_id"
           ],
           "isUnique": true
         }
@@ -854,7 +854,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'2026-09-07T19:33:24.153Z'"
+          "default": "'2026-09-07T21:15:00.503Z'"
         }
       },
       "indexes": {

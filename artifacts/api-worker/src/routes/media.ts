@@ -39,6 +39,7 @@ function inferKind(contentType: string): "photo" | "document" | "audio" | "video
 
 /* POST /api/media — upload file directly to R2 via worker */
 app.post("/", async (c) => {
+  if (!c.env.R2) return c.json({ error: "Media storage not configured" }, 503);
   const db = createD1Db(c.env.DB);
   const userId = c.get("userId");
 
@@ -81,6 +82,7 @@ app.get("/", async (c) => {
 
 /* GET /api/media/:id — get media file from R2 */
 app.get("/:id", async (c) => {
+  if (!c.env.R2) return c.json({ error: "Media storage not configured" }, 503);
   const db = createD1Db(c.env.DB);
   const userId = c.get("userId");
   const id = c.req.param("id");
@@ -101,6 +103,7 @@ app.get("/:id", async (c) => {
 
 /* DELETE /api/media/:id — delete from R2 + D1 */
 app.delete("/:id", async (c) => {
+  if (!c.env.R2) return c.json({ error: "Media storage not configured" }, 503);
   const db = createD1Db(c.env.DB);
   const userId = c.get("userId");
   const id = c.req.param("id");

@@ -4,7 +4,7 @@ CREATE TABLE `archive_unlocks` (
 	`chapter_idx` integer NOT NULL,
 	`kind` text NOT NULL,
 	`title` text NOT NULL,
-	`unlocked_at` text DEFAULT '2026-09-07T19:33:24.153Z' NOT NULL
+	`unlocked_at` text DEFAULT '2026-09-07T21:15:00.503Z' NOT NULL
 );
 --> statement-breakpoint
 CREATE INDEX `archive_unlocks_user_id_idx` ON `archive_unlocks` (`user_id`);--> statement-breakpoint
@@ -16,8 +16,8 @@ CREATE TABLE `birth_data` (
 	`birth_place` text,
 	`archetype_context` text,
 	`computation` text,
-	`created_at` text DEFAULT '2026-09-07T19:33:24.153Z' NOT NULL,
-	`updated_at` text DEFAULT '2026-09-07T19:33:24.153Z' NOT NULL
+	`created_at` text DEFAULT '2026-09-07T21:15:00.503Z' NOT NULL,
+	`updated_at` text DEFAULT '2026-09-07T21:15:00.503Z' NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `journal_entries` (
@@ -26,7 +26,7 @@ CREATE TABLE `journal_entries` (
 	`kind` text NOT NULL,
 	`chapter` integer NOT NULL,
 	`content` text NOT NULL,
-	`created_at` text DEFAULT '2026-09-07T19:33:24.152Z' NOT NULL
+	`created_at` text DEFAULT '2026-09-07T21:15:00.502Z' NOT NULL
 );
 --> statement-breakpoint
 CREATE INDEX `journal_entries_user_id_idx` ON `journal_entries` (`user_id`);--> statement-breakpoint
@@ -35,7 +35,7 @@ CREATE INDEX `journal_entries_kind_idx` ON `journal_entries` (`kind`);--> statem
 CREATE TABLE `journey_state` (
 	`user_id` text PRIMARY KEY NOT NULL,
 	`tile_idx` integer DEFAULT 0 NOT NULL,
-	`updated_at` text DEFAULT '2026-09-07T19:33:24.152Z' NOT NULL
+	`updated_at` text DEFAULT '2026-09-07T21:15:00.501Z' NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `media` (
@@ -49,7 +49,7 @@ CREATE TABLE `media` (
 	`original_name` text,
 	`extracted_text` text,
 	`publish_status` text DEFAULT 'private' NOT NULL,
-	`created_at` text DEFAULT '2026-09-07T19:33:24.154Z' NOT NULL
+	`created_at` text DEFAULT '2026-09-07T21:15:00.504Z' NOT NULL
 );
 --> statement-breakpoint
 CREATE INDEX `media_user_id_idx` ON `media` (`user_id`);--> statement-breakpoint
@@ -60,7 +60,7 @@ CREATE TABLE `pod_members` (
 	`pod_id` text NOT NULL,
 	`user_id` text NOT NULL,
 	`role` text DEFAULT 'member' NOT NULL,
-	`joined_at` text DEFAULT '2026-09-07T19:33:24.153Z' NOT NULL
+	`joined_at` text DEFAULT '2026-09-07T21:15:00.503Z' NOT NULL
 );
 --> statement-breakpoint
 CREATE INDEX `pod_members_pod_id_idx` ON `pod_members` (`pod_id`);--> statement-breakpoint
@@ -71,7 +71,7 @@ CREATE TABLE `pod_shares` (
 	`user_id` text NOT NULL,
 	`scene_key` text NOT NULL,
 	`shared` integer DEFAULT false NOT NULL,
-	`updated_at` text DEFAULT '2026-09-07T19:33:24.153Z' NOT NULL
+	`updated_at` text DEFAULT '2026-09-07T21:15:00.503Z' NOT NULL
 );
 --> statement-breakpoint
 CREATE INDEX `pod_shares_pod_id_idx` ON `pod_shares` (`pod_id`);--> statement-breakpoint
@@ -81,7 +81,7 @@ CREATE TABLE `pod_submissions` (
 	`pod_id` text NOT NULL,
 	`user_id` text NOT NULL,
 	`chapter` integer NOT NULL,
-	`submitted_at` text DEFAULT '2026-09-07T19:33:24.153Z' NOT NULL
+	`submitted_at` text DEFAULT '2026-09-07T21:15:00.503Z' NOT NULL
 );
 --> statement-breakpoint
 CREATE INDEX `pod_submissions_pod_id_idx` ON `pod_submissions` (`pod_id`);--> statement-breakpoint
@@ -92,7 +92,7 @@ CREATE TABLE `pods` (
 	`invite_code` text NOT NULL,
 	`created_by` text NOT NULL,
 	`gate` text DEFAULT 'strict' NOT NULL,
-	`created_at` text DEFAULT '2026-09-07T19:33:24.153Z' NOT NULL
+	`created_at` text DEFAULT '2026-09-07T21:15:00.503Z' NOT NULL
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `pods_invite_code_unique` ON `pods` (`invite_code`);--> statement-breakpoint
@@ -104,7 +104,7 @@ CREATE TABLE `readings` (
 	`kind` text NOT NULL,
 	`cumulative` integer DEFAULT false NOT NULL,
 	`data` text NOT NULL,
-	`created_at` text DEFAULT '2026-09-07T19:33:24.153Z' NOT NULL
+	`created_at` text DEFAULT '2026-09-07T21:15:00.502Z' NOT NULL
 );
 --> statement-breakpoint
 CREATE INDEX `readings_user_id_idx` ON `readings` (`user_id`);--> statement-breakpoint
@@ -112,28 +112,28 @@ CREATE INDEX `readings_user_chapter_kind_idx` ON `readings` (`user_id`,`chapter`
 CREATE TABLE `submissions` (
 	`id` text PRIMARY KEY NOT NULL,
 	`user_id` text,
-	`clerk_id` text,
-	`submitted_at` text DEFAULT '2026-09-07T19:33:24.153Z' NOT NULL,
+	`privy_id` text,
+	`submitted_at` text DEFAULT '2026-09-07T21:15:00.503Z' NOT NULL,
 	`payload` text NOT NULL,
 	`ip_hash` text
 );
 --> statement-breakpoint
 CREATE INDEX `submissions_user_id_idx` ON `submissions` (`user_id`);--> statement-breakpoint
-CREATE INDEX `submissions_clerk_id_idx` ON `submissions` (`clerk_id`);--> statement-breakpoint
+CREATE INDEX `submissions_privy_id_idx` ON `submissions` (`privy_id`);--> statement-breakpoint
 CREATE TABLE `users` (
 	`id` text PRIMARY KEY NOT NULL,
-	`clerk_id` text NOT NULL,
+	`privy_id` text NOT NULL,
 	`email` text NOT NULL,
-	`created_at` text DEFAULT '2026-09-07T19:33:24.151Z' NOT NULL,
-	`updated_at` text DEFAULT '2026-09-07T19:33:24.151Z' NOT NULL
+	`created_at` text DEFAULT '2026-09-07T21:15:00.500Z' NOT NULL,
+	`updated_at` text DEFAULT '2026-09-07T21:15:00.500Z' NOT NULL
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `users_clerk_id_unique` ON `users` (`clerk_id`);--> statement-breakpoint
+CREATE UNIQUE INDEX `users_privy_id_unique` ON `users` (`privy_id`);--> statement-breakpoint
 CREATE TABLE `waitlist` (
 	`id` text PRIMARY KEY NOT NULL,
 	`email` text NOT NULL,
 	`user_id` text,
-	`submitted_at` text DEFAULT '2026-09-07T19:33:24.153Z' NOT NULL
+	`submitted_at` text DEFAULT '2026-09-07T21:15:00.503Z' NOT NULL
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `waitlist_email_unique` ON `waitlist` (`email`);--> statement-breakpoint

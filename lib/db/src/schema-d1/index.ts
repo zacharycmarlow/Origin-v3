@@ -18,7 +18,7 @@ import { z } from "zod/v4";
 /* ── Users ─────────────────────────────────────────────────────── */
 export const usersTable = sqliteTable("users", {
   id: text("id").primaryKey(),
-  clerkId: text("clerk_id").notNull().unique(),
+  privyId: text("privy_id").notNull().unique(),
   email: text("email").notNull(),
   createdAt: text("created_at").notNull().default(new Date().toISOString()),
   updatedAt: text("updated_at").notNull().default(new Date().toISOString()),
@@ -96,13 +96,13 @@ export type ArchiveUnlock = typeof archiveUnlocksTable.$inferSelect;
 export const submissionsTable = sqliteTable("submissions", {
   id: text("id").primaryKey(),
   userId: text("user_id"),
-  clerkId: text("clerk_id"),
+  privyId: text("privy_id"),
   submittedAt: text("submitted_at").notNull().default(new Date().toISOString()),
   payload: text("payload").notNull(), // JSON string
   ipHash: text("ip_hash"),
 }, (table) => [
   index("submissions_user_id_idx").on(table.userId),
-  index("submissions_clerk_id_idx").on(table.clerkId),
+  index("submissions_privy_id_idx").on(table.privyId),
 ]);
 
 export type Submission = typeof submissionsTable.$inferSelect;

@@ -14,6 +14,7 @@
     "@workspace/integrations-anthropic-ai": "workspace:*",
     "drizzle-orm": "catalog:",
     "hono": "^4.13.7",
+    "jose": "^5.9.6",
     "zod": "catalog:"
   },
   "devDependencies": {

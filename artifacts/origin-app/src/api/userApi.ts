@@ -11,12 +11,22 @@ import type {
 
 const API = "/api/user";
 
+/* Module-level auth token. Updated by AuthContext when the user
+   logs in/out. This avoids prop-drilling the token through every
+   call site. */
+let authToken: string | null = null;
+export function setAuthToken(token: string | null) {
+  authToken = token;
+}
+
 async function apiFetch<T>(path: string, init: RequestInit = {}, keepalive = false): Promise<T> {
+  const headers: Record<string, string> = { "Content-Type": "application/json", ...(init.headers as Record<string, string> ?? {}) };
+  if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
   const res = await fetch(`${API}${path}`, {
     ...init,
+    headers,
     credentials: "include",
     keepalive,
-    headers: { "Content-Type": "application/json", ...(init.headers ?? {}) },
   });
   if (!res.ok) {
     const text = await res.text().catch(() => "");

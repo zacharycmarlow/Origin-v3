@@ -1,7 +1,6 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
-import { compress } from "hono/compress";
 
 import healthRouter from "./routes/health";
 import readingsRouter from "./routes/readings";
@@ -18,15 +17,15 @@ import mediaRouter from "./routes/media";
    The Express server remains for local development; this worker
    is for production deployment on Cloudflare's edge network.
 
-   Custom code: ~3% (route wiring + Clerk auth verification).
+   Custom code: ~3% (route wiring + Privy auth verification).
    ═══════════════════════════════════════════════════════════════ */
 
 export interface Env {
   DB: D1Database;
-  R2: R2Bucket;
+  R2?: R2Bucket;
   ANTHROPIC_API_KEY: string;
   ANTHROPIC_BASE_URL: string;
-  CLERK_SECRET_KEY: string;
+  PRIVY_APP_ID: string;
   CORS_ALLOWED_ORIGINS: string;
   R2_BUCKET: string;
 }
@@ -34,7 +33,6 @@ export interface Env {
 const app = new Hono<{ Bindings: Env }>();
 
 app.use("*", logger());
-app.use("*", compress());
 
 // CORS — restrict to trusted origins
 app.use("*", cors({

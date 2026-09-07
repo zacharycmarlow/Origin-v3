@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
-import { usePrivy, useLogin } from '@privy-io/react-auth';
+import { usePrivy, useLogin, getAccessToken } from '@privy-io/react-auth';
+import { setAuthToken } from '../api/userApi';
 
 /* Privy's user type — accessed via the usePrivy hook. We use a loose
    type here since the exact shape depends on the SDK version. */
@@ -42,6 +43,8 @@ interface AuthContextValue {
   user: AuthUser | null;
   login: () => void;
   logout: () => void;
+  /** Returns a short-lived Privy JWT for backend API calls. */
+  getAuthToken: () => Promise<string | null>;
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -50,6 +53,7 @@ const AuthContext = createContext<AuthContextValue>({
   user: null,
   login: () => {},
   logout: () => {},
+  getAuthToken: async () => null,
 });
 
 export function useAuth() {
@@ -84,7 +88,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else if (ready && !authenticated) {
       setUser(null);
     }
+    // Keep the API module's token in sync with auth state.
+    if (ready && !authenticated) {
+      setAuthToken(null);
+    }
   }, [ready, authenticated, privyUser]);
+
+  // Fetch and cache the access token whenever the user is authenticated.
+  useEffect(() => {
+    if (!ready || !authenticated) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const token = await getAccessToken();
+        if (!cancelled && token) setAuthToken(token);
+      } catch { /* token refresh will retry */ }
+    })();
+    // Refresh token every 10 minutes (Privy tokens are short-lived).
+    const interval = setInterval(async () => {
+      try {
+        const token = await getAccessToken();
+        if (!cancelled && token) setAuthToken(token);
+      } catch { /* noop */ }
+    }, 10 * 60 * 1000);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [ready, authenticated]);
 
   const login = useCallback(() => {
     privyLogin();
@@ -95,8 +123,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, [privyLogout]);
 
+  const getAuthToken = useCallback(async (): Promise<string | null> => {
+    if (!authenticated) return null;
+    try {
+      return await getAccessToken();
+    } catch {
+      return null;
+    }
+  }, [authenticated]);
+
   return (
-    <AuthContext.Provider value={{ ready, authenticated, user, login, logout }}>
+    <AuthContext.Provider value={{ ready, authenticated, user, login, logout, getAuthToken }}>
       {children}
     </AuthContext.Provider>
   );

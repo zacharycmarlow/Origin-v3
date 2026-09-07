@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   getStreamEntries, addStreamEntry, deleteStreamEntry, StreamEntry
 } from '../storage';
 import { Chapter } from '../chapters';
-import { useSpeechRecognition, speechAvailable } from '../hooks/useSpeechRecognition';
+import { useLocalSpeechRecognition } from '../hooks/useLocalSpeechRecognition';
 
 interface Props {
   onClose: () => void;
@@ -29,7 +29,19 @@ export default function StreamOverlay({ onClose, chapters, currentCh }: Props) {
   const [entries, setEntries] = useState<StreamEntry[]>(() => getStreamEntries());
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
-  const { listening, toggle, stop, baseRef } = useSpeechRecognition(setText, { autoRestart: false });
+  /* Local Whisper transcription — works in Brave and other privacy-focused
+     browsers. Audio never leaves the device. The model (~40MB) loads
+     lazily on first use and caches. */
+  const handleSpeechResult = useCallback((transcribed: string) => {
+    setText(prev => {
+      const sep = prev && !/\s$/.test(prev) ? ' ' : '';
+      return prev + sep + transcribed;
+    });
+  }, []);
+  const {
+    listening, error: speechError, modelLoading, transcribing,
+    toggle: toggleSpeech, stop: stopSpeech,
+  } = useLocalSpeechRecognition(handleSpeechResult, { task: 'transcribe' });
   const taRef = useRef<HTMLTextAreaElement>(null);
 
   const sortedEntries = useMemo(
@@ -47,8 +59,8 @@ export default function StreamOverlay({ onClose, chapters, currentCh }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (listening) {
-          stop();
+        if (listening || transcribing) {
+          stopSpeech();
         } else {
           onClose();
         }
@@ -56,15 +68,14 @@ export default function StreamOverlay({ onClose, chapters, currentCh }: Props) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onClose, listening, stop]);
+  }, [onClose, listening, transcribing, stopSpeech]);
 
   const handleSave = () => {
     const trimmed = text.trim();
     if (!trimmed) return;
-    if (listening) stop();
+    if (listening) stopSpeech();
     addStreamEntry(currentCh, trimmed);
     setText('');
-    baseRef.current = '';
     setEntries(getStreamEntries());
     taRef.current?.focus();
   };
@@ -111,40 +122,39 @@ export default function StreamOverlay({ onClose, chapters, currentCh }: Props) {
               ref={taRef}
               className="stream-input"
               value={text}
-              onChange={e => {
-                baseRef.current = e.target.value;
-                setText(e.target.value);
-              }}
+              onChange={e => setText(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="let it pour…"
               rows={6}
             />
-            {speechAvailable && (
-              <button
-                className={'stream-mic' + (listening ? ' is-listening' : '')}
-                onClick={() => toggle(text)}
-                aria-label={listening ? 'Stop listening' : 'Speak'}
-                title={listening ? 'Stop' : 'Speak'}
-              >
-                {listening ? (
-                  <span className="stream-mic-pulse">
-                    <span /><span /><span />
-                  </span>
-                ) : (
-                  <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
-                    <rect x="7" y="2" width="6" height="10" rx="3" fill="none" stroke="currentColor" strokeWidth="1.3" />
-                    <path d="M4 10a6 6 0 0 0 12 0" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-                    <line x1="10" y1="16" x2="10" y2="18.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-                  </svg>
-                )}
-              </button>
-            )}
+            <button
+              className={'stream-mic' + (listening ? ' is-listening' : '')}
+              onClick={() => toggleSpeech()}
+              disabled={modelLoading || transcribing}
+              aria-label={listening ? 'Stop listening' : 'Speak'}
+              title={listening ? 'Stop' : (modelLoading ? 'Loading model…' : (transcribing ? 'Transcribing…' : 'Speak'))}
+            >
+              {listening ? (
+                <span className="stream-mic-pulse">
+                  <span /><span /><span />
+                </span>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+                  <rect x="7" y="2" width="6" height="10" rx="3" fill="none" stroke="currentColor" strokeWidth="1.3" />
+                  <path d="M4 10a6 6 0 0 0 12 0" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+                  <line x1="10" y1="16" x2="10" y2="18.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+                </svg>
+              )}
+            </button>
           </div>
 
           <div className="stream-actions">
             <span className="stream-hint">
-              {text ? `${wordCount} word${wordCount === 1 ? '' : 's'}` : (listening ? 'listening…' : '⌘/Ctrl + ↵ to save')}
+              {text ? `${wordCount} word${wordCount === 1 ? '' : 's'}` : (modelLoading ? 'loading model…' : (transcribing ? 'transcribing…' : (listening ? 'listening…' : '⌘/Ctrl + ↵ to save')))}
             </span>
+            {speechError && (
+              <span className="stream-hint" style={{ color: '#c44' }}>{speechError}</span>
+            )}
             <button
               className="stream-save"
               onClick={handleSave}
