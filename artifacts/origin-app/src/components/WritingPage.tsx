@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { load, save } from '../storage';
 import { useLocalSpeechRecognition } from '../hooks/useLocalSpeechRecognition';
+import { extractTextFromFile, insertTextIntoEditor } from '../utils/fileTextExtractor';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { TextStyleKit } from '@tiptap/extension-text-style';
@@ -127,6 +128,8 @@ export default function WritingPage({
   const [showFormatBar, setShowFormatBar] = useState(false);
   const [savedWordCount, setSavedWordCount] = useState(0);
   const [speechLang, setSpeechLang] = useState('');
+  const [fileExtracting, setFileExtracting] = useState(false);
+  const [fileExtractStatus, setFileExtractStatus] = useState<string | null>(null);
 
   const typingTimer = useRef<number | undefined>(undefined);
   const editorRef = useRef<HTMLDivElement>(null);
@@ -226,6 +229,7 @@ export default function WritingPage({
     return () => { editor.off('update', updateCount); };
   }, [editor]);
 
+  /* Photo upload — shows the image in the writing page. */
   const onPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -233,6 +237,45 @@ export default function WritingPage({
     reader.onload = () => setPhoto(typeof reader.result === 'string' ? reader.result : null);
     reader.readAsDataURL(file);
     e.target.value = '';
+  };
+
+  /* File upload (PDF, DOCX, images of handwritten notes, text files) —
+     extracts text and inserts it into the editor. All processing is
+     in-browser: OCR via tesseract.js, PDF via pdfjs-dist, DOCX via mammoth. */
+  const onFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+
+    setFileExtracting(true);
+    setFileExtractStatus(`Extracting text from ${file.name}…`);
+
+    try {
+      const result = await extractTextFromFile(file);
+
+      // If it's an image, also show it as a photo
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = () => setPhoto(typeof reader.result === 'string' ? reader.result : null);
+        reader.readAsDataURL(file);
+      }
+
+      if (result.text) {
+        if (editor) {
+          insertTextIntoEditor(editor, result.text);
+        }
+        setFileExtractStatus(null);
+      } else {
+        setFileExtractStatus('No text found in this file.');
+        setTimeout(() => setFileExtractStatus(null), 4000);
+      }
+    } catch (err: any) {
+      console.error('File extraction error:', err);
+      setFileExtractStatus(err?.message || 'Could not extract text from this file.');
+      setTimeout(() => setFileExtractStatus(null), 6000);
+    } finally {
+      setFileExtracting(false);
+    }
   };
 
   const markTyping = () => {
@@ -481,6 +524,23 @@ export default function WritingPage({
             <input type="file" accept="image/*" capture="environment" onChange={onPhoto} hidden />
           </label>
 
+          <label
+            className={'wp-tool' + (fileExtracting ? ' wp-tool--live' : '')}
+            title="upload a file (PDF, DOCX, image of handwritten notes)"
+            aria-label="upload a file"
+          >
+            <svg width="19" height="19" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M10 14V3M6 7l4-4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              <path d="M3 13v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+            </svg>
+            <input
+              type="file"
+              accept=".pdf,.docx,.txt,.md,image/*"
+              onChange={onFileUpload}
+              hidden
+            />
+          </label>
+
           <button
             className="wp-tool"
             onClick={() => setShowVideoRecorder(true)}
@@ -505,7 +565,11 @@ export default function WritingPage({
         </div>
 
         <div className="wp-status">
-          {speechError ? (
+          {fileExtractStatus ? (
+            <span className={fileExtractStatus.includes('rror') || fileExtractStatus.includes('ould not') || fileExtractStatus.includes('No text') ? 'wp-error' : 'wp-live'}>
+              {fileExtractStatus}
+            </span>
+          ) : speechError ? (
             <span className="wp-error">{speechError}</span>
           ) : transcribing ? (
             <span className="wp-live">transcribing…</span>
