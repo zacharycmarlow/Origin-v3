@@ -153,9 +153,13 @@ overrides:
 
 allowBuilds:
   '@clerk/shared': true
+  '@reown/appkit': true
+  bufferutil: true
   esbuild: true
+  keccak: true
   onnxruntime-node: true
   protobufjs: true
   sharp: true
   tesseract.js: true
+  utf-8-validate: true
   workerd: true

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useUser } from '@clerk/react';
+import { useAuth } from '../auth/AuthContext';
 import { useLocation } from 'wouter';
 import { getAllReadings, getCumulative, getBodyEntries, getStreamEntries, load } from '../storage';
 
@@ -11,7 +11,7 @@ interface Props {
 }
 
 export default function SharingConsent({ onDone, onSkip }: Props) {
-  const { user } = useUser();
+  const { user } = useAuth();
   const [, navigate] = useLocation();
   const [mode, setMode] = useState<Mode>('readings');
   const [submitting, setSubmitting] = useState(false);

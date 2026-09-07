@@ -1,25 +1,17 @@
 import { createRoot } from "react-dom/client";
-import { ClerkProvider } from "@clerk/react";
+import { PrivyProvider } from "@privy-io/react-auth";
 import { Router as WouterRouter, Switch, Route, useLocation } from "wouter";
 import { ErrorBoundary } from "react-error-boundary";
 import { lazy, Suspense } from "react";
 import App from "./App";
+import { AuthProvider } from "./auth/AuthContext";
 import "./index.css";
-
-const SignInPage = lazy(() => import("./pages/SignInPage"));
-const SignUpPage = lazy(() => import("./pages/SignUpPage"));
 
 const basePath = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
 
-// Only use an explicitly configured key. Deriving one from the hostname
-// (e.g. localhost) synthesizes something that looks valid enough for
-// ClerkProvider to attempt loading clerk.localhost's script, which does
-// not exist in local dev and throws on every render. With no real key,
-// ClerkProvider stays inert (its hooks still work, just signed-out) and
-// the app runs in guest mode, which is already the local source of truth.
-const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-
-const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
+// Privy app ID — this is a public client-side identifier, safe to expose.
+// The app secret is kept server-side only (in .env, never in frontend code).
+const privyAppId = import.meta.env.VITE_PRIVY_APP_ID;
 
 function stripBase(path: string): string {
   return basePath && path.startsWith(basePath)
@@ -27,25 +19,13 @@ function stripBase(path: string): string {
     : path;
 }
 
-function ClerkProviderWithRoutes() {
+function AppWithRoutes() {
   const [, setLocation] = useLocation();
 
   return (
-    <ClerkProvider
-      publishableKey={clerkPubKey ?? ""}
-      proxyUrl={clerkProxyUrl}
-      signInUrl={`${basePath}/sign-in`}
-      signUpUrl={`${basePath}/sign-up`}
-      afterSignOutUrl={`${basePath}/`}
-      routerPush={(to) => setLocation(stripBase(to))}
-      routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
-    >
-      <Switch>
-        <Route path="/sign-in/*?" component={() => <Suspense fallback={null}><SignInPage /></Suspense>} />
-        <Route path="/sign-up/*?" component={() => <Suspense fallback={null}><SignUpPage /></Suspense>} />
-        <Route component={App} />
-      </Switch>
-    </ClerkProvider>
+    <Switch>
+      <Route component={App} />
+    </Switch>
   );
 }
 
@@ -79,7 +59,28 @@ function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetError
 createRoot(document.getElementById("root")!).render(
   <ErrorBoundary FallbackComponent={ErrorFallback}>
     <WouterRouter base={basePath}>
-      <ClerkProviderWithRoutes />
+      <PrivyProvider
+        appId={privyAppId}
+        config={{
+          // Create embedded wallets for users who don't have a wallet
+          embeddedWallets: {
+            ethereum: {
+              createOnLogin: 'users-without-wallets',
+            },
+          },
+          // Enable email, wallet, and social logins
+          loginMethods: ['email', 'wallet', 'google', 'twitter', 'discord', 'apple'],
+          appearance: {
+            theme: 'dark',
+            accentColor: '#c89838',
+            loginMessage: 'Sign in to save your journey',
+          },
+        }}
+      >
+        <AuthProvider>
+          <AppWithRoutes />
+        </AuthProvider>
+      </PrivyProvider>
     </WouterRouter>
   </ErrorBoundary>,
 );

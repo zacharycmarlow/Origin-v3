@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense } from 'react';
-import { useUser } from '@clerk/react';
+import { useAuth } from './auth/AuthContext';
+import { useStorageNamespace, migrateGuestToUser } from './hooks/useUserStorage';
 import CHAPTERS, { Chapter } from './chapters';
 import CHAPTERS_V2 from './chapters-v2';
 import { adaptV2Chapter } from './chaptersAdapter';
@@ -116,7 +117,8 @@ export default function App() {
     () => CHAPTERS_V2.map(adaptV2Chapter),
     [],
   );
-  const { user, isLoaded: authLoaded } = useUser();
+  const { user, ready: authLoaded, authenticated } = useAuth();
+  const storageNamespace = useStorageNamespace();
 
   /* Navigation state */
   const [activeChapterIdx, setActiveChapterIdx] = useState<number>(0);
@@ -204,7 +206,12 @@ export default function App() {
     const isSignedIn = !!currentUserId;
 
     if (isSignedIn && !wasSignedIn) {
-      // Fresh sign-in: capture local snapshot for potential migration
+      // Fresh sign-in: migrate guest data to user namespace
+      if (currentUserId) {
+        migrateGuestToUser(currentUserId);
+      }
+
+      // Capture local snapshot for potential server migration
       const snap = captureLocalSnapshot();
       const hasMeaningfulData = hasSubstantialLocalData();
 
@@ -239,7 +246,7 @@ export default function App() {
     }
 
     prevUserIdRef.current = currentUserId;
-  }, [user?.id, authLoaded]);
+  }, [user?.id, authLoaded, storageNamespace]);
 
   /* ── Visibility / unload pushes ─────────────────────────────── */
   useEffect(() => {
