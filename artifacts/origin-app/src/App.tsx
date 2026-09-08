@@ -19,6 +19,7 @@ import {
   type LocalSnapshot,
 } from './api/userApi';
 import AuthBar from './components/AuthBar';
+import ArtifactsPanel from './components/ArtifactsPanel';
 import BeatStage, { BeatStageHandle } from './components/BeatStage';
 import { ButterflyIcon, CompassIcon } from './components/MorphoCompassIcons';
 import { exportJSON } from './lib/export';
@@ -214,6 +215,12 @@ export default function App() {
   const handleImportClick = useCallback(() => {
     importFileRef.current?.click();
   }, []);
+
+  const handleOpenJournal = useCallback(() => {
+    setJournalInitialTab(undefined);
+    setJournalOpen(true);
+  }, []);
+
   const handleImportFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -240,6 +247,13 @@ export default function App() {
 
   /* PWA install prompt */
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+
+  const handleInstall = useCallback(async () => {
+    if (!installPrompt) return;
+    await installPrompt.prompt();
+    await installPrompt.userChoice;
+    setInstallPrompt(null);
+  }, [installPrompt]);
 
   /* Cumulative reading */
   const [hasCumulative, setHasCumulative] = useState<boolean>(() => !!getCumulative());
@@ -604,79 +618,98 @@ export default function App() {
           </svg>
           <span>{t('app.brand')}</span>
         </button>
-        <div className="topbar-right">
+        <div className="topbar-right topbar-right--minimal">
           {!isOutside && (
             <div className="chapter-count">
               {chapters[activeChapterIdx].roman} · {chapters[activeChapterIdx].title}
             </div>
           )}
-          <button
-            className="mode-toggle"
-            onClick={toggleMode}
-            aria-label={mode === 'color' ? t('mode.switchToPaper') : t('mode.switchToColor')}
-            title={mode === 'color' ? t('mode.paper') : t('mode.color')}
-          >
-            <span className={`mode-dot mode-dot--color${mode === 'color' ? ' on' : ''}`} />
-            <span className={`mode-dot mode-dot--paper${mode === 'paper' ? ' on' : ''}`} />
-            <span className="mode-label">{mode === 'color' ? t('mode.color') : t('mode.paper')}</span>
-          </button>
-          <button
-            className={`instr-btn topbar-journal-btn${hasMorpho ? ' instr-btn--lit' : ''}`}
-            onClick={() => { setJournalInitialTab(undefined); setJournalOpen(true); }}
-            aria-label={t('nav.openJournal')}
-            title={t('nav.journal')}
-          >
-            <ButterflyIcon size={18} glowing={hasMorpho} />
-          </button>
-          <button
-            className="instr-btn"
-            onClick={handleExport}
-            aria-label="Export journey data"
-            title="Export"
-          >
-            <span style={{ fontSize: 11, letterSpacing: '0.08em' }}>Export</span>
-          </button>
-          <button
-            className="instr-btn"
-            onClick={handleImportClick}
-            aria-label="Import / restore journey data"
-            title="Import"
-          >
-            <span style={{ fontSize: 11, letterSpacing: '0.08em' }}>Import</span>
-          </button>
-          {installPrompt && (
-            <button
-              className="instr-btn"
-              onClick={async () => {
-                await installPrompt.prompt();
-                await installPrompt.userChoice;
-                setInstallPrompt(null);
-              }}
-              aria-label="Install Origin as an app"
-              title="Install Origin"
-            >
-              <span style={{ fontSize: 11, letterSpacing: '0.08em' }}>Install</span>
-            </button>
-          )}
-          <AuthBar
-            hasMigrationPrompt={showMigrationPrompt}
-            onMigrate={handleMigrate}
-          />
-          <a
-            href="https://github.com/zacharycmarlow/Origin-v3"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="instr-btn"
-            aria-label="View source on GitHub"
-            title="GitHub"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, textDecoration: 'none' }}
-          >
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
-            </svg>
-          </a>
         </div>
       </header>
+
+      {/* Desktop: Artifacts side panel (≥1024px) */}
+      <ArtifactsPanel
+        mode={mode}
+        onToggleMode={toggleMode}
+        onOpenJournal={handleOpenJournal}
+        onExport={handleExport}
+        onImportClick={handleImportClick}
+        installPrompt={installPrompt}
+        onInstall={handleInstall}
+        hasMorpho={hasMorpho}
+        t={t}
+      />
+
+      {/* Mobile / tablet: compact action bar (<1024px) */}
+      <div className="action-bar" role="toolbar" aria-label="Quick actions">
+        <AuthBar
+          hasMigrationPrompt={showMigrationPrompt}
+          onMigrate={handleMigrate}
+        />
+        <button
+          className="mode-toggle action-bar-btn"
+          onClick={toggleMode}
+          aria-label={mode === 'color' ? t('mode.switchToPaper') : t('mode.switchToColor')}
+          title={mode === 'color' ? t('mode.paper') : t('mode.color')}
+        >
+          <span className={`mode-dot mode-dot--color${mode === 'color' ? ' on' : ''}`} />
+          <span className={`mode-dot mode-dot--paper${mode === 'paper' ? ' on' : ''}`} />
+        </button>
+        <button
+          className={`instr-btn action-bar-btn${hasMorpho ? ' instr-btn--lit' : ''}`}
+          onClick={handleOpenJournal}
+          aria-label={t('nav.openJournal')}
+          title={t('nav.journal')}
+        >
+          <ButterflyIcon size={18} glowing={hasMorpho} />
+        </button>
+        <button
+          className="instr-btn action-bar-btn"
+          onClick={handleExport}
+          aria-label="Export journey data"
+          title="Export"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <button
+          className="instr-btn action-bar-btn"
+          onClick={handleImportClick}
+          aria-label="Import / restore journey data"
+          title="Import"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 21V9m0 0l-4 4m4-4l4 4M5 3h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        {installPrompt && (
+          <button
+            className="instr-btn action-bar-btn"
+            onClick={handleInstall}
+            aria-label="Install Origin as an app"
+            title="Install Origin"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M12 8v6m-3-3l3-3 3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        )}
+        <a
+          href="https://github.com/zacharycmarlow/Origin-v3"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="instr-btn action-bar-btn"
+          aria-label="View source on GitHub"
+          title="GitHub"
+          style={{ textDecoration: 'none' }}
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+          </svg>
+        </a>
+      </div>
 
       <main className="stage" id="main-content">
         <BeatStage

@@ -1,7 +1,7 @@
 import {
   useRef, useEffect, useLayoutEffect, useMemo, forwardRef, useImperativeHandle, useCallback, useState,
 } from 'react';
-import { Chapter } from '../chapters';
+import { Chapter, Scene } from '../chapters';
 import SceneComponent from './Scene';
 import ChapterGate from './sections/ChapterGate';
 import AiReadingSection from './sections/AiReadingSection';
@@ -13,7 +13,7 @@ import MetamythInvite from './MetamythInvite';
 import OriginStoryReveal from './OriginStoryReveal';
 import BirthGate from './BirthGate';
 import SavedPulse from './SavedPulse';
-import { isChapterComplete, getReading } from '../storage';
+import { isChapterComplete, getReading, load } from '../storage';
 
 /* ═══════════════════════════════════════════════════════════════
    THE BEAT STAGE — the journey as discrete, crossed beats.
@@ -79,6 +79,31 @@ function buildBeats(chapters: Chapter[]): BeatData[] {
   });
   out.push({ id: 'beat-epilogue', kind: 'epilogue' });
   return out;
+}
+
+/* ─── Scene key extraction ───────────────────────────────────────
+   Mirrors the writable-key logic in isChapterComplete (storage.ts) so
+   BeatStage can locate the first unwritten scene for the "return to
+   writing" CTA without reaching into storage internals. */
+function sceneWritableKeys(scene: Scene): string[] {
+  const keys: string[] = [];
+  if ((scene.kind === 'prompt' || scene.kind === 'broadcast' || scene.kind === 'voices') && scene.key) {
+    keys.push(scene.key);
+  } else if ((scene.kind === 'gratitude' || scene.kind === 'declaration') && scene.keys) {
+    keys.push(...scene.keys);
+  } else if (scene.kind === 'gathering' && scene.lines) {
+    for (const line of scene.lines) {
+      if (!line.fixed && line.key) keys.push(line.key);
+    }
+  } else if (scene.kind === 'threshold' && scene.prompt?.key) {
+    keys.push(scene.prompt.key);
+  }
+  return keys;
+}
+
+function valueNonEmpty(v: unknown): boolean {
+  if (Array.isArray(v)) return v.some(x => typeof x === 'string' && x.trim().length > 0);
+  return typeof v === 'string' && v.trim().length > 0;
 }
 
 /* ─── Compass glyph (unchanged) ───────────────────────────────── */
@@ -303,8 +328,8 @@ function SceneBeat({ chapterIdx, sceneIdx, chapters, onShare }: {
 }
 
 /* ─── Transition beat (with Horizon breath CTA) ──────────────────── */
-function TransitionBeat({ chapterIdx, chapters, onHorizon }: {
-  chapterIdx: number; chapters: Chapter[]; onHorizon: (chapterIdx: number) => void;
+function TransitionBeat({ chapterIdx, chapters, onHorizon, onReturnToWriting }: {
+  chapterIdx: number; chapters: Chapter[]; onHorizon: (chapterIdx: number) => void; onReturnToWriting: () => void;
 }) {
   const chapter = chapters[chapterIdx];
   const hasReading = !!(getReading(chapterIdx).morpho || getReading(chapterIdx).sage);
@@ -312,7 +337,7 @@ function TransitionBeat({ chapterIdx, chapters, onHorizon }: {
 
   return (
     <>
-      <ChapterTransition chapter={chapter} chapterIdx={chapterIdx} />
+      <ChapterTransition chapter={chapter} chapterIdx={chapterIdx} onReturnToWriting={onReturnToWriting} />
       {(complete || hasReading) && (
         <div className="sj-horizon-cta">
           <button className="sj-horizon-btn" onClick={() => onHorizon(chapterIdx)} title="Coherence breath between chapters">
@@ -375,6 +400,20 @@ const BeatStage = forwardRef<BeatStageHandle, Props>(({
   const beats = useMemo(() => buildBeats(chapters), [chapters]);
   const [activeIdx, setActiveIdx] = useState(0);
 
+  /* ─── Scroll lock: incomplete chapter transitions ───────────────
+     A chapter-transition beat whose chapter is NOT complete acts as a
+     locked gate — the user may not scroll DOWN past it. We never block
+     scrolling UP (back to the writing). The lock is enforced by READING
+     window.scrollY and RESETTING it when the user crosses the boundary,
+     never by preventing the default scroll event, so native scroll-snap
+     physics stay intact for every other beat.
+
+     `lockedGateIdxs` (state) drives the visual classes; `lockedGatesRef`
+     (ref) holds the live element handles the scroll listener reads. */
+  const [lockedGateIdxs, setLockedGateIdxs] = useState<Set<number>>(new Set());
+  const lockedGatesRef = useRef<{ beatIdx: number; el: HTMLElement }[]>([]);
+  const lockActive = lockedGateIdxs.has(activeIdx);
+
   const scrollToBeatEl = useCallback((el: HTMLElement | null, behavior: ScrollBehavior = 'smooth') => {
     if (el && stageRef.current) {
       el.scrollIntoView({ behavior, block: 'start' });
@@ -397,6 +436,83 @@ const BeatStage = forwardRef<BeatStageHandle, Props>(({
       if (ci !== undefined) gateEls.current.set(ci, el);
     }
   }, []);
+
+  /* Recompute the locked-gate set on a 1s cadence. isChapterComplete
+     reads the in-memory storage cache (synchronous), but the cache is
+     mutated by async IDB writes elsewhere, so we poll to catch the
+     moment a chapter flips to complete and release the lock. */
+  useEffect(() => {
+    const compute = () => {
+      const idxs = new Set<number>();
+      const gates: { beatIdx: number; el: HTMLElement }[] = [];
+      beats.forEach((b, i) => {
+        if (b.kind === 'chapter-transition') {
+          const ch = chapters[b.chapterIdx];
+          if (!isChapterComplete(ch)) {
+            idxs.add(i);
+            const el = beatEls.current.get(b.id);
+            if (el) gates.push({ beatIdx: i, el });
+          }
+        }
+      });
+      setLockedGateIdxs(prev => {
+        if (prev.size === idxs.size && [...idxs].every(x => prev.has(x))) return prev;
+        return idxs;
+      });
+      lockedGatesRef.current = gates;
+    };
+    compute();
+    const interval = setInterval(compute, 1000);
+    return () => clearInterval(interval);
+  }, [beats, chapters]);
+
+  /* The actual scroll lock. On every scroll event we look for the first
+     locked gate at or below the current position (the boundary). If the
+     user has scrolled DOWN past that boundary's top, we instantly reset
+     scroll back to it. Upward scrolling is never touched. This only
+     READS scroll and WRITES a reset — it never calls preventDefault, so
+     it cannot fight native scroll-snap. */
+  useEffect(() => {
+    const enforce = () => {
+      const gates = lockedGatesRef.current;
+      if (gates.length === 0) return;
+      const scrollY = window.scrollY;
+      for (const g of gates) {
+        const top = g.el.getBoundingClientRect().top + window.scrollY;
+        if (top >= scrollY - 1) {
+          if (scrollY > top) {
+            window.scrollTo({ top, behavior: 'auto' });
+          }
+          return;
+        }
+      }
+    };
+    enforce();
+    window.addEventListener('scroll', enforce, { passive: true });
+    return () => window.removeEventListener('scroll', enforce);
+  }, []);
+
+  /* "Return to your writing" — scrolls to the first scene beat of the
+     active chapter that has no user content yet. Falls back to the
+     chapter gate if every scene is somehow filled. */
+  const returnToWriting = useCallback(() => {
+    const activeBeat = beats[activeIdx];
+    if (!activeBeat || !('chapterIdx' in activeBeat)) return;
+    const ci = activeBeat.chapterIdx;
+    const ch = chapters[ci];
+    const stored = load();
+    for (let si = 0; si < ch.scenes.length; si++) {
+      const scene = ch.scenes[si];
+      const keys = sceneWritableKeys(scene);
+      if (keys.length === 0) continue;
+      const filled = keys.some(k => valueNonEmpty(stored[k]));
+      if (!filled) {
+        const el = beatEls.current.get(`beat-scene-${ci}-${si}`);
+        if (el) { scrollToBeatEl(el); return; }
+      }
+    }
+    scrollToBeatEl(gateEls.current.get(ci) || null);
+  }, [activeIdx, beats, chapters, scrollToBeatEl]);
 
   /* Which beat is current: whichever crosses ~40% of viewport height —
      drives onChapterChange, the breath dots, and the back button. */
@@ -549,10 +665,11 @@ const BeatStage = forwardRef<BeatStageHandle, Props>(({
   }, [activeIdx, beats, scrollToBeatEl]);
 
   return (
-    <div className="beat-stage" ref={stageRef}>
-      {beats.map((beat) => {
+    <div className={`beat-stage${lockActive ? ' beat-stage--locked' : ''}`} ref={stageRef}>
+      {beats.map((beat, bIdx) => {
         const tall = TALL_KINDS.has(beat.kind);
-        const cls = `beat${tall ? ' beat--tall' : ''}`;
+        const lockedGate = lockedGateIdxs.has(bIdx);
+        const cls = `beat${tall ? ' beat--tall' : ''}${lockedGate ? ' beat--locked-gate' : ''}`;
 
         switch (beat.kind) {
           case 'prelude-arrival':
@@ -638,7 +755,7 @@ const BeatStage = forwardRef<BeatStageHandle, Props>(({
             return (
               <section key={beat.id} id={beat.id} className={cls} ref={setBeatRef(beat.id)}>
                 <div className="beat-content">
-                  <TransitionBeat chapterIdx={beat.chapterIdx} chapters={chapters} onHorizon={onHorizon} />
+                  <TransitionBeat chapterIdx={beat.chapterIdx} chapters={chapters} onHorizon={onHorizon} onReturnToWriting={returnToWriting} />
                 </div>
               </section>
             );

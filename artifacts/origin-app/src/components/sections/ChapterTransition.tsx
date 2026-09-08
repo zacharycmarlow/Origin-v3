@@ -5,9 +5,10 @@ import { isChapterComplete, extractChapterBeats } from '../../storage';
 interface Props {
   chapter: Chapter;
   chapterIdx: number;
+  onReturnToWriting?: () => void;
 }
 
-export default function ChapterTransition({ chapter, chapterIdx }: Props) {
+export default function ChapterTransition({ chapter, chapterIdx, onReturnToWriting }: Props) {
   const [complete, setComplete] = useState(() => isChapterComplete(chapter));
 
   // Re-check completion when the component is visible (user may have just written)
@@ -49,6 +50,10 @@ export default function ChapterTransition({ chapter, chapterIdx }: Props) {
             </span>
           </div>
           <p className="sj-gate-notice-hint">scroll up to continue writing</p>
+          <button className="return-to-writing-btn" onClick={onReturnToWriting} disabled={!onReturnToWriting}>
+            <span className="return-to-writing-arrow" aria-hidden="true">↑</span>
+            <span className="return-to-writing-label">return to your writing</span>
+          </button>
         </div>
         <div className="sj-transition-rule" />
       </div>
