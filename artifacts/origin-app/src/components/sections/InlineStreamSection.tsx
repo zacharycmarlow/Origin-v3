@@ -1,15 +1,12 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { getStreamEntries, addStreamEntry, deleteStreamEntry, StreamEntry } from '../../storage';
 import { Chapter } from '../../chapters';
+import { useLocalSpeechRecognition } from '../../hooks/useLocalSpeechRecognition';
 
 interface Props {
   chapterIdx: number;
   chapters: Chapter[];
 }
-
-const speechAvailable =
-  typeof window !== 'undefined' &&
-  !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
 
 function formatRelative(ts: number): string {
   const diff = Date.now() - ts;
@@ -23,69 +20,35 @@ function formatRelative(ts: number): string {
 
 export default function InlineStreamSection({ chapterIdx, chapters }: Props) {
   const [text, setText] = useState('');
-  const [listening, setListening] = useState(false);
   const [entries, setEntries] = useState<StreamEntry[]>(() => getStreamEntries());
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
-  const recognitionRef = useRef<any>(null);
-  const baseRef = useRef<string>('');
+  /* Local Whisper transcription — works in Brave and other privacy-focused
+     browsers. Audio never leaves the device. The model (~40MB) loads
+     lazily on first use and caches. */
+  const handleSpeechResult = useCallback((transcribed: string) => {
+    setText(prev => {
+      const sep = prev && !/\s$/.test(prev) ? ' ' : '';
+      return prev + sep + transcribed;
+    });
+  }, []);
+  const {
+    listening, error: speechError, modelLoading, transcribing,
+    toggle: toggleSpeech, stop: stopSpeech,
+  } = useLocalSpeechRecognition(handleSpeechResult, { task: 'transcribe' });
 
   const sortedEntries = useMemo(
     () => [...entries].sort((a, b) => b.timestamp - a.timestamp),
     [entries]
   );
 
-  useEffect(() => {
-    return () => {
-      try { recognitionRef.current?.stop(); } catch { /* noop */ }
-    };
-  }, []);
-
-  const toggleMic = () => {
-    if (listening) {
-      recognitionRef.current?.stop();
-      setListening(false);
-      return;
-    }
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) return;
-    const recognition = new SR();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognitionRef.current = recognition;
-    baseRef.current = text;
-
-    recognition.onresult = (event: any) => {
-      let finalChunk = '';
-      let interimChunk = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const t = event.results[i][0].transcript;
-        if (event.results[i].isFinal) finalChunk += t;
-        else interimChunk += t;
-      }
-      if (finalChunk) {
-        const sep = baseRef.current && !/\s$/.test(baseRef.current) ? ' ' : '';
-        baseRef.current = baseRef.current + sep + finalChunk.trim();
-      }
-      setText(baseRef.current + (interimChunk ? ' ' + interimChunk : ''));
-    };
-    recognition.onend = () => setListening(false);
-    recognition.onerror = () => setListening(false);
-    recognition.start();
-    setListening(true);
-  };
-
   const handleSave = () => {
     const trimmed = text.trim();
     if (!trimmed) return;
-    if (listening) {
-      try { recognitionRef.current?.stop(); } catch { /* noop */ }
-      setListening(false);
-    }
+    if (listening) stopSpeech();
     addStreamEntry(chapterIdx, trimmed);
     setText('');
-    baseRef.current = '';
     setEntries(getStreamEntries());
     setSaved(true);
     setTimeout(() => setSaved(false), 1400);
@@ -114,7 +77,7 @@ export default function InlineStreamSection({ chapterIdx, chapters }: Props) {
         <textarea
           className="inline-stream-input"
           value={text}
-          onChange={e => { baseRef.current = e.target.value; setText(e.target.value); }}
+          onChange={e => setText(e.target.value)}
           onKeyDown={e => {
             if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
               e.preventDefault();
@@ -125,26 +88,28 @@ export default function InlineStreamSection({ chapterIdx, chapters }: Props) {
           rows={4}
         />
         <div className="inline-stream-controls">
-          {speechAvailable && (
-            <button
-              className={'inline-stream-mic' + (listening ? ' is-listening' : '')}
-              onClick={toggleMic}
-              aria-label={listening ? 'Stop listening' : 'Speak'}
-            >
-              {listening ? (
-                <span className="stream-mic-pulse"><span /><span /><span /></span>
-              ) : (
-                <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true">
-                  <rect x="7" y="2" width="6" height="10" rx="3" fill="none" stroke="currentColor" strokeWidth="1.3" />
-                  <path d="M4 10a6 6 0 0 0 12 0" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-                  <line x1="10" y1="16" x2="10" y2="18.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-                </svg>
-              )}
-            </button>
-          )}
+          <button
+            className={'inline-stream-mic' + (listening ? ' is-listening' : '')}
+            onClick={() => toggleSpeech()}
+            disabled={modelLoading || transcribing}
+            aria-label={listening ? 'Stop listening' : 'Speak'}
+          >
+            {listening ? (
+              <span className="stream-mic-pulse"><span /><span /><span /></span>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true">
+                <rect x="7" y="2" width="6" height="10" rx="3" fill="none" stroke="currentColor" strokeWidth="1.3" />
+                <path d="M4 10a6 6 0 0 0 12 0" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+                <line x1="10" y1="16" x2="10" y2="18.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+              </svg>
+            )}
+          </button>
           <span className="inline-stream-hint">
-            {text ? `${wordCount}w` : (listening ? 'listening…' : '⌘↵ to save')}
+            {text ? `${wordCount}w` : (modelLoading ? 'loading…' : (transcribing ? 'transcribing…' : (listening ? 'listening…' : '⌘↵ to save')))}
           </span>
+          {speechError && (
+            <span className="inline-stream-hint" style={{ color: '#c44' }}>{speechError}</span>
+          )}
           <button
             className="inline-stream-save"
             onClick={handleSave}

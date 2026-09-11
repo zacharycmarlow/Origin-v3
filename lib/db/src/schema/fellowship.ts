@@ -1,4 +1,4 @@
-import { pgTable, text, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, boolean, timestamp, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -15,7 +15,9 @@ export const podsTable = pgTable("pods", {
   // 'soft'   — laggards are nudged but the pod may move on
   gate: text("gate").notNull().default("strict"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (table) => [
+  index("pods_created_by_idx").on(table.createdBy),
+]);
 
 export const podMembersTable = pgTable("pod_members", {
   id: text("id").primaryKey(),
@@ -23,7 +25,10 @@ export const podMembersTable = pgTable("pod_members", {
   userId: text("user_id").notNull(),
   role: text("role").notNull().default("member"), // 'keeper' (creator) | 'member'
   joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (table) => [
+  index("pod_members_pod_id_idx").on(table.podId),
+  index("pod_members_user_id_idx").on(table.userId),
+]);
 
 /* One row per member per chapter — the submission that gates the pod. */
 export const podSubmissionsTable = pgTable("pod_submissions", {
@@ -32,7 +37,10 @@ export const podSubmissionsTable = pgTable("pod_submissions", {
   userId: text("user_id").notNull(),
   chapter: integer("chapter").notNull(),
   submittedAt: timestamp("submitted_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (table) => [
+  index("pod_submissions_pod_id_idx").on(table.podId),
+  index("pod_submissions_user_chapter_idx").on(table.userId, table.chapter),
+]);
 
 /* Per-response sharing consent: which of a member's responses the pod may see. */
 export const podSharesTable = pgTable("pod_shares", {
@@ -42,7 +50,10 @@ export const podSharesTable = pgTable("pod_shares", {
   sceneKey: text("scene_key").notNull(),
   shared: boolean("shared").notNull().default(false),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (table) => [
+  index("pod_shares_pod_id_idx").on(table.podId),
+  index("pod_shares_user_id_idx").on(table.userId),
+]);
 
 export const insertPodSchema = createInsertSchema(podsTable).omit({ createdAt: true });
 export const insertPodMemberSchema = createInsertSchema(podMembersTable).omit({ joinedAt: true });

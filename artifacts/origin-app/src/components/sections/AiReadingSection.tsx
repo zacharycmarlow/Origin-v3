@@ -12,6 +12,7 @@ import { ButterflyIcon, CompassIcon } from '../MorphoCompassIcons';
 interface Props {
   chapters: Chapter[];
   chapterIdx: number;
+  onShare?: (text: string, title?: string, eyebrow?: string) => void;
 }
 
 /* ── Word-by-word reveal hook ──────────────────────────────── */
@@ -42,7 +43,7 @@ function RevealText({ text, active, delay = 80 }: { text: string; active: boolea
   return <>{revealed}</>;
 }
 
-export default function AiReadingSection({ chapters, chapterIdx }: Props) {
+export default function AiReadingSection({ chapters, chapterIdx, onShare }: Props) {
   const chapter = chapters[chapterIdx];
   const [morpho, setMorpho] = useState<MorphoReading | undefined>(() => getReading(chapterIdx).morpho);
   const [sage, setSage] = useState<SageReading | undefined>(() => getReading(chapterIdx).sage);
@@ -185,6 +186,22 @@ export default function AiReadingSection({ chapters, chapterIdx }: Props) {
           <div className="sj-reading-guide-head">
             <ButterflyIcon size={13} glowing />
             <span>Morpho</span>
+            {onShare && morpho.throughLine && (
+              <button
+                className="reading-share-btn"
+                onClick={() => onShare(morpho.throughLine, `Morpho · ${chapter.title}`, `${chapter.roman} · ${chapter.title}`)}
+                title="Share this reading"
+                aria-label="Share this reading"
+              >
+                <svg width="12" height="12" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <circle cx="6" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.2" />
+                  <circle cx="14" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.2" />
+                  <circle cx="14" cy="15" r="2.5" stroke="currentColor" strokeWidth="1.2" />
+                  <line x1="8" y1="9" x2="12" y2="6" stroke="currentColor" strokeWidth="1.2" />
+                  <line x1="8" y1="11" x2="12" y2="14" stroke="currentColor" strokeWidth="1.2" />
+                </svg>
+              </button>
+            )}
           </div>
           <p className="sj-reading-through">
             <RevealText text={morpho.throughLine} active={freshlyLoaded} delay={75} />
@@ -211,6 +228,22 @@ export default function AiReadingSection({ chapters, chapterIdx }: Props) {
           <div className="sj-reading-guide-head">
             <CompassIcon size={13} glowing />
             <span>Sage</span>
+            {onShare && sage.resonance && (
+              <button
+                className="reading-share-btn"
+                onClick={() => onShare(sage.resonance, `Sage · ${chapter.title}`, `${chapter.roman} · ${chapter.title}`)}
+                title="Share this reading"
+                aria-label="Share this reading"
+              >
+                <svg width="12" height="12" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <circle cx="6" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.2" />
+                  <circle cx="14" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.2" />
+                  <circle cx="14" cy="15" r="2.5" stroke="currentColor" strokeWidth="1.2" />
+                  <line x1="8" y1="9" x2="12" y2="6" stroke="currentColor" strokeWidth="1.2" />
+                  <line x1="8" y1="11" x2="12" y2="14" stroke="currentColor" strokeWidth="1.2" />
+                </svg>
+              </button>
+            )}
           </div>
           <p className="sj-reading-resonance">
             <RevealText text={sage.resonance} active={freshlyLoaded} delay={65} />
@@ -273,9 +306,27 @@ export default function AiReadingSection({ chapters, chapterIdx }: Props) {
                 <p key={i} className="weave-para">{para}</p>
               ))}
               {synthesis.closing && <p className="weave-closing">{synthesis.closing}</p>}
-              <button className="margins-again" onClick={requestSynthesis} disabled={weaving}>
-                {weaving ? 'weaving again…' : 'weave again'}
-              </button>
+              <div className="weave-actions">
+                <button className="margins-again" onClick={requestSynthesis} disabled={weaving}>
+                  {weaving ? 'weaving again…' : 'weave again'}
+                </button>
+                {onShare && (
+                  <button
+                    className="weave-share-btn"
+                    onClick={() => onShare(synthesis.story, synthesis.title, `The Storyteller · ${chapter.title}`)}
+                    title="Share this telling"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                      <circle cx="6" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.2" />
+                      <circle cx="14" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.2" />
+                      <circle cx="14" cy="15" r="2.5" stroke="currentColor" strokeWidth="1.2" />
+                      <line x1="8" y1="9" x2="12" y2="6" stroke="currentColor" strokeWidth="1.2" />
+                      <line x1="8" y1="11" x2="12" y2="14" stroke="currentColor" strokeWidth="1.2" />
+                    </svg>
+                    <span>share this telling</span>
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </div>

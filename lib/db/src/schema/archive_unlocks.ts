@@ -1,4 +1,4 @@
-import { pgTable, text, integer, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, timestamp, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -9,7 +9,10 @@ export const archiveUnlocksTable = pgTable("archive_unlocks", {
   kind: text("kind").notNull(), // 'code' | 'lore'
   title: text("title").notNull(),
   unlockedAt: timestamp("unlocked_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (table) => [
+  index("archive_unlocks_user_id_idx").on(table.userId),
+  index("archive_unlocks_user_chapter_idx").on(table.userId, table.chapterIdx),
+]);
 
 export const insertArchiveUnlockSchema = createInsertSchema(archiveUnlocksTable).omit({ unlockedAt: true });
 export type InsertArchiveUnlock = z.infer<typeof insertArchiveUnlockSchema>;

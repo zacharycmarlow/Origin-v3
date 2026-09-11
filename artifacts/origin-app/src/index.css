@@ -50,6 +50,10 @@
   font-display: swap;
 }
 
+/* ─── Skip-to-content link (accessibility) ──────────────── */
+.skip-link { position: absolute; top: -40px; left: 0; background: var(--bg, #1a1a2e); color: var(--ink, #e8dcc6); padding: 8px 16px; z-index: 9999; transition: top 0.2s; }
+.skip-link:focus { top: 0; }
+
 /* ─── Animated CSS Custom Properties ─────────────────────── */
 /* @property enables smooth color transitions on custom properties */
 @property --bg    { syntax: '<color>'; inherits: true; initial-value: #ece1c3; }
@@ -6733,6 +6737,14 @@ input, textarea, select { font-family: inherit; color: inherit; }
   opacity: 0;
   visibility: hidden;
   will-change: opacity, filter;
+  /* Adjacent beats within the melt threshold (1.05vh) are still
+     visibility:visible for the dissolve transition, but they must
+     NOT intercept pointer events — only the fully-landed beat should
+     receive clicks. The JS melt sets pointer-events:auto on the
+     active beat. Without this, the next beat's fixed overlay sits
+     on top and swallows clicks on textareas/buttons in the current
+     beat. */
+  pointer-events: none;
 }
 /* The melt keyframe is now applied by JS directly as inline
    opacity/filter (see BeatStage.tsx) — no CSS animation/keyframes here.
@@ -6750,6 +6762,7 @@ input, textarea, select { font-family: inherit; color: inherit; }
   position: static;
   animation: none;
   opacity: 1; visibility: visible; filter: none;
+  pointer-events: auto;
   width: 100%;
   justify-content: flex-start;
   padding: 8vh 5vw;
@@ -7295,4 +7308,1058 @@ input, textarea, select { font-family: inherit; color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .writing-page { animation: none; }
   .wp-tool--live { animation: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Media recorder + share/publish prompts
+   ═══════════════════════════════════════════════════════════════ */
+
+.recorder-overlay,
+.share-prompt-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  background: rgba(10, 8, 6, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: share-fade-in 0.2s ease;
+}
+
+@keyframes share-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.recorder-shell,
+.share-prompt-shell {
+  background: #1a1510;
+  border: 1px solid rgba(200, 152, 56, 0.2);
+  border-radius: 6px;
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  color: #e8dcc6;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.recorder-shell--audio { max-width: 420px; }
+
+.recorder-topbar,
+.share-prompt-close {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(200, 152, 56, 0.1);
+}
+
+.recorder-title {
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #c89838;
+}
+
+.recorder-close,
+.share-prompt-close {
+  background: none;
+  border: none;
+  color: #e8dcc6;
+  font-size: 1.5rem;
+  cursor: pointer;
+  opacity: 0.5;
+  padding: 0.25rem 0.5rem;
+  line-height: 1;
+}
+.recorder-close:hover,
+.share-prompt-close:hover { opacity: 1; }
+
+.share-prompt-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 1;
+  border: none;
+  background: none;
+}
+
+.recorder-stage {
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+  background: #0f0c08;
+}
+
+.recorder-stage--audio { min-height: 160px; }
+
+.recorder-preview,
+.recorder-playback {
+  max-width: 100%;
+  max-height: 360px;
+  border-radius: 4px;
+}
+
+.recorder-placeholder {
+  text-align: center;
+  color: #e8dcc6;
+  opacity: 0.4;
+}
+.recorder-placeholder p {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.recorder-pulse {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #c89838;
+  font-size: 0.9rem;
+}
+
+.recorder-pulse-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #c89838;
+  animation: recorder-pulse-anim 1.4s ease infinite;
+}
+
+@keyframes recorder-pulse-anim {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+.recorder-audio-playback { width: 100%; }
+
+.recorder-controls {
+  padding: 1rem 1.25rem;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.recorder-btn {
+  background: transparent;
+  border: 1px solid rgba(200, 152, 56, 0.3);
+  color: #e8dcc6;
+  padding: 0.5rem 1.25rem;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  transition: all 0.15s;
+}
+.recorder-btn:hover { border-color: #c89838; color: #c89838; }
+.recorder-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.recorder-btn--record { border-color: #c89838; color: #c89838; }
+.recorder-btn--stop { border-color: #c44545; color: #c44545; }
+.recorder-btn--save { border-color: #c89838; color: #c89838; }
+.recorder-btn--transcribe { border-color: #4ff0d6; color: #4ff0d6; }
+.recorder-btn--transcribe:disabled { opacity: 0.5; }
+
+.recorder-saved {
+  color: #c89838;
+  font-size: 0.85rem;
+  padding: 0.5rem;
+}
+
+/* Share / Record / Publish prompt content */
+.share-prompt-content {
+  padding: 2rem 1.5rem 1.5rem;
+  text-align: center;
+}
+
+.share-prompt-eyebrow {
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #c89838;
+  opacity: 0.7;
+  margin: 0 0 0.75rem;
+}
+
+.share-prompt-title {
+  font-size: 1.3rem;
+  font-weight: 400;
+  margin: 0 0 0.75rem;
+  color: #e8dcc6;
+  line-height: 1.3;
+}
+
+.share-prompt-body {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #e8dcc6;
+  opacity: 0.7;
+  margin: 0 0 1.5rem;
+}
+
+.share-prompt-preview {
+  margin: 0 0 1.5rem;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(200, 152, 56, 0.15);
+}
+.share-prompt-preview img {
+  width: 100%;
+  display: block;
+}
+
+.share-prompt-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.share-prompt-btn {
+  background: transparent;
+  border: 1px solid rgba(232, 220, 198, 0.2);
+  color: #e8dcc6;
+  padding: 0.6rem 1.25rem;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  transition: all 0.15s;
+}
+.share-prompt-btn:hover { border-color: #c89838; }
+
+.share-prompt-btn--private {
+  border-color: rgba(232, 220, 198, 0.15);
+  opacity: 0.6;
+}
+.share-prompt-btn--private:hover { opacity: 1; }
+
+.share-prompt-btn--preview,
+.share-prompt-btn--share,
+.share-prompt-btn--bluesky {
+  border-color: #c89838;
+  color: #c89838;
+}
+.share-prompt-btn--preview:hover,
+.share-prompt-btn--share:hover,
+.share-prompt-btn--bluesky:hover {
+  background: rgba(200, 152, 56, 0.1);
+}
+
+.share-prompt-btn--bluesky:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.share-prompt-error {
+  font-size: 0.8rem;
+  color: #d98a7a;
+  margin: 0 0 1rem;
+  text-align: center;
+}
+
+.share-prompt-footnote {
+  font-size: 0.75rem;
+  color: #e8dcc6;
+  opacity: 0.4;
+  font-style: italic;
+  margin: 0;
+}
+
+.publish-privacy {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.publish-privacy-label {
+  font-size: 0.8rem;
+  color: #e8dcc6;
+  opacity: 0.6;
+}
+
+.publish-privacy-select {
+  background: #0f0c08;
+  border: 1px solid rgba(200, 152, 56, 0.3);
+  color: #e8dcc6;
+  padding: 0.4rem 0.75rem;
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.publish-privacy-select:focus { outline: none; border-color: #c89838; }
+
+@media (prefers-reduced-motion: reduce) {
+  .share-prompt-overlay { animation: none; }
+  .recorder-pulse-dot { animation: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Rich text editor (TipTap) + format bar + video preview
+   ═══════════════════════════════════════════════════════════════ */
+
+/* The TipTap editor replaces the old textarea. */
+.wp-editor-wrap {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto;
+  width: 100%; max-width: 720px; margin: 0 auto;
+  padding: 0 clamp(22px, 5vw, 44px) 20px;
+  box-sizing: border-box;
+}
+.wp-editor {
+  min-height: 300px;
+  font-family: var(--font-body);
+  font-size: 18px; line-height: 1.75;
+  color: var(--ink);
+  outline: none;
+}
+.wp-editor:empty::before {
+  content: attr(data-placeholder);
+  color: color-mix(in srgb, var(--ink) 35%, transparent);
+  font-family: var(--font-script); font-style: italic;
+  pointer-events: none;
+}
+.wp-editor p { margin: 0 0 0.6em; }
+.wp-editor strong { font-weight: 700; }
+.wp-editor em { font-style: italic; }
+.wp-editor:focus { outline: none; }
+
+/* Format bar — slides in above the bottom toolbar */
+.wp-format-bar {
+  position: fixed; bottom: 56px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 4px;
+  background: rgba(26, 21, 16, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(200, 150, 60, 0.2);
+  border-radius: 8px;
+  padding: 6px 8px;
+  z-index: 130;
+  animation: wp-fmt-rise 200ms ease;
+}
+@keyframes wp-fmt-rise {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.wp-fmt-btn {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent; border: none;
+  color: #e8dcc6; font-size: 15px;
+  border-radius: 4px; cursor: pointer;
+  transition: background 150ms;
+}
+.wp-fmt-btn:hover { background: rgba(255,255,255,0.08); }
+.wp-fmt-btn--active { background: rgba(200,150,60,0.25); color: #c89838; }
+.wp-fmt-divider {
+  width: 1px; height: 20px; background: rgba(255,255,255,0.12); margin: 0 2px;
+}
+.wp-fmt-select {
+  background: transparent; border: 1px solid rgba(255,255,255,0.12);
+  color: #e8dcc6; font-size: 12px; font-family: inherit;
+  border-radius: 4px; padding: 4px 6px; cursor: pointer;
+}
+.wp-fmt-select option { background: #1a1510; color: #e8dcc6; }
+.wp-font-select { max-width: 160px; }
+.wp-font-select optgroup { background: #1a1510; color: #c89838; font-style: normal; font-weight: 600; }
+.wp-font-select option { padding-left: 12px; }
+.wp-lang-select {
+  background: transparent; border: 1px solid rgba(255,255,255,0.12);
+  color: #e8dcc6; font-size: 12px; font-family: inherit;
+  border-radius: 4px; padding: 4px 6px; cursor: pointer;
+  margin-left: 4px; max-width: 110px;
+}
+.wp-lang-select option { background: #1a1510; color: #e8dcc6; }
+.wp-lang-select:disabled { opacity: 0.5; cursor: not-allowed; }
+.wp-fmt-color {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid transparent; cursor: pointer;
+  transition: border-color 150ms;
+}
+.wp-fmt-color:hover { border-color: rgba(255,255,255,0.3); }
+.wp-fmt-color--active { border-color: #c89838; }
+.wp-fmt-color--reset {
+  background: transparent !important; color: #e8dcc6;
+  border: 1px solid rgba(255,255,255,0.2);
+  font-size: 14px; line-height: 1;
+}
+/* Format bar: scroll if too many controls on small screens */
+.wp-format-bar {
+  overflow-x: auto; scrollbar-width: thin;
+}
+/* Highlight marks in editor content */
+.wp-editor mark { border-radius: 2px; padding: 0 1px; }
+.wp-editor[data-text-align="left"] { text-align: left; }
+.wp-editor[data-text-align="center"] { text-align: center; }
+.wp-editor[data-text-align="right"] { text-align: right; }
+
+/* Video preview in writing page */
+.wp-video {
+  position: relative; margin: 16px auto; max-width: 640px;
+  border-radius: 4px; overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+}
+.wp-video video { width: 100%; display: block; border-radius: 4px; }
+
+/* Speech error display */
+.wp-error {
+  color: #e88; font-size: 11px; max-width: 200px;
+  text-overflow: ellipsis; overflow: hidden; white-space: nowrap;
+}
+
+/* Format tool active state */
+.wp-tool--active {
+  color: var(--glow);
+  background: rgba(79, 240, 214, 0.08);
+}
+
+/* TipTap placeholder — the extension adds a data attribute */
+.wp-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left; color: color-mix(in srgb, var(--ink) 35%, transparent);
+  pointer-events: none; height: 0;
+  font-family: var(--font-script); font-style: italic;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   3.12 — Chapter Progress Indicator
+   ═══════════════════════════════════════════════════════════ */
+.progress-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+}
+.progress-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(200, 152, 56, 0.22);
+  transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+}
+.progress-dot--past {
+  background: rgba(200, 152, 56, 0.5);
+}
+.progress-dot--complete {
+  background: #c89838;
+}
+.progress-dot--current {
+  background: #c89838;
+  transform: scale(1.5);
+  box-shadow: 0 0 6px rgba(200, 152, 56, 0.7);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   3.17 — Dark mode CSS custom properties + light theme override
+   ═══════════════════════════════════════════════════════════ */
+:root {
+  --origin-bg: #1a1510;
+  --origin-ink: #e8dcc6;
+  --origin-accent: #c89838;
+  --origin-veil: #2a2218;
+  --origin-glow: #4ff0d6;
+}
+
+/* Light theme: only applies when the user's OS prefers light mode
+   AND the app has not explicitly forced the dark manuscript palette
+   via [data-dark="true"]. The app sets data-dark on its root element. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-dark="true"]):root {
+    --origin-bg: #f7f2e6;
+    --origin-ink: #3c3226;
+    --origin-accent: #8b6218;
+    --origin-veil: #ede5d1;
+    --origin-glow: #2dd4c2;
+  }
+}
+
+/* Floating theme toggle button */
+.theme-toggle {
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  z-index: 9000;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--origin-accent, #c89838);
+  background: rgba(26, 21, 16, 0.7);
+  color: var(--origin-accent, #c89838);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  backdrop-filter: blur(6px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  opacity: 0.55;
+}
+.theme-toggle:hover {
+  opacity: 1;
+  transform: scale(1.08);
+}
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--origin-glow, #4ff0d6);
+  outline-offset: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   3.18 — Print stylesheet
+   Hide navigation / auth / overlays; show only main content on
+   white background with black serif text.
+   ═══════════════════════════════════════════════════════════ */
+@media print {
+  /* Force a clean, readable print surface */
+  body, .app {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-family: Georgia, "Times New Roman", serif !important;
+  }
+  /* Hide everything that isn't core reading/writing content */
+  .topbar,
+  .spine,
+  .auth-btn,
+  .auth-user,
+  .auth-avatar,
+  .mode-toggle,
+  .instr-btn,
+  .theme-toggle,
+  .backdrop,
+  .veil,
+  .grain,
+  .progress-indicator,
+  .cumulative-error,
+  .journal-overlay,
+  .horizon-overlay,
+  .sharing-consent,
+  .portal,
+  .broadcast,
+  nav[aria-label="chapters"] {
+    display: none !important;
+  }
+  /* Expand the main stage to full width */
+  .stage, main {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  /* Ensure text is black and legible */
+  * {
+    color: #000000 !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+  a { text-decoration: underline; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   3.19 — Reduced motion
+   Disable all transitions and animations for users who prefer
+   reduced motion (vestibular disorders, accessibility).
+   ═══════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Chapter Completion Gate — blocks advancing until all writing is done
+   ═══════════════════════════════════════════════════════════ */
+.sj-transition--gated {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+.sj-gate-notice {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+.sj-gate-notice-icon {
+  color: var(--accent, #c89838);
+  opacity: 0.6;
+  margin-bottom: 0.75rem;
+}
+.sj-gate-notice-title {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.1rem;
+  color: var(--ink, #e8dcc6);
+  margin: 0 0 0.5rem;
+  font-style: italic;
+}
+.sj-gate-notice-body {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.85rem;
+  color: var(--ink, #e8dcc6);
+  opacity: 0.6;
+  line-height: 1.6;
+  margin: 0 0 1rem;
+}
+.sj-gate-notice-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.sj-gate-notice-count {
+  font-size: 0.75rem;
+  color: var(--accent, #c89838);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.sj-gate-notice-bar {
+  flex: 1;
+  height: 2px;
+  background: rgba(200, 152, 56, 0.15);
+  border-radius: 1px;
+  overflow: hidden;
+  display: block;
+}
+.sj-gate-notice-bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--accent, #c89838);
+  transition: width 0.4s ease;
+}
+.sj-gate-notice-hint {
+  font-size: 0.7rem;
+  color: var(--ink, #e8dcc6);
+  opacity: 0.35;
+  margin: 0;
+}
+
+/* ── Scroll lock: locked-gate beats + visual barrier ──────────────
+   A locked gate is a chapter-transition beat whose chapter is not yet
+   complete. The beat gets `.beat--locked-gate` (a subtle warning tint)
+   and, while the lock is active (`.beat-stage--locked`), a gradient
+   barrier renders at its bottom edge with a gentle pulse to signal
+   "you cannot cross here yet." */
+.beat--locked-gate {
+  position: relative;
+}
+.beat--locked-gate > .beat-content {
+  /* a whisper of warning — never loud enough to break the manuscript mood */
+  box-shadow: inset 0 0 120px 20px color-mix(in srgb, #b54838 8%, transparent);
+}
+
+/* The barrier lives at the very bottom of the locked beat. It is a
+   soft red→transparent gradient that reads as a sealed threshold, plus
+   a thin luminous line and a slow pulse so the eye finds it. */
+.beat-stage--locked .beat--locked-gate::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 14vh;
+  pointer-events: none;
+  z-index: 5;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    color-mix(in srgb, #b54838 14%, transparent) 60%,
+    color-mix(in srgb, #b54838 26%, transparent) 100%
+  );
+  animation: beat-lock-pulse 2.4s ease-in-out infinite;
+}
+.beat-stage--locked .beat--locked-gate::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 1px;
+  z-index: 6;
+  background: color-mix(in srgb, #b54838 55%, transparent);
+  pointer-events: none;
+  animation: beat-lock-line 2.4s ease-in-out infinite;
+}
+
+@keyframes beat-lock-pulse {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
+}
+@keyframes beat-lock-line {
+  0%, 100% { opacity: 0.4; box-shadow: 0 0 6px color-mix(in srgb, #b54838 40%, transparent); }
+  50%      { opacity: 0.85; box-shadow: 0 0 14px color-mix(in srgb, #b54838 70%, transparent); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .beat-stage--locked .beat--locked-gate::after,
+  .beat-stage--locked .beat--locked-gate::before {
+    animation: none;
+  }
+}
+
+/* ── "Return to your writing" CTA ─────────────────────────────────
+   Matches the manuscript aesthetic: serif, quiet, accent-tinted, with
+   a small upward arrow. Sits below the gate-notice hint. */
+.return-to-writing-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.55rem 1.1rem;
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--accent, #c89838) 45%, transparent);
+  border-radius: 2px;
+  color: var(--ink, #e8dcc6);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.82rem;
+  font-style: italic;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+}
+.return-to-writing-btn:hover {
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--accent, #c89838) 75%, transparent);
+  background: color-mix(in srgb, var(--accent, #c89838) 8%, transparent);
+}
+.return-to-writing-arrow {
+  font-size: 0.9rem;
+  line-height: 1;
+  color: var(--accent, #c89838);
+  animation: return-to-writing-bob 1.8s ease-in-out infinite;
+}
+.return-to-writing-label {
+  white-space: nowrap;
+}
+@keyframes return-to-writing-bob {
+  0%, 100% { transform: translateY(0); opacity: 0.7; }
+  50%      { transform: translateY(-3px); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .return-to-writing-arrow { animation: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Share buttons — journal, readings, synthesis
+   ═══════════════════════════════════════════════════════════ */
+.journal-share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: var(--accent, #c89838);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.7rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 2px;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+.journal-share-btn:hover {
+  opacity: 1;
+}
+.journal-share-btn svg {
+  flex-shrink: 0;
+}
+
+.reading-share-btn {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  color: var(--accent, #c89838);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 2px;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+}
+.reading-share-btn:hover {
+  opacity: 1;
+}
+
+.weave-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+.weave-share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid rgba(200, 152, 56, 0.3);
+  color: var(--accent, #c89838);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 4px 12px;
+  border-radius: 2px;
+  opacity: 0.7;
+  transition: opacity 0.2s ease, border-color 0.2s ease;
+}
+.weave-share-btn:hover {
+  opacity: 1;
+  border-color: var(--accent, #c89838);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Artifacts Panel — desktop right sidebar
+   "Artifacts Along The Journey"
+   A vertical sidebar with the manuscript aesthetic: dark
+   parchment, gold accents, Georgia serif.
+   ═══════════════════════════════════════════════════════════ */
+.artifacts-panel {
+  position: fixed;
+  top: 64px;
+  right: 0;
+  bottom: 0;
+  width: 280px;
+  z-index: 18;
+  display: flex;
+  flex-direction: column;
+  background: color-mix(in srgb, var(--bg) 88%, #000 12%);
+  border-left: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.18);
+  transition: transform .4s cubic-bezier(.3, 0, .3, 1), width .4s cubic-bezier(.3, 0, .3, 1);
+  overflow: hidden;
+}
+
+/* Collapsed state — just a thin tab on the right edge */
+.artifacts-panel--collapsed {
+  width: 36px;
+}
+.artifacts-panel--collapsed .artifacts-panel-header,
+.artifacts-panel--collapsed .artifacts-panel-body {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+.artifacts-panel--collapsed .artifacts-panel-toggle {
+  transform: translateX(0);
+}
+
+/* Toggle button — always visible; sits at the top-right of the panel */
+.artifacts-panel-toggle {
+  position: absolute;
+  top: 14px;
+  left: -18px;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--bg) 92%, #000 8%);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  color: var(--accent);
+  cursor: pointer;
+  transition: transform .3s, box-shadow .25s, background .25s;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+.artifacts-panel-toggle:hover {
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 40%, transparent);
+  background: color-mix(in srgb, var(--bg) 85%, var(--accent) 15%);
+}
+.artifacts-panel--collapsed .artifacts-panel-toggle svg {
+  transform: rotate(0deg);
+}
+.artifacts-panel-toggle svg {
+  transition: transform .3s;
+  transform: rotate(180deg);
+}
+.artifacts-panel--collapsed .artifacts-panel-toggle svg {
+  transform: rotate(0deg);
+}
+
+/* Header — the title "Artifacts Along The Journey" */
+.artifacts-panel-header {
+  padding: 26px 24px 18px;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  flex-shrink: 0;
+  transition: opacity .25s;
+}
+.artifacts-panel-eyebrow {
+  display: block;
+  font-family: var(--font-label);
+  font-size: 9px;
+  letter-spacing: .32em;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: .6;
+  margin-bottom: 6px;
+}
+.artifacts-panel-title {
+  font-family: var(--font-title);
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: .04em;
+  color: var(--ink);
+  margin: 0;
+  text-transform: none;
+}
+
+/* Body — scrollable container for sections */
+.artifacts-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 18px 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  transition: opacity .25s;
+  -webkit-overflow-scrolling: touch;
+}
+.artifacts-panel-body::-webkit-scrollbar { width: 4px; }
+.artifacts-panel-body::-webkit-scrollbar-track { background: transparent; }
+.artifacts-panel-body::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--accent) 25%, transparent);
+  border-radius: 2px;
+}
+
+/* Section — grouped controls */
+.artifacts-panel-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.artifacts-panel-section-label {
+  font-family: var(--font-label);
+  font-size: 9px;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: .4;
+}
+
+/* Buttons within the panel — full width, left-aligned */
+.artifacts-panel-btn {
+  flex-direction: row !important;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 8px 4px !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+  border-radius: 0;
+  opacity: .55;
+}
+.artifacts-panel-btn:hover {
+  opacity: .9;
+  border-bottom-color: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.artifacts-panel-btn-label {
+  font-family: var(--font-label);
+  font-size: 11px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+/* Mode toggle inside panel — full width */
+.artifacts-panel .mode-toggle {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 8px 12px;
+}
+
+/* Auth bar inside panel — align left */
+.artifacts-panel .auth-user,
+.artifacts-panel .auth-btn--signin {
+  align-self: flex-start;
+}
+
+/* ─── Action bar — mobile / tablet compact bar ──────────── */
+.action-bar {
+  position: fixed;
+  top: 56px;
+  left: 0;
+  right: 0;
+  z-index: 17;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  padding-top: max(6px, env(safe-area-inset-top, 6px));
+  background: color-mix(in srgb, var(--bg) 85%, #000 15%);
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  white-space: nowrap;
+}
+.action-bar::-webkit-scrollbar { display: none; }
+
+.action-bar-btn {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  flex-direction: row !important;
+  justify-content: center;
+  align-items: center;
+  padding: 0 !important;
+  border-radius: 8px;
+}
+.action-bar .mode-toggle {
+  flex-shrink: 0;
+  padding: 7px 10px;
+  border-radius: 999px;
+}
+.action-bar .auth-user,
+.action-bar .auth-btn--signin {
+  flex-shrink: 0;
+}
+
+/* ─── Responsive: desktop (≥1024px) ─────────────────────── */
+@media (min-width: 1024px) {
+  .artifacts-panel { display: flex; }
+  .action-bar { display: none; }
+  /* Reserve space for the open panel so content doesn't overlap */
+  .stage { padding-right: 300px; }
+  .stage:has(.artifacts-panel--collapsed) { padding-right: 56px; }
+}
+
+/* ─── Responsive: tablet / mobile (<1024px) ──────────────── */
+@media (max-width: 1023px) {
+  .artifacts-panel { display: none; }
+  .action-bar { display: flex; }
+  /* Push main content below the action bar */
+  .stage { padding-top: 8px; }
+}
+
+/* ─── Smaller mobile adjustments ────────────────────────── */
+@media (max-width: 600px) {
+  .action-bar {
+    top: 52px;
+    padding: 6px 12px;
+    gap: 4px;
+  }
+  .action-bar-btn {
+    width: 34px;
+    height: 34px;
+  }
+}
+
+/* ─── Print: hide both panel and action bar ──────────────── */
+@media print {
+  .artifacts-panel,
+  .action-bar {
+    display: none !important;
+  }
 }

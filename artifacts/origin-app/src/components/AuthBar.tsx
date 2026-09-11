@@ -1,7 +1,4 @@
-import { useUser, useClerk } from "@clerk/react";
-import { useLocation } from "wouter";
-
-const basePath = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
+import { useAuth } from '../auth/AuthContext';
 
 interface AuthBarProps {
   onMigrate?: () => void;
@@ -9,17 +6,15 @@ interface AuthBarProps {
 }
 
 export default function AuthBar({ onMigrate, hasMigrationPrompt }: AuthBarProps) {
-  const { user, isLoaded } = useUser();
-  const { openSignIn, signOut } = useClerk();
-  const [, setLocation] = useLocation();
+  const { ready, authenticated, user, login, logout } = useAuth();
 
-  if (!isLoaded) return null;
+  if (!ready) return null;
 
-  if (!user) {
+  if (!authenticated || !user) {
     return (
       <button
         className="auth-btn auth-btn--signin"
-        onClick={() => openSignIn({ fallbackRedirectUrl: `${basePath}/` })}
+        onClick={login}
         title="Sign in to save your journey"
       >
         <svg width="13" height="13" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -32,9 +27,7 @@ export default function AuthBar({ onMigrate, hasMigrationPrompt }: AuthBarProps)
     );
   }
 
-  const initials = user.firstName
-    ? user.firstName[0]
-    : (user.primaryEmailAddress?.emailAddress[0] ?? "?");
+  const initials = (user.name || user.email || user.phone || '?')[0]?.toUpperCase() || '?';
 
   return (
     <div className="auth-user">
@@ -45,18 +38,14 @@ export default function AuthBar({ onMigrate, hasMigrationPrompt }: AuthBarProps)
       )}
       <button
         className="auth-avatar"
-        title={`Signed in as ${user.primaryEmailAddress?.emailAddress ?? user.firstName}`}
+        title={`Signed in as ${user.email || user.phone || user.name}`}
         onClick={() => {
-          if (confirm("Sign out of The Origin?")) {
-            signOut(() => setLocation("/"));
+          if (confirm('Sign out of The Origin?')) {
+            logout();
           }
         }}
       >
-        {user.imageUrl ? (
-          <img src={user.imageUrl} alt={initials} className="auth-avatar-img" />
-        ) : (
-          <span className="auth-avatar-initials">{initials.toUpperCase()}</span>
-        )}
+        <span className="auth-avatar-initials">{initials}</span>
       </button>
     </div>
   );

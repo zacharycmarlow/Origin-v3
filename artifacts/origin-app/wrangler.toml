@@ -1,0 +1,16 @@
+name = "origin-app"
+pages_build_output_dir = "dist/public"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Environment variables for the frontend
+# Set via `wrangler pages secret put` or the dashboard
+[vars]
+VITE_API_PROXY_TARGET = ""  # Set to your Workers API URL in production
+VITE_CLERK_PUBLISHABLE_KEY = ""  # Set via dashboard or wrangler
+VITE_CLERK_PROXY_URL = ""  # Set if using Clerk proxy
+
+# Build command for Cloudflare Pages
+# The build is run by Pages CI, not by wrangler
+# [build]
+# command = "pnpm -F @workspace/origin-app build"

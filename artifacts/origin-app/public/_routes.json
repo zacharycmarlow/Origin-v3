@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "include": ["/*"],
+  "exclude": ["/assets/*", "/fonts/*", "/screens/*", "/textures/*", "/favicon.svg", "/logo.svg", "/opengraph.jpg", "/_routes.json"]
+}

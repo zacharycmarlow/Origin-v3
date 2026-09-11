@@ -1,18 +1,15 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   getStreamEntries, addStreamEntry, deleteStreamEntry, StreamEntry
 } from '../storage';
 import { Chapter } from '../chapters';
+import { useLocalSpeechRecognition } from '../hooks/useLocalSpeechRecognition';
 
 interface Props {
   onClose: () => void;
   chapters: Chapter[];
   currentCh: number;
 }
-
-const speechAvailable =
-  typeof window !== 'undefined' &&
-  !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
 
 function formatRelative(ts: number): string {
   const diff = Date.now() - ts;
@@ -29,12 +26,22 @@ function formatRelative(ts: number): string {
 
 export default function StreamOverlay({ onClose, chapters, currentCh }: Props) {
   const [text, setText] = useState('');
-  const [listening, setListening] = useState(false);
   const [entries, setEntries] = useState<StreamEntry[]>(() => getStreamEntries());
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
-  const recognitionRef = useRef<any>(null);
-  const baseRef = useRef<string>('');
+  /* Local Whisper transcription — works in Brave and other privacy-focused
+     browsers. Audio never leaves the device. The model (~40MB) loads
+     lazily on first use and caches. */
+  const handleSpeechResult = useCallback((transcribed: string) => {
+    setText(prev => {
+      const sep = prev && !/\s$/.test(prev) ? ' ' : '';
+      return prev + sep + transcribed;
+    });
+  }, []);
+  const {
+    listening, error: speechError, modelLoading, transcribing,
+    toggle: toggleSpeech, stop: stopSpeech,
+  } = useLocalSpeechRecognition(handleSpeechResult, { task: 'transcribe' });
   const taRef = useRef<HTMLTextAreaElement>(null);
 
   const sortedEntries = useMemo(
@@ -52,9 +59,8 @@ export default function StreamOverlay({ onClose, chapters, currentCh }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (listening) {
-          recognitionRef.current?.stop();
-          setListening(false);
+        if (listening || transcribing) {
+          stopSpeech();
         } else {
           onClose();
         }
@@ -62,59 +68,14 @@ export default function StreamOverlay({ onClose, chapters, currentCh }: Props) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onClose, listening]);
-
-  // Stop recognition cleanly on unmount.
-  useEffect(() => {
-    return () => {
-      try { recognitionRef.current?.stop(); } catch { /* noop */ }
-    };
-  }, []);
-
-  const toggleMic = () => {
-    if (listening) {
-      recognitionRef.current?.stop();
-      setListening(false);
-      return;
-    }
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) return;
-    const recognition = new SR();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognitionRef.current = recognition;
-    baseRef.current = text;
-
-    recognition.onresult = (event: any) => {
-      let finalChunk = '';
-      let interimChunk = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const t = event.results[i][0].transcript;
-        if (event.results[i].isFinal) finalChunk += t;
-        else interimChunk += t;
-      }
-      if (finalChunk) {
-        const sep = baseRef.current && !/\s$/.test(baseRef.current) ? ' ' : '';
-        baseRef.current = baseRef.current + sep + finalChunk.trim();
-      }
-      setText(baseRef.current + (interimChunk ? ' ' + interimChunk : ''));
-    };
-    recognition.onend = () => setListening(false);
-    recognition.onerror = () => setListening(false);
-    recognition.start();
-    setListening(true);
-  };
+  }, [onClose, listening, transcribing, stopSpeech]);
 
   const handleSave = () => {
     const trimmed = text.trim();
     if (!trimmed) return;
-    if (listening) {
-      try { recognitionRef.current?.stop(); } catch { /* noop */ }
-      setListening(false);
-    }
+    if (listening) stopSpeech();
     addStreamEntry(currentCh, trimmed);
     setText('');
-    baseRef.current = '';
     setEntries(getStreamEntries());
     taRef.current?.focus();
   };
@@ -161,40 +122,39 @@ export default function StreamOverlay({ onClose, chapters, currentCh }: Props) {
               ref={taRef}
               className="stream-input"
               value={text}
-              onChange={e => {
-                baseRef.current = e.target.value;
-                setText(e.target.value);
-              }}
+              onChange={e => setText(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="let it pour…"
               rows={6}
             />
-            {speechAvailable && (
-              <button
-                className={'stream-mic' + (listening ? ' is-listening' : '')}
-                onClick={toggleMic}
-                aria-label={listening ? 'Stop listening' : 'Speak'}
-                title={listening ? 'Stop' : 'Speak'}
-              >
-                {listening ? (
-                  <span className="stream-mic-pulse">
-                    <span /><span /><span />
-                  </span>
-                ) : (
-                  <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
-                    <rect x="7" y="2" width="6" height="10" rx="3" fill="none" stroke="currentColor" strokeWidth="1.3" />
-                    <path d="M4 10a6 6 0 0 0 12 0" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-                    <line x1="10" y1="16" x2="10" y2="18.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-                  </svg>
-                )}
-              </button>
-            )}
+            <button
+              className={'stream-mic' + (listening ? ' is-listening' : '')}
+              onClick={() => toggleSpeech()}
+              disabled={modelLoading || transcribing}
+              aria-label={listening ? 'Stop listening' : 'Speak'}
+              title={listening ? 'Stop' : (modelLoading ? 'Loading model…' : (transcribing ? 'Transcribing…' : 'Speak'))}
+            >
+              {listening ? (
+                <span className="stream-mic-pulse">
+                  <span /><span /><span />
+                </span>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+                  <rect x="7" y="2" width="6" height="10" rx="3" fill="none" stroke="currentColor" strokeWidth="1.3" />
+                  <path d="M4 10a6 6 0 0 0 12 0" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+                  <line x1="10" y1="16" x2="10" y2="18.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+                </svg>
+              )}
+            </button>
           </div>
 
           <div className="stream-actions">
             <span className="stream-hint">
-              {text ? `${wordCount} word${wordCount === 1 ? '' : 's'}` : (listening ? 'listening…' : '⌘/Ctrl + ↵ to save')}
+              {text ? `${wordCount} word${wordCount === 1 ? '' : 's'}` : (modelLoading ? 'loading model…' : (transcribing ? 'transcribing…' : (listening ? 'listening…' : '⌘/Ctrl + ↵ to save')))}
             </span>
+            {speechError && (
+              <span className="stream-hint" style={{ color: '#c44' }}>{speechError}</span>
+            )}
             <button
               className="stream-save"
               onClick={handleSave}

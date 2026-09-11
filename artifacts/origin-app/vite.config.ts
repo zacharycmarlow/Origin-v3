@@ -1,6 +1,8 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { VitePWA } from "vite-plugin-pwa";
+import { visualizer } from "rollup-plugin-visualizer";
 import path from "path";
 
 const rawPort = process.env.PORT;
@@ -30,22 +32,50 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    ...(process.env.NODE_ENV !== "production" &&
-    process.env.REPL_ID !== undefined
-      ? [
-          await import("@replit/vite-plugin-runtime-error-modal").then((m) =>
-            m.default(),
-          ),
-          await import("@replit/vite-plugin-cartographer").then((m) =>
-            m.cartographer({
-              root: path.resolve(import.meta.dirname, ".."),
-            }),
-          ),
-          await import("@replit/vite-plugin-dev-banner").then((m) =>
-            m.devBanner(),
-          ),
-        ]
-      : []),
+    VitePWA({
+      registerType: "autoUpdate",
+      manifest: {
+        name: "Origin · A Metamyth Journey",
+        short_name: "Origin",
+        description: "A seven-chapter guided self-discovery and journaling experience.",
+        theme_color: "#1a1510",
+        background_color: "#1a1510",
+        display: "standalone",
+        start_url: "/",
+        icons: [
+          {
+            src: "/favicon.svg",
+            sizes: "any",
+            type: "image/svg+xml",
+          },
+          {
+            src: "/favicon-32x32.png",
+            sizes: "32x32",
+            type: "image/png",
+          },
+          {
+            src: "/favicon-16x16.png",
+            sizes: "16x16",
+            type: "image/png",
+          },
+          {
+            src: "/apple-touch-icon.png",
+            sizes: "180x180",
+            type: "image/png",
+          },
+        ],
+      },
+      workbox: {
+        maximumFileSizeToCacheInBytes: 25 * 1024 * 1024,
+        globIgnores: ["**/assets/webllm-*.js", "**/assets/ort-wasm-*.wasm"],
+      },
+    }),
+    visualizer({
+      open: false,
+      filename: "dist/stats.html",
+      gzipSize: true,
+      brotliSize: true,
+    }),
   ],
   resolve: {
     alias: {
@@ -58,6 +88,19 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'wouter'],
+          'tiptap': ['@tiptap/react', '@tiptap/starter-kit', '@tiptap/extension-text-style', '@tiptap/extension-color', '@tiptap/extension-font-family', '@tiptap/extension-placeholder'],
+          'media': ['react-media-recorder', 'html-to-image'],
+          'pdfjs': ['pdfjs-dist'],
+          'tesseract': ['tesseract.js'],
+          'mammoth': ['mammoth'],
+          'webllm': ['@mlc-ai/web-llm'],
+        },
+      },
+    },
   },
   server: {
     port,
@@ -67,6 +110,17 @@ export default defineConfig({
       strict: true,
       deny: ["**/.*"],
     },
+    // Proxy /api requests to the API server in local dev.
+    ...(process.env.VITE_API_PROXY_TARGET
+      ? {
+          proxy: {
+            "/api": {
+              target: process.env.VITE_API_PROXY_TARGET,
+              changeOrigin: true,
+            },
+          },
+        }
+      : {}),
   },
   preview: {
     port,

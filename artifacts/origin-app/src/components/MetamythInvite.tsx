@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { useUser } from '@clerk/react';
+import { useAuth } from '../auth/AuthContext';
 
 const METAMYTH_URL = import.meta.env.VITE_METAMYTH_URL as string | undefined;
 
 export default function MetamythInvite() {
-  const { user } = useUser();
-  const [email, setEmail] = useState(user?.primaryEmailAddress?.emailAddress ?? '');
+  const { user } = useAuth();
+  const [email, setEmail] = useState(user?.email ?? '');
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);

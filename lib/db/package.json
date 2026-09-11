@@ -5,11 +5,14 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./schema": "./src/schema/index.ts"
+    "./schema": "./src/schema/index.ts",
+    "./d1": "./src/d1.ts",
+    "./schema-d1": "./src/schema-d1/index.ts"
   },
   "scripts": {
     "push": "drizzle-kit push --config ./drizzle.config.ts",
-    "push-force": "drizzle-kit push --force --config ./drizzle.config.ts"
+    "push-force": "drizzle-kit push --force --config ./drizzle.config.ts",
+    "generate-d1": "drizzle-kit generate --config ./drizzle-d1.config.ts"
   },
   "dependencies": {
     "drizzle-orm": "catalog:",

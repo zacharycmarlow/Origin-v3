@@ -1,6 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { load, save } from '../storage';
+import { useLocalSpeechRecognition } from '../hooks/useLocalSpeechRecognition';
+import { extractTextFromFile, insertTextIntoEditor } from '../utils/fileTextExtractor';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import { TextStyleKit } from '@tiptap/extension-text-style';
+import { Highlight } from '@tiptap/extension-highlight';
+import { TextAlign } from '@tiptap/extension-text-align';
+import { Placeholder } from '@tiptap/extension-placeholder';
+import VideoRecorder from './VideoRecorder';
 
 /* ═══════════════════════════════════════════════════════════════
    THE WRITING PAGE — the full-screen writing surface.
@@ -10,13 +19,93 @@ import { load, save } from '../storage';
    commits to answering, the whole screen becomes the page. The
    question shrinks to a quiet line at the top, the chrome recedes
    while typing, and the tools (voice, a photo of a handwritten
-   page, Morpho) sit at the bottom edge within reach but out of
-   the way.
+   page, Morpho, video, rich text formatting) sit at the bottom
+   edge within reach but out of the way.
+
+   Rich text via TipTap (MIT): bold, italic, font family, text color.
+   Speech via Web Speech API with error feedback.
+   Video recording via react-media-recorder (MIT).
 
    Rendered through document.body via createPortal — the beats use
    transforms for the melt, and a transformed ancestor traps
    position:fixed.
    ═══════════════════════════════════════════════════════════════ */
+
+const FONT_OPTIONS = [
+  // ── System fonts (no download needed) ──
+  { label: 'System Sans', value: 'system-ui, sans-serif' },
+  { label: 'Georgia', value: 'Georgia, serif' },
+  { label: 'Times', value: '"Times New Roman", serif' },
+  { label: 'Courier', value: '"Courier New", monospace' },
+  // ── Sans-serif (Google Fonts, OFL/MIT) ──
+  { label: 'Inter', value: 'Inter, sans-serif' },
+  { label: 'DM Sans', value: '"DM Sans", sans-serif' },
+  { label: 'Work Sans', value: '"Work Sans", sans-serif' },
+  { label: 'Manrope', value: 'Manrope, sans-serif' },
+  { label: 'Outfit', value: 'Outfit, sans-serif' },
+  { label: 'Sora', value: 'Sora, sans-serif' },
+  { label: 'Space Grotesk', value: '"Space Grotesk", sans-serif' },
+  // ── Serif (Google Fonts, OFL) ──
+  { label: 'Lora', value: 'Lora, serif' },
+  { label: 'Playfair Display', value: '"Playfair Display", serif' },
+  { label: 'Crimson Pro', value: '"Crimson Pro", serif' },
+  { label: 'EB Garamond', value: '"EB Garamond", serif' },
+  { label: 'Cormorant', value: '"Cormorant Garamond", serif' },
+  { label: 'Merriweather', value: 'Merriweather, serif' },
+  { label: 'Spectral', value: 'Spectral, serif' },
+  { label: 'Source Serif', value: '"Source Serif 4", serif' },
+  { label: 'Fraunces', value: 'Fraunces, serif' },
+  { label: 'Newsreader', value: 'Newsreader, serif' },
+  { label: 'Libre Bodoni', value: '"Libre Bodoni", serif' },
+  { label: 'Bitter', value: 'Bitter, serif' },
+  // ── Handwriting / Script (Google Fonts, OFL) ──
+  { label: 'Caveat', value: 'Caveat, cursive' },
+  { label: 'Dancing Script', value: '"Dancing Script", cursive' },
+  { label: 'Sacramento', value: 'Sacramento, cursive' },
+  { label: 'Homemade Apple', value: '"Homemade Apple", cursive' },
+  { label: 'Shadows Into Light', value: '"Shadows Into Light", cursive' },
+  // ── Monospace (Google Fonts, OFL) ──
+  { label: 'JetBrains Mono', value: '"JetBrains Mono", monospace' },
+  { label: 'Fira Code', value: '"Fira Code", monospace' },
+  { label: 'Space Mono', value: '"Space Mono", monospace' },
+];
+
+const COLOR_OPTIONS = ['#4a3a24', '#c89838', '#8a5a24', '#4ff0d6', '#888888'];
+const HIGHLIGHT_OPTIONS = ['#f5e6c8', '#ffd54f', '#c8e6c9', '#b3e5fc', '#f8bbd0'];
+
+/* Languages for the multilingual Whisper model.
+   '' = auto-detect — Whisper identifies the spoken language. */
+const SPEECH_LANGS: { label: string; value: string }[] = [
+  { label: 'Auto-detect', value: '' },
+  { label: 'English', value: 'en' },
+  { label: 'Español', value: 'es' },
+  { label: 'Français', value: 'fr' },
+  { label: 'Deutsch', value: 'de' },
+  { label: 'Português', value: 'pt' },
+  { label: 'Italiano', value: 'it' },
+  { label: 'Nederlands', value: 'nl' },
+  { label: 'Polski', value: 'pl' },
+  { label: 'Svenska', value: 'sv' },
+  { label: 'Türkçe', value: 'tr' },
+  { label: 'Русский', value: 'ru' },
+  { label: 'Українська', value: 'uk' },
+  { label: 'Čeština', value: 'cs' },
+  { label: '日本語', value: 'ja' },
+  { label: '한국어', value: 'ko' },
+  { label: '中文', value: 'zh' },
+  { label: 'हिन्दी', value: 'hi' },
+  { label: 'العربية', value: 'ar' },
+  { label: 'עברית', value: 'he' },
+  { label: ' فارسی', value: 'fa' },
+  { label: 'اردو', value: 'ur' },
+  { label: 'বাংলা', value: 'bn' },
+  { label: 'Tiếng Việt', value: 'vi' },
+  { label: 'ไทย', value: 'th' },
+  { label: 'Indonesia', value: 'id' },
+  { label: 'Filipino', value: 'tl' },
+  { label: 'Swahili', value: 'sw' },
+  { label: 'Yorùbá', value: 'yo' },
+];
 
 interface Props {
   open: boolean;
@@ -29,44 +118,87 @@ interface Props {
   onMorpho?: () => void;
 }
 
-const speechAvailable =
-  typeof window !== 'undefined' &&
-  !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
-
 export default function WritingPage({
   open, onClose, sceneKey, question, detail, placeholder, eyebrow, onMorpho,
 }: Props) {
-  const [val, setVal] = useState<string>(() => {
-    const stored = load()[sceneKey];
-    return typeof stored === 'string' ? stored : '';
-  });
-  const [listening, setListening] = useState(false);
   const [typing, setTyping] = useState(false);
   const [photo, setPhoto] = useState<string | null>(null);
+  const [showVideoRecorder, setShowVideoRecorder] = useState(false);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [showFormatBar, setShowFormatBar] = useState(false);
+  const [savedWordCount, setSavedWordCount] = useState(0);
+  const [speechLang, setSpeechLang] = useState('');
+  const [fileExtracting, setFileExtracting] = useState(false);
+  const [fileExtractStatus, setFileExtractStatus] = useState<string | null>(null);
 
-  const areaRef = useRef<HTMLTextAreaElement>(null);
-  const recognitionRef = useRef<any>(null);
-  const finalBaseRef = useRef<string>('');
-  const wantListeningRef = useRef(false);
   const typingTimer = useRef<number | undefined>(undefined);
+  const editorRef = useRef<HTMLDivElement>(null);
 
-  /* autosave */
-  useEffect(() => {
-    const t = setTimeout(() => save(sceneKey, val), 300);
-    return () => clearTimeout(t);
-  }, [val, sceneKey]);
+  /* Load stored content — supports both old plain-text and new HTML. */
+  const storedVal = (() => {
+    const stored = load()[sceneKey];
+    return typeof stored === 'string' ? stored : '';
+  })();
 
-  /* re-read stored value whenever the page opens (another surface may
-     have written to the same key since mount) */
+  /* TipTap rich text editor. */
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      // TextStyleKit bundles TextStyle, Color, FontFamily, FontSize,
+      // BackgroundColor, and LineHeight — all MIT, all from TipTap core.
+      TextStyleKit.configure({
+        fontSize: { types: ['heading', 'paragraph'] },
+      }),
+      Highlight.configure({ multicolor: true }),
+      TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      Placeholder.configure({
+        placeholder: placeholder || 'write here…',
+      }),
+    ],
+    content: storedVal,
+    editorProps: {
+      attributes: {
+        class: 'wp-editor',
+        spellcheck: 'true',
+      },
+    },
+    onUpdate: ({ editor }) => {
+      markTyping();
+      const html = editor.getHTML();
+      // Autosave
+      const t = setTimeout(() => save(sceneKey, html), 300);
+      return () => clearTimeout(t);
+    },
+  }, [sceneKey, placeholder]);
+
+  /* Speech recognition — uses local Whisper model (Transformers.js)
+     so it works in Brave and other privacy-focused browsers that block
+     the Web Speech API's remote server calls. Audio never leaves the
+     device. The model (~40MB) loads lazily on first use and caches. */
+  const handleSpeechResult = useCallback((text: string) => {
+    if (editor) {
+      // Insert text at current cursor position, replacing any selection
+      editor.chain().focus().insertContent(text + ' ').run();
+    }
+  }, [editor]);
+
+  const {
+    listening, error: speechError, modelLoading, transcribing,
+    toggle: toggleSpeech, stop: stopSpeech,
+  } = useLocalSpeechRecognition(handleSpeechResult, {
+    language: speechLang || undefined,
+    task: 'transcribe',
+  });
+
+  /* Re-read stored value whenever the page opens. */
   useEffect(() => {
-    if (!open) return;
+    if (!open || !editor) return;
     const stored = load()[sceneKey];
     const next = typeof stored === 'string' ? stored : '';
-    setVal(next);
-    finalBaseRef.current = next;
-    const t = setTimeout(() => areaRef.current?.focus(), 60);
+    editor.commands.setContent(next || '<p></p>');
+    const t = setTimeout(() => editor.commands.focus(), 60);
     return () => clearTimeout(t);
-  }, [open, sceneKey]);
+  }, [open, sceneKey, editor]);
 
   /* lock the page behind it; Esc closes */
   useEffect(() => {
@@ -81,68 +213,23 @@ export default function WritingPage({
     };
   }, [open, onClose]);
 
-  const stopListening = useCallback(() => {
-    wantListeningRef.current = false;
-    try { recognitionRef.current?.stop(); } catch { /* already stopped */ }
-    setListening(false);
-  }, []);
-
   /* stop dictation when the page closes */
-  useEffect(() => { if (!open) stopListening(); }, [open, stopListening]);
+  useEffect(() => { if (!open) stopSpeech(); }, [open, stopSpeech]);
 
-  /* Voice. The known failure mode is the browser silently ending the
-     session after a pause (or ~60s), which drops dictation mid-thought.
-     onend restarts it whenever the writer hasn't actually asked to stop. */
-  const startRecognition = useCallback(() => {
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) return;
-    const recognition = new SR();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognitionRef.current = recognition;
-
-    recognition.onresult = (event: any) => {
-      let finalChunk = '';
-      let interimChunk = '';
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const text = event.results[i][0].transcript;
-        if (event.results[i].isFinal) finalChunk += text;
-        else interimChunk += text;
-      }
-      if (finalChunk) {
-        const sep = finalBaseRef.current && !/\s$/.test(finalBaseRef.current) ? ' ' : '';
-        finalBaseRef.current = finalBaseRef.current + sep + finalChunk.trim();
-      }
-      setVal(finalBaseRef.current + (interimChunk ? ' ' + interimChunk : ''));
+  /* Update word count when editor changes */
+  useEffect(() => {
+    if (!editor) return;
+    const updateCount = () => {
+      const text = editor.getText();
+      const count = text.trim().split(/\s+/).filter(Boolean).length;
+      setSavedWordCount(count);
     };
+    editor.on('update', updateCount);
+    updateCount();
+    return () => { editor.off('update', updateCount); };
+  }, [editor]);
 
-    recognition.onend = () => {
-      if (wantListeningRef.current) {
-        // session ended on its own — stitch a new one on so long
-        // dictation doesn't silently die mid-sentence
-        try { recognition.start(); } catch { setListening(false); }
-      } else {
-        setListening(false);
-      }
-    };
-    recognition.onerror = (e: any) => {
-      if (e?.error === 'not-allowed' || e?.error === 'service-not-allowed') {
-        wantListeningRef.current = false;
-        setListening(false);
-      }
-    };
-
-    try { recognition.start(); } catch { /* already running */ }
-  }, []);
-
-  const toggleMic = () => {
-    if (listening) { stopListening(); return; }
-    finalBaseRef.current = val;
-    wantListeningRef.current = true;
-    setListening(true);
-    startRecognition();
-  };
-
+  /* Photo upload — shows the image in the writing page. */
   const onPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -152,15 +239,64 @@ export default function WritingPage({
     e.target.value = '';
   };
 
+  /* File upload (PDF, DOCX, images of handwritten notes, text files) —
+     extracts text and inserts it into the editor. All processing is
+     in-browser: OCR via tesseract.js, PDF via pdfjs-dist, DOCX via mammoth. */
+  const onFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+
+    setFileExtracting(true);
+    setFileExtractStatus(`Extracting text from ${file.name}…`);
+
+    try {
+      const result = await extractTextFromFile(file);
+
+      // If it's an image, also show it as a photo
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = () => setPhoto(typeof reader.result === 'string' ? reader.result : null);
+        reader.readAsDataURL(file);
+      }
+
+      if (result.text) {
+        if (editor) {
+          insertTextIntoEditor(editor, result.text);
+        }
+        setFileExtractStatus(null);
+      } else {
+        setFileExtractStatus('No text found in this file.');
+        setTimeout(() => setFileExtractStatus(null), 4000);
+      }
+    } catch (err: any) {
+      console.error('File extraction error:', err);
+      setFileExtractStatus(err?.message || 'Could not extract text from this file.');
+      setTimeout(() => setFileExtractStatus(null), 6000);
+    } finally {
+      setFileExtracting(false);
+    }
+  };
+
   const markTyping = () => {
     setTyping(true);
     window.clearTimeout(typingTimer.current);
     typingTimer.current = window.setTimeout(() => setTyping(false), 1600);
   };
 
-  if (!open) return null;
+  const handleVideoRecorded = useCallback((_blob: Blob, url: string) => {
+    setVideoUrl(url);
+    setShowVideoRecorder(false);
+  }, []);
 
-  const words = val.trim().split(/\s+/).filter(Boolean).length;
+  /* When video audio is transcribed, insert the text into the editor. */
+  const handleVideoTranscribed = useCallback((text: string) => {
+    if (editor && text) {
+      editor.chain().focus().insertContent(text + ' ').run();
+    }
+  }, [editor]);
+
+  if (!open) return null;
 
   return createPortal(
     <div className="writing-page" data-typing={typing ? 'true' : 'false'} role="dialog" aria-modal="true">
@@ -171,43 +307,220 @@ export default function WritingPage({
           {detail && <p className="wp-detail">{detail}</p>}
         </header>
 
-        <textarea
-          ref={areaRef}
-          className="wp-area"
-          value={val}
-          onChange={e => {
-            finalBaseRef.current = e.target.value;
-            setVal(e.target.value);
-            markTyping();
-          }}
-          placeholder={placeholder || 'write here…'}
-          spellCheck
-        />
+        <div className="wp-editor-wrap" ref={editorRef}>
+          <EditorContent editor={editor} />
+        </div>
 
         {photo && (
           <div className="wp-photo">
-            <img src={photo} alt="the page you photographed" />
+            <img src={photo} alt="the page you photographed" loading="lazy" />
             <button className="wp-photo-drop" onClick={() => setPhoto(null)} aria-label="remove photo">×</button>
+          </div>
+        )}
+
+        {videoUrl && (
+          <div className="wp-video">
+            <video src={videoUrl} controls />
+            <button className="wp-photo-drop" onClick={() => setVideoUrl(null)} aria-label="remove video">×</button>
           </div>
         )}
       </div>
 
+      {/* Rich text format bar — slides in when the format button is tapped */}
+      {showFormatBar && editor && (
+        <div className="wp-format-bar">
+          <button
+            className={'wp-fmt-btn' + (editor.isActive('bold') ? ' wp-fmt-btn--active' : '')}
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            title="Bold"
+            aria-label="Bold"
+          >
+            <strong>B</strong>
+          </button>
+          <button
+            className={'wp-fmt-btn' + (editor.isActive('italic') ? ' wp-fmt-btn--active' : '')}
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            title="Italic"
+            aria-label="Italic"
+          >
+            <em>I</em>
+          </button>
+          <button
+            className={'wp-fmt-btn' + (editor.isActive('underline') ? ' wp-fmt-btn--active' : '')}
+            onClick={() => editor.chain().focus().toggleUnderline().run()}
+            title="Underline"
+            aria-label="Underline"
+          >
+            <u>U</u>
+          </button>
+          <button
+            className={'wp-fmt-btn' + (editor.isActive('strike') ? ' wp-fmt-btn--active' : '')}
+            onClick={() => editor.chain().focus().toggleStrike().run()}
+            title="Strikethrough"
+            aria-label="Strikethrough"
+          >
+            <s>S</s>
+          </button>
+          <div className="wp-fmt-divider" />
+          <select
+            className="wp-fmt-select wp-font-select"
+            value={editor.getAttributes('fontFamily').fontFamily || ''}
+            onChange={e => editor.chain().focus().setFontFamily(e.target.value).run()}
+            title="Font"
+          >
+            <option value="">Default font</option>
+            <optgroup label="System">
+              {FONT_OPTIONS.filter(f => ['System Sans','Georgia','Times','Courier'].includes(f.label)).map(f => (
+                <option key={f.label} value={f.value}>{f.label}</option>
+              ))}
+            </optgroup>
+            <optgroup label="Sans-serif">
+              {FONT_OPTIONS.filter(f => ['Inter','DM Sans','Work Sans','Manrope','Outfit','Sora','Space Grotesk'].includes(f.label)).map(f => (
+                <option key={f.label} value={f.value}>{f.label}</option>
+              ))}
+            </optgroup>
+            <optgroup label="Serif">
+              {FONT_OPTIONS.filter(f => ['Lora','Playfair Display','Crimson Pro','EB Garamond','Cormorant','Merriweather','Spectral','Source Serif','Fraunces','Newsreader','Libre Bodoni','Bitter'].includes(f.label)).map(f => (
+                <option key={f.label} value={f.value}>{f.label}</option>
+              ))}
+            </optgroup>
+            <optgroup label="Handwriting">
+              {FONT_OPTIONS.filter(f => ['Caveat','Dancing Script','Sacramento','Homemade Apple','Shadows Into Light'].includes(f.label)).map(f => (
+                <option key={f.label} value={f.value}>{f.label}</option>
+              ))}
+            </optgroup>
+            <optgroup label="Monospace">
+              {FONT_OPTIONS.filter(f => ['JetBrains Mono','Fira Code','Space Mono'].includes(f.label)).map(f => (
+                <option key={f.label} value={f.value}>{f.label}</option>
+              ))}
+            </optgroup>
+          </select>
+          <select
+            className="wp-fmt-select"
+            value={editor.getAttributes('fontSize').fontSize || ''}
+            onChange={e => {
+              const v = e.target.value;
+              if (v) editor.chain().focus().setFontSize(v).run();
+              else editor.chain().focus().unsetFontSize().run();
+            }}
+            title="Font size"
+          >
+            <option value="">Size</option>
+            <option value="12px">12</option>
+            <option value="14px">14</option>
+            <option value="16px">16</option>
+            <option value="18px">18</option>
+            <option value="20px">20</option>
+            <option value="24px">24</option>
+            <option value="28px">28</option>
+            <option value="32px">32</option>
+            <option value="40px">40</option>
+            <option value="48px">48</option>
+          </select>
+          <div className="wp-fmt-divider" />
+          {COLOR_OPTIONS.map(color => (
+            <button
+              key={color}
+              className={'wp-fmt-color' + (editor.getAttributes('textStyle').color === color ? ' wp-fmt-color--active' : '')}
+              style={{ background: color }}
+              onClick={() => editor.chain().focus().setColor(color).run()}
+              title={`Text color ${color}`}
+              aria-label={`Text color ${color}`}
+            />
+          ))}
+          <button
+            className="wp-fmt-color wp-fmt-color--reset"
+            onClick={() => editor.chain().focus().unsetColor().run()}
+            title="Reset color"
+            aria-label="Reset color"
+          >
+            ×
+          </button>
+          <div className="wp-fmt-divider" />
+          {HIGHLIGHT_OPTIONS.map(color => (
+            <button
+              key={color}
+              className={'wp-fmt-color' + (editor.isActive('highlight', { color }) ? ' wp-fmt-color--active' : '')}
+              style={{ background: color }}
+              onClick={() => editor.chain().focus().toggleHighlight({ color }).run()}
+              title={`Highlight ${color}`}
+              aria-label={`Highlight ${color}`}
+            />
+          ))}
+          <button
+            className="wp-fmt-color wp-fmt-color--reset"
+            onClick={() => editor.chain().focus().unsetHighlight().run()}
+            title="Reset highlight"
+            aria-label="Reset highlight"
+          >
+            ×
+          </button>
+          <div className="wp-fmt-divider" />
+          <button
+            className={'wp-fmt-btn' + (editor.isActive({ textAlign: 'left' }) ? ' wp-fmt-btn--active' : '')}
+            onClick={() => editor.chain().focus().setTextAlign('left').run()}
+            title="Align left"
+            aria-label="Align left"
+          >
+            ⬅
+          </button>
+          <button
+            className={'wp-fmt-btn' + (editor.isActive({ textAlign: 'center' }) ? ' wp-fmt-btn--active' : '')}
+            onClick={() => editor.chain().focus().setTextAlign('center').run()}
+            title="Align center"
+            aria-label="Align center"
+          >
+            ⬄
+          </button>
+          <button
+            className={'wp-fmt-btn' + (editor.isActive({ textAlign: 'right' }) ? ' wp-fmt-btn--active' : '')}
+            onClick={() => editor.chain().focus().setTextAlign('right').run()}
+            title="Align right"
+            aria-label="Align right"
+          >
+            ➡
+          </button>
+        </div>
+      )}
+
       <div className="wp-bar">
         <div className="wp-tools">
-          {speechAvailable && (
-            <button
-              className={'wp-tool' + (listening ? ' wp-tool--live' : '')}
-              onClick={toggleMic}
-              aria-label={listening ? 'stop dictation' : 'speak'}
-              title={listening ? 'stop dictation' : 'speak'}
-            >
-              <svg width="19" height="19" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <rect x="7" y="1" width="6" height="11" rx="3" fill="currentColor" />
-                <path d="M4 10a6 6 0 0 0 12 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" />
-                <line x1="10" y1="16" x2="10" y2="19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              </svg>
-            </button>
-          )}
+          <button
+            className={'wp-tool' + (listening ? ' wp-tool--live' : '')}
+            onClick={() => toggleSpeech()}
+            disabled={modelLoading || transcribing}
+            aria-label={listening ? 'stop dictation' : 'speak'}
+            title={listening ? 'stop dictation' : 'speak'}
+          >
+            <svg width="19" height="19" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <rect x="7" y="1" width="6" height="11" rx="3" fill="currentColor" />
+              <path d="M4 10a6 6 0 0 0 12 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+              <line x1="10" y1="16" x2="10" y2="19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          </button>
+          <select
+            className="wp-lang-select"
+            value={speechLang}
+            onChange={e => setSpeechLang(e.target.value)}
+            disabled={listening || modelLoading}
+            title="Speech language"
+            aria-label="Speech language"
+          >
+            {SPEECH_LANGS.map(l => (
+              <option key={l.value || 'auto'} value={l.value}>{l.label}</option>
+            ))}
+          </select>
+
+          <button
+            className={'wp-tool' + (showFormatBar ? ' wp-tool--active' : '')}
+            onClick={() => setShowFormatBar(s => !s)}
+            title="format text"
+            aria-label="format text"
+          >
+            <svg width="19" height="19" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M3 5h14M3 10h14M3 15h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          </button>
 
           <label className="wp-tool" title="photograph a page" aria-label="photograph a page">
             <svg width="19" height="19" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -217,6 +530,36 @@ export default function WritingPage({
             </svg>
             <input type="file" accept="image/*" capture="environment" onChange={onPhoto} hidden />
           </label>
+
+          <label
+            className={'wp-tool' + (fileExtracting ? ' wp-tool--live' : '')}
+            title="upload a file (PDF, DOCX, image, video, or audio)"
+            aria-label="upload a file"
+          >
+            <svg width="19" height="19" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M10 14V3M6 7l4-4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              <path d="M3 13v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+            </svg>
+            <input
+              type="file"
+              accept=".pdf,.docx,.txt,.md,image/*,video/*,audio/*"
+              onChange={onFileUpload}
+              hidden
+            />
+          </label>
+
+          <button
+            className="wp-tool"
+            onClick={() => setShowVideoRecorder(true)}
+            title="record a video reflection"
+            aria-label="record a video reflection"
+          >
+            <svg width="19" height="19" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <rect x="1.5" y="4.5" width="13" height="11" rx="2" stroke="currentColor" strokeWidth="1.4" />
+              <path d="M14.5 8.5l4-2.5v8l-4-2.5" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" fill="none" />
+              <circle cx="8" cy="10" r="2" fill="currentColor" opacity="0.3" />
+            </svg>
+          </button>
 
           {onMorpho && (
             <button className="wp-tool" onClick={onMorpho} title="turn this into story" aria-label="turn this into story">
@@ -229,11 +572,34 @@ export default function WritingPage({
         </div>
 
         <div className="wp-status">
-          {listening ? <span className="wp-live">listening</span> : val ? <span>{`saved · ${words} words`}</span> : null}
+          {fileExtractStatus ? (
+            <span className={fileExtractStatus.includes('rror') || fileExtractStatus.includes('ould not') || fileExtractStatus.includes('No text') ? 'wp-error' : 'wp-live'}>
+              {fileExtractStatus}
+            </span>
+          ) : speechError ? (
+            <span className="wp-error">{speechError}</span>
+          ) : transcribing ? (
+            <span className="wp-live">transcribing…</span>
+          ) : modelLoading ? (
+            <span className="wp-live">loading speech model…</span>
+          ) : listening ? (
+            <span className="wp-live">recording — tap to stop &amp; transcribe</span>
+          ) : savedWordCount > 0 ? (
+            <span>{`saved · ${savedWordCount} words`}</span>
+          ) : null}
         </div>
 
         <button className="wp-done" onClick={onClose}>done</button>
       </div>
+
+      {showVideoRecorder && (
+        <VideoRecorder
+          open={showVideoRecorder}
+          onClose={() => setShowVideoRecorder(false)}
+          onRecorded={handleVideoRecorded}
+          onTranscribed={handleVideoTranscribed}
+        />
+      )}
     </div>,
     document.body,
   );
